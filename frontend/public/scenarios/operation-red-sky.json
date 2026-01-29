@@ -1,0 +1,147 @@
+{
+  "id": "RED_SKY_001",
+  "title": "Operation Red Sky",
+  "description": "Multi-stage forensic investigation simulating a construction fraud case",
+  "difficulty": "intermediate",
+  "estimatedDuration": "15 minutes",
+  "steps": [
+    {
+      "id": "step_1",
+      "trigger": "ANOMALY_DETECTED",
+      "title": "Phase 1: Budget Anomaly Detection",
+      "description": "System auto-detected 45% budget burn with only 12% reported physical progress on Project Nexus.",
+      "requiredTool": "/forensic/analytics/predictive",
+      "toolName": "Predictive AI",
+      "expectedAction": "VIEW_RISK_SCORE",
+      "hints": [
+        "Navigate to the Predictive AI tool using the notification action button",
+        "Enter project ID: ZENITH-001",
+        "Review the leakage probability and risk indicators"
+      ],
+      "eventToPublish": {
+        "type": "PROJECT_STALLED",
+        "payload": {
+          "projectId": "ZENITH-001",
+          "progress": 12,
+          "burn": 45
+        }
+      }
+    },
+    {
+      "id": "step_2",
+      "trigger": "VENDOR_IDENTIFIED",
+      "title": "Phase 2: High-Risk Vendor Identification",
+      "description": "Vendor 'CV. BINTANG TIMUR' appears in transaction ledger with unusual payment patterns.",
+      "requiredTool": "/legal/screening",
+      "toolName": "Sanction Screening",
+      "expectedAction": "RUN_SANCTION_CHECK",
+      "hints": [
+        "Use the notification to navigate to Sanction Screening",
+        "Enter vendor name: CV. BINTANG TIMUR",
+        "Check if entity appears on watchlists"
+      ],
+      "eventToPublish": {
+        "type": "VENDOR_SUSPICIOUS",
+        "payload": {
+          "vendorName": "CV. BINTANG TIMUR",
+          "riskScore": 0.87
+        }
+      }
+    },
+    {
+      "id": "step_3",
+      "trigger": "PROGRESS_MISMATCH",
+      "title": "Phase 3: Satellite Verification",
+      "description": "Vendor claims 'Foundation 100% Complete' but financial records show questionable material procurement.",
+      "requiredTool": "/forensic/satellite",
+      "toolName": "Satellite Delta Verification",
+      "expectedAction": "VERIFY_SITE_PROGRESS",
+      "hints": [
+        "Launch Satellite Verification from the recommended tools",
+        "Input project ID: ZENITH-001",
+        "Compare reported vs. detected progress percentages"
+      ],
+      "eventToPublish": {
+        "type": "SATELLITE_DISCREPANCY",
+        "payload": {
+          "projectId": "ZENITH-001",
+          "reported": 100,
+          "detected": 15
+        }
+      }
+    },
+    {
+      "id": "step_4",
+      "trigger": "OFFSHORE_DETECTED",
+      "title": "Phase 4: Asset Recovery Initiation",
+      "description": "Funds traced to offshore shell company 'GLOBAL HOLDINGS LTD' in British Virgin Islands.",
+      "requiredTool": "/forensic/recovery",
+      "toolName": "Cross-Chain Asset Tracer",
+      "expectedAction": "TRACE_CAPITAL_FLOW",
+      "hints": [
+        "Navigate to Asset Recovery tool",
+        "Enter project ID to initiate trace",
+        "Identify recoverable assets in the flow diagram"
+      ],
+      "eventToPublish": {
+        "type": "OFFSHORE_TRANSFER",
+        "payload": {
+          "amount": 350000000,
+          "destination": "GLOBAL HOLDINGS LTD (BVI)"
+        }
+      }
+    },
+    {
+      "id": "step_5",
+      "trigger": "ASSETS_LOCATED",
+      "title": "Phase 5: Asset Seizure",
+      "description": "Luxury property and crypto wallet identified. Prepare for legal asset freeze.",
+      "requiredTool": "/forensic/assets",
+      "toolName": "Asset Seizure Cabinet",
+      "expectedAction": "FREEZE_ASSETS",
+      "hints": [
+        "Open Asset Seizure workspace",
+        "Review discovered assets",
+        "Click the lock icon to freeze high-value items"
+      ],
+      "eventToPublish": {
+        "type": "ASSET_DISCOVERED",
+        "payload": {
+          "name": "Villa Sentosa (Jakarta Selatan)",
+          "value": 150000000
+        }
+      }
+    },
+    {
+      "id": "step_6",
+      "trigger": "INVESTIGATION_COMPLETE",
+      "title": "Phase 6: Dossier Generation",
+      "description": "Compile all findings into a court-ready legal dossier.",
+      "requiredTool": "/forensic/assets",
+      "toolName": "Dossier Generator",
+      "expectedAction": "GENERATE_REPORT",
+      "hints": [
+        "Scroll to the Dossier Generator component",
+        "Click 'Generate Investigation Dossier'",
+        "Review the comprehensive PDF report"
+      ],
+      "eventToPublish": null
+    }
+  ],
+  "learningObjectives": [
+    "Understand the forensic investigation workflow from detection to asset seizure",
+    "Learn when to use each specialized forensic tool",
+    "Experience event-driven navigation and context preservation",
+    "Master the Dossier compilation process for legal proceedings"
+  ],
+  "successCriteria": {
+    "toolsUsed": [
+      "Predictive AI",
+      "Sanction Screening",
+      "Satellite Delta Verification",
+      "Cross-Chain Asset Tracer",
+      "Asset Seizure Cabinet"
+    ],
+    "minimumActionsCompleted": 5
+  }
+}

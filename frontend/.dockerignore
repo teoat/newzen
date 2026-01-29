@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.gitignore
+.env.local
+.env
+npm-debug.log
+lint-results.json
+eslint-report.json
+*.log
