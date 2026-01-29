@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: zenith_backend
+    ports:
+      - "8200:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql://zenith:zenith@db:5432/zenith_lite
+      - SECRET_KEY=changesme_in_prod_please
+    depends_on:
+      - db
+    networks:
+      - zenith_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: zenith_frontend
+    ports:
+      - "3200:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8200
+    depends_on:
+      - backend
+    networks:
+      - zenith_net
+    # Command to run dev server in container if we prefer
+    command: npm run dev
+
+  db:
+    image: postgres:15-alpine
+    container_name: zenith_db
+    environment:
+      - POSTGRES_USER=zenith
+      - POSTGRES_PASSWORD=zenith
+      - POSTGRES_DB=zenith_lite
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5442:5432"
+    networks:
+      - zenith_net
+
+networks:
+  zenith_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

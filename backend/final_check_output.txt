@@ -1,0 +1,12 @@
+Final Transaction Count: 11
+ - Bapa Banda - Tree/Pikul Cost: 5250000.0
+ - Operational Gas: 1200000.0
+ - Makan Keluarga: 450000.0
+ - Vendor Payment A: 3000000.0
+ - Field Voucher B: 2000000.0
+ - Uang Muka Payment: 5000000000.0
+ - Concrete Batch 1: 1000000000.0
+ - Concrete Batch 2: 1000000000.0
+ - Concrete Batch 3 (Inflated): 1125000000.0
+ - Termin 1 Payment (Diverted): 2500000000.0
+ - Material Procurement - Concrete: 1200000000.0

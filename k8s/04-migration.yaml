@@ -1,0 +1,22 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: zenith-migration
+  namespace: zenith-lite
+spec:
+  template:
+    spec:
+      containers:
+        - name: migration
+          image: zenith-lite-backend:latest
+          command: ["python", "migrate_and_seed.py"]
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zenith-secrets
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: postgresql://zenith:$(POSTGRES_PASSWORD)@db:5432/zenith_lite
+      restartPolicy: OnFailure
+  backoffLimit: 4

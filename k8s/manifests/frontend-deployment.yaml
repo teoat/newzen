@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: zenith-lite
+  labels:
+    app: frontend
+    tier: edge
+spec:
+  replicas: 2  # Increased from 1 for HA
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: edge
+    spec:
+      # ============================================
+      # AFFINITY: Target Edge Tier
+      # ============================================
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: workload-tier
+                operator: In
+                values:
+                - edge
+        # Spread pods across different nodes
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - frontend
+            topologyKey: kubernetes.io/hostname
+      
+      # ============================================
+      # TOLERATION: Allow scheduling on tainted nodes
+      # ============================================
+      tolerations:
+      - key: "workload-tier"
+        operator: "Equal"
+        value: "edge"
+        effect: "NoSchedule"
+      
+      containers:
+      - name: frontend
+        image: zenith-lite-frontend:v2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 2000
+          name: http
+          protocol: TCP
+        
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://backend:8000"
+        - name: NODE_ENV
+          value: "production"
+        
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 2000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 2000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+      
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

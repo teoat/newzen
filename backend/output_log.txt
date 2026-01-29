@@ -1,0 +1,2 @@
+Audit Logs after: 1
+LOG: [FORENSIC_FLAG] Transaction ccad8012-8566-4bff-9a10-8286fa396817 changed status from pending to flagged | Reason: Penggelembungan: 2300000.0 IDR variance

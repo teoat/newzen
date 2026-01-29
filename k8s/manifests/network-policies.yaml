@@ -1,0 +1,151 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: data-tier-isolation
+  namespace: zenith-lite
+spec:
+  podSelector:
+    matchLabels:
+      tier: data
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Only allow compute tier to access data tier
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: compute
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow internal communication within data tier
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: data
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: compute-tier-isolation
+  namespace: zenith-lite
+spec:
+  podSelector:
+    matchLabels:
+      tier: compute
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow edge tier to access compute tier (API requests)
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: edge
+    ports:
+    - protocol: TCP
+      port: 8000  # Backend API
+  # Allow compute tier internal communication (for batch jobs)
+  - from:
+    - podSelector:
+        matchLabels:
+          tier: compute
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow access to data tier
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: data
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow compute tier internal communication
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: compute
+  # Allow external API calls (if needed)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: edge-tier-isolation
+  namespace: zenith-lite
+spec:
+  podSelector:
+    matchLabels:
+      tier: edge
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow all ingress to edge tier (public-facing)
+  - {}
+  egress:
+  # Allow DNS
+  - to:
+    - namespaceSelector: {}
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+  # Allow access to compute tier
+  - to:
+    - podSelector:
+        matchLabels:
+          tier: compute
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow external calls (CDN, APIs)
+  - to:
+    - namespaceSelector: {}
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# Default deny-all for pods without tier labels
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-untagged
+  namespace: zenith-lite
+spec:
+  podSelector:
+    matchExpressions:
+    - key: tier
+      operator: DoesNotExist
+  policyTypes:
+  - Ingress
+  - Egress

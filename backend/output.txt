@@ -1,0 +1,6 @@
+Transactions count: 5
+ - Bapa Banda - Tree/Pikul Cost: 5250000.0
+ - Operational Gas: 1200000.0
+ - Makan Keluarga: 450000.0
+ - Vendor Payment A: 3000000.0
+ - Field Voucher B: 2000000.0

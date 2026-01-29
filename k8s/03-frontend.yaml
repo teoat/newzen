@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: zenith-lite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: zenith-lite-frontend:latest
+          imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "2Gi"
+          ports:
+            - containerPort: 3000
+          env:
+            # Server-side calls (Next.js -> Backend) use internal K8s DNS
+            - name: API_URL
+              value: "http://backend:8200"
+            # Client-side calls (Browser -> Next.js) use relative paths (proxy via Next.js rewrites)
+            - name: NEXT_PUBLIC_API_URL
+              value: ""
+          readinessProbe:
+            httpGet:
+              path: /api/health # Or a valid endpoint
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: zenith-lite
+spec:
+  selector:
+    app: frontend
+  type: LoadBalancer # Or NodePort for Minikube
+  ports:
+    - port: 3200
+      targetPort: 3000

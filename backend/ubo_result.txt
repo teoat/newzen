@@ -1,0 +1,30 @@
+2026-01-28 15:50:21,462 INFO sqlalchemy.engine.Engine BEGIN (implicit)
+2026-01-28 15:50:21,486 INFO sqlalchemy.engine.Engine SELECT entity.id, entity.name, entity.type, entity.risk_score, entity.is_watchlisted, entity.metadata_json, entity.created_at 
+FROM entity 
+WHERE entity.name = ?
+2026-01-28 15:50:21,486 INFO sqlalchemy.engine.Engine [generated in 0.00041s] ('PT Mega Construction',)
+Resolving UBO for PT Mega Construction (0955d3f0-75a2-424c-8999-be57e4966402)...
+2026-01-28 15:50:21,489 INFO sqlalchemy.engine.Engine SELECT corporaterelationship.id, corporaterelationship.parent_entity_id, corporaterelationship.child_entity_id, corporaterelationship.relationship_type, corporaterelationship.stake_percentage, corporaterelationship.confirmed_at, corporaterelationship.discovery_source, corporaterelationship.metadata_json 
+FROM corporaterelationship 
+WHERE corporaterelationship.child_entity_id = ?
+2026-01-28 15:50:21,489 INFO sqlalchemy.engine.Engine [generated in 0.00030s] ('0955d3f0-75a2-424c-8999-be57e4966402',)
+2026-01-28 15:50:21,491 INFO sqlalchemy.engine.Engine SELECT entity.id AS entity_id, entity.name AS entity_name, entity.type AS entity_type, entity.risk_score AS entity_risk_score, entity.is_watchlisted AS entity_is_watchlisted, entity.metadata_json AS entity_metadata_json, entity.created_at AS entity_created_at 
+FROM entity 
+WHERE entity.id = ?
+2026-01-28 15:50:21,491 INFO sqlalchemy.engine.Engine [generated in 0.00015s] ('ecdfaa59-1fdf-42a8-9e71-72dbe2ee0696',)
+2026-01-28 15:50:21,492 INFO sqlalchemy.engine.Engine SELECT entity.id AS entity_id, entity.name AS entity_name, entity.type AS entity_type, entity.risk_score AS entity_risk_score, entity.is_watchlisted AS entity_is_watchlisted, entity.metadata_json AS entity_metadata_json, entity.created_at AS entity_created_at 
+FROM entity 
+WHERE entity.id = ?
+2026-01-28 15:50:21,492 INFO sqlalchemy.engine.Engine [cached since 0.0008426s ago] ('1bfbc32f-4ef4-47cf-8b1c-0b1a3bbd7a7c',)
+2026-01-28 15:50:21,492 INFO sqlalchemy.engine.Engine SELECT corporaterelationship.id, corporaterelationship.parent_entity_id, corporaterelationship.child_entity_id, corporaterelationship.relationship_type, corporaterelationship.stake_percentage, corporaterelationship.confirmed_at, corporaterelationship.discovery_source, corporaterelationship.metadata_json 
+FROM corporaterelationship 
+WHERE corporaterelationship.child_entity_id = ?
+2026-01-28 15:50:21,492 INFO sqlalchemy.engine.Engine [cached since 0.003856s ago] ('1bfbc32f-4ef4-47cf-8b1c-0b1a3bbd7a7c',)
+2026-01-28 15:50:21,493 INFO sqlalchemy.engine.Engine SELECT entity.id AS entity_id, entity.name AS entity_name, entity.type AS entity_type, entity.risk_score AS entity_risk_score, entity.is_watchlisted AS entity_is_watchlisted, entity.metadata_json AS entity_metadata_json, entity.created_at AS entity_created_at 
+FROM entity 
+WHERE entity.id = ?
+2026-01-28 15:50:21,493 INFO sqlalchemy.engine.Engine [cached since 0.002032s ago] ('ecdfaa59-1fdf-42a8-9e71-72dbe2ee0696',)
+UBO Found: Director X | Stake: 60.0% | Candidate: True
+UBO Found: Director X | Stake: 40.0% | Candidate: True
+  Path: via PT Global Supplies
+2026-01-28 15:50:21,495 INFO sqlalchemy.engine.Engine ROLLBACK

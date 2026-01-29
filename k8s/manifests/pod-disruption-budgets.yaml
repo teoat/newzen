@@ -1,0 +1,55 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend-pdb
+  namespace: zenith-lite
+  labels:
+    app: backend
+spec:
+  minAvailable: 2  # Ensure at least 2 backend pods during disruptions
+  selector:
+    matchLabels:
+      app: backend
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend-pdb
+  namespace: zenith-lite
+  labels:
+    app: frontend
+spec:
+  minAvailable: 1  # Ensure at least 1 frontend pod during disruptions
+  selector:
+    matchLabels:
+      app: frontend
+  unhealthyPodEvictionPolicy: IfHealthyBudget
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres-pdb
+  namespace: zenith-lite
+  labels:
+    app: postgres
+spec:
+  minAvailable: 1  # Protect the primary database
+  selector:
+    matchLabels:
+      app: postgres
+  unhealthyPodEvictionPolicy: AlwaysAllow  # Allow eviction if unhealthy
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: nginx-pdb
+  namespace: default
+  labels:
+    app: nginx
+spec:
+  minAvailable: 1  # Ensure at least 1 nginx pod during disruptions
+  selector:
+    matchLabels:
+      app: nginx
+  unhealthyPodEvictionPolicy: IfHealthyBudget

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: zenith-lite
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: zenith-lite-backend:latest
+          imagePullPolicy: Never
+          resources:
+            requests:
+              cpu: "500m"      # AI models need significant CPU for inference
+              memory: "1Gi"
+            limits:
+              cpu: "2000m"     # Allow bursting for scan operations
+              memory: "4Gi"    # High limit for sentence-transformers models
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: zenith-secrets
+                  key: postgres-password
+            - name: DATABASE_URL
+              value: postgresql://zenith:$(POSTGRES_PASSWORD)@db:5432/zenith_lite
+            - name: SECRET_KEY
+
+              valueFrom:
+                secretKeyRef:
+                  name: zenith-secrets
+                  key: backend-secret-key
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health # Use dedicated health check
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: zenith-lite
+spec:
+  selector:
+    app: backend
+  ports:
+    - port: 8200
+      targetPort: 8000

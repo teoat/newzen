@@ -1,0 +1,191 @@
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshotClass
+metadata:
+  name: postgres-snapshot-class
+  annotations:
+    snapshot.storage.kubernetes.io/is-default-class: "true"
+driver: hostpath.csi.k8s.io  # For kind cluster; use appropriate CSI driver in production
+deletionPolicy: Retain
+parameters:
+  csi.storage.k8s.io/snapshotter-secret-name: ""
+  csi.storage.k8s.io/snapshotter-secret-namespace: ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: zenith-lite
+data:
+  backup-postgres.sh: |
+    #!/bin/bash
+    # Automated PostgreSQL backup script
+    
+    set -e
+    
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    NAMESPACE="zenith-lite"
+    PVC_NAME="postgres-pvc"
+    SNAPSHOT_NAME="postgres-snapshot-${TIMESTAMP}"
+    
+    echo "Creating volume snapshot: ${SNAPSHOT_NAME}"
+    
+    cat <<EOF | kubectl apply -f -
+    apiVersion: snapshot.storage.k8s.io/v1
+    kind: VolumeSnapshot
+    metadata:
+      name: ${SNAPSHOT_NAME}
+      namespace: ${NAMESPACE}
+    spec:
+      volumeSnapshotClassName: postgres-snapshot-class
+      source:
+        persistentVolumeClaimName: ${PVC_NAME}
+    EOF
+    
+    echo "Waiting for snapshot to be ready..."
+    kubectl wait --for=jsonpath='{.status.readyToUse}'=true \
+      volumesnapshot/${SNAPSHOT_NAME} -n ${NAMESPACE} --timeout=300s
+    
+    echo "✅ Snapshot created successfully: ${SNAPSHOT_NAME}"
+    echo "To restore: kubectl apply -f restore-from-snapshot.yaml"
+  
+  restore-postgres.sh: |
+    #!/bin/bash
+    # Restore PostgreSQL from snapshot
+    
+    set -e
+    
+    if [ -z "$1" ]; then
+      echo "Usage: $0 <snapshot-name>"
+      echo "Available snapshots:"
+      kubectl get volumesnapshots -n zenith-lite
+      exit 1
+    fi
+    
+    SNAPSHOT_NAME=$1
+    NAMESPACE="zenith-lite"
+    RESTORE_PVC="postgres-pvc-restore"
+    
+    echo "⚠️  Warning: This will create a new PVC from snapshot: ${SNAPSHOT_NAME}"
+    echo "You must manually update the deployment to use: ${RESTORE_PVC}"
+    read -p "Continue? (y/n) " -n 1 -r
+    echo
+    
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo "Restore cancelled"
+      exit 0
+    fi
+    
+    cat <<EOF | kubectl apply -f -
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: ${RESTORE_PVC}
+      namespace: ${NAMESPACE}
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      dataSource:
+        name: ${SNAPSHOT_NAME}
+        kind: VolumeSnapshot
+        apiGroup: snapshot.storage.k8s.io
+    EOF
+    
+    echo "✅ Restore PVC created: ${RESTORE_PVC}"
+    echo "Next steps:"
+    echo "  1. Scale down postgres deployment: kubectl scale deployment postgres -n zenith-lite --replicas=0"
+    echo "  2. Update deployment to use new PVC: ${RESTORE_PVC}"
+    echo "  3. Scale up postgres deployment: kubectl scale deployment postgres -n zenith-lite --replicas=1"
+  
+  list-snapshots.sh: |
+    #!/bin/bash
+    # List all PostgreSQL snapshots
+    
+    echo "PostgreSQL Volume Snapshots:"
+    kubectl get volumesnapshots -n zenith-lite -o custom-columns=\
+    NAME:.metadata.name,\
+    READY:.status.readyToUse,\
+    SIZE:.status.restoreSize,\
+    AGE:.metadata.creationTimestamp
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgres-backup
+  namespace: zenith-lite
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: backup-sa
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              SNAPSHOT_NAME="postgres-snapshot-${TIMESTAMP}"
+              
+              cat <<EOF | kubectl apply -f -
+              apiVersion: snapshot.storage.k8s.io/v1
+              kind: VolumeSnapshot
+              metadata:
+                name: ${SNAPSHOT_NAME}
+                namespace: zenith-lite
+              spec:
+                volumeSnapshotClassName: postgres-snapshot-class
+                source:
+                  persistentVolumeClaimName: postgres-pvc
+              EOF
+              
+              kubectl wait --for=jsonpath='{.status.readyToUse}'=true \
+                volumesnapshot/${SNAPSHOT_NAME} -n zenith-lite --timeout=300s
+              
+              echo "✅ Backup snapshot created: ${SNAPSHOT_NAME}"
+              
+              # Clean up old snapshots (keep last 7)
+              kubectl get volumesnapshots -n zenith-lite --sort-by=.metadata.creationTimestamp \
+                -o name | grep postgres-snapshot | head -n -7 | xargs -r kubectl delete -n zenith-lite
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backup-sa
+  namespace: zenith-lite
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-role
+  namespace: zenith-lite
+rules:
+- apiGroups: ["snapshot.storage.k8s.io"]
+  resources: ["volumesnapshots"]
+  verbs: ["get", "list", "create", "delete"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-rolebinding
+  namespace: zenith-lite
+subjects:
+- kind: ServiceAccount
+  name: backup-sa
+  namespace: zenith-lite
+roleRef:
+  kind: Role
+  name: backup-role
+  apiGroup: rbac.authorization.k8s.io
