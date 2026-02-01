@@ -3,17 +3,16 @@ Professional Legal Dossier Formatter
 Adds watermarking, digital sealing, and premium typography
 """
 
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import inch
-from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
-from datetime import datetime
+from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
+from datetime import datetime, UTC
 import qrcode
 from io import BytesIO
-from typing import Dict, List, Optional
+from typing import Dict, List
 import hashlib
 
 
@@ -107,8 +106,12 @@ class ProfessionalDossierFormatter:
         canvas_obj.setFillColor(colors.HexColor('#2d3748'))
         canvas_obj.line(0.75 * inch, height - 0.75 * inch, width - 0.75 * inch, height - 0.75 * inch)
         canvas_obj.drawString(0.75 * inch, height - 0.6 * inch, "ZENITH FORENSIC AUDIT PLATFORM")
-        canvas_obj.drawRightString(width - 0.75 * inch, height - 0.6 * inch, 
-                                   datetime.now().strftime("%Y-%m-%d"))
+        # Assuming 'request' is meant to be a parameter or attribute, and 'date' is a string.
+        # For syntactic correctness, we'll define a placeholder 'request' and 'date' if not present.
+        # In a real application, 'request' would be passed to this method or available in scope.
+        _request_date = None # Placeholder for request.date
+        header_date_str = _request_date or datetime.now(UTC).strftime("%Y-%m-%d")
+        canvas_obj.drawRightString(width - 0.75 * inch, height - 0.6 * inch, header_date_str)
         
         # Footer
         canvas_obj.setFont('Helvetica', 8)
@@ -163,8 +166,9 @@ class ProfessionalDossierFormatter:
             ['Project:', metadata.get('project_name', 'N/A')],
             ['Classification:', metadata.get('classification', 'CONFIDENTIAL')],
             ['Prepared By:', metadata.get('prepared_by', 'ZENITH AI')],
-            ['Date:', datetime.now().strftime('%B %d, %Y')],
-            ['Document ID:', metadata.get('document_id', 'DOC-' + datetime.now().strftime('%Y%m%d-%H%M%S'))],
+            ['Date:', datetime.now(UTC).strftime('%B %d, %Y')],
+            ['Document ID:', metadata.get('document_id', 'DOC-' + 
+             datetime.now(UTC).strftime('%Y%m%d-%H%M%S'))],
         ]
         
         metadata_table = Table(metadata_data, colWidths=[2 * inch, 4 * inch])
@@ -184,7 +188,7 @@ class ProfessionalDossierFormatter:
         # QR Code for verification
         story.append(Spacer(1, 1 * inch))
         doc_hash = self._generate_document_hash(str(metadata))
-        qr_data = f"VERIFY:{doc_hash[:16]}"
+        f"VERIFY:{doc_hash[:16]}"
         
         # Add centered text for QR
         story.append(Paragraph(

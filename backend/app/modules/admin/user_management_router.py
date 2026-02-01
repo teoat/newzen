@@ -1,118 +1,179 @@
+from typing import List
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from typing import List, Dict, Any
 from app.core.db import get_session
-from app.models import User, UserProjectAccess, ProjectRole, AuditLog
-from pydantic import BaseModel
-
-
 from app.core.auth_middleware import verify_project_admin
-from app.core.security import get_current_user
+from app.models import (
+    UserProjectAccess,
+    User,
+    ProjectRole,
+    Notification,
+    NotificationType
+)
 
-router = APIRouter(prefix="/admin", tags=["User Management"])
 
-class GrantAccessRequest(BaseModel):
+# --- DTOs ---
+class ProjectAccessCreate(BaseModel):
     user_id: str
-    project_id: str
     role: ProjectRole = ProjectRole.VIEWER
 
 
-@router.get("/project/{project_id}/users", response_model=List[Dict[str, Any]])
+class ProjectAccessUpdate(BaseModel):
+    role: ProjectRole
+
+
+class UserAccessResponse(BaseModel):
+    user_id: str
+    username: str
+    full_name: str
+    role: ProjectRole
+    granted_at: str
+
+
+# --- Router ---
+router = APIRouter(
+    prefix="/admin",
+    tags=["User Management"],
+    responses={404: {"description": "Not found"}},
+)
+
+
+@router.get(
+    "/project/{project_id}/users",
+    response_model=List[UserAccessResponse]
+)
 async def list_project_users(
     project_id: str,
-    db: Session = Depends(get_session),
-    _admin: Any = Depends(verify_project_admin)
+    current_user: User = Depends(verify_project_admin),
+    db: Session = Depends(get_session)
 ):
-    """List users who have access to a specific project."""
-    statement = (
-        select(User, UserProjectAccess.role)
-        .join(UserProjectAccess)
+    """
+    List all users with access to a specific project.
+    Only Project Admins can view this list.
+    """
+    # SAFETY: Join using proper ON clause
+    stmt = (
+        select(UserProjectAccess, User)
         .where(UserProjectAccess.project_id == project_id)
+        .join(User, User.id == UserProjectAccess.user_id)
     )
-    results = db.exec(statement).all()
-    return [{"user": r[0], "role": r[1]} for r in results]
+    results = db.exec(stmt).all()
+
+    response_data = []
+    for access, user in results:
+        response_data.append(UserAccessResponse(
+            user_id=user.id or "",
+            username=user.username,
+            full_name=user.full_name,
+            role=access.role,
+            granted_at=access.granted_at.isoformat()
+        ))
+
+    return response_data
 
 
-@router.post("/project/access")
+@router.post("/project/{project_id}/users")
 async def grant_project_access(
-    request: GrantAccessRequest,
-    db: Session = Depends(get_session),
-    current_admin: User = Depends(verify_project_admin)
+    project_id: str,
+    access_data: ProjectAccessCreate,
+    current_user: User = Depends(verify_project_admin),
+    db: Session = Depends(get_session)
 ):
-    """Grant a user access to a project."""
-    # Check if access already exists
-    existing = db.exec(
-        select(UserProjectAccess).where(
-            UserProjectAccess.user_id == request.user_id,
-            UserProjectAccess.project_id == request.project_id,
+    """Grant a user access to the project."""
+    # SAFETY: Verify user exists
+    user_to_add = db.get(User, access_data.user_id)
+    if not user_to_add:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
         )
-    ).first()
 
-    action = "UPDATE_ACCESS" if existing else "GRANT_ACCESS"
-    old_role = existing.role if existing else None
-
-    if existing:
-        existing.role = request.role
-        db.add(existing)
-    else:
-        new_access = UserProjectAccess(
-            user_id=request.user_id, project_id=request.project_id, role=request.role
-        )
-        db.add(new_access)
-
-    # Create Audit Log
-    audit = AuditLog(
-        entity_type="ProjectAccess",
-        entity_id=f"{request.project_id}:{request.user_id}",
-        action=action,
-        field_name="role",
-        old_value=str(old_role) if old_role else None,
-        new_value=str(request.role),
-        changed_by_user_id=current_admin.id,
-        change_reason="Admin update via User Management UI"
+    # SAFETY: Check if access already exists
+    existing_access = db.get(
+        UserProjectAccess,
+        (access_data.user_id, project_id)
     )
-    db.add(audit)
+    if existing_access:
+        raise HTTPException(
+            status_code=400,
+            detail="User already has access to this project"
+        )
+
+    # Create Access
+    new_access = UserProjectAccess(
+        user_id=access_data.user_id,
+        project_id=project_id,
+        role=access_data.role,
+        granted_by_id=current_user.id
+    )
+    db.add(new_access)
+
+    # AUDIT: Notification trail
+    msg = (
+        f"You have been granted {access_data.role} "
+        f"access to Project {project_id}"
+    )
+    db.add(Notification(
+        user_id=access_data.user_id,
+        project_id=project_id,
+        type=NotificationType.INFO,
+        title="Project Access Granted",
+        message=msg
+    ))
 
     db.commit()
-    return {"status": "success", "message": f"Access granted to project {request.project_id}"}
+    db.refresh(new_access)
+    return {"message": "Access granted successfully"}
 
 
-@router.delete("/project/{project_id}/user/{user_id}")
+@router.delete("/project/{project_id}/users/{user_id}")
 async def revoke_project_access(
     project_id: str,
     user_id: str,
-    db: Session = Depends(get_session),
-    current_admin: User = Depends(verify_project_admin)
+    current_user: User = Depends(verify_project_admin),
+    db: Session = Depends(get_session)
 ):
-    """Revoke a user's access to a project."""
-    access = db.exec(
-        select(UserProjectAccess).where(
-            UserProjectAccess.user_id == user_id, UserProjectAccess.project_id == project_id
+    """
+    Revoke user access.
+    PROHIBITED: Admin cannot revoke own access.
+    """
+    # SAFETY: Prevent admin self-lockout
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=400,
+            detail="SAFETY: Cannot revoke your own admin access."
         )
-    ).first()
 
+    access = db.get(UserProjectAccess, (user_id, project_id))
     if not access:
-        raise HTTPException(status_code=404, detail="Access record not found")
-
-    # Create Audit Log
-    audit = AuditLog(
-        entity_type="ProjectAccess",
-        entity_id=f"{project_id}:{user_id}",
-        action="REVOKE_ACCESS",
-        old_value=str(access.role),
-        changed_by_user_id=current_admin.id,
-        change_reason="Admin revocation via User Management UI"
-    )
-    db.add(audit)
+        raise HTTPException(
+            status_code=404,
+            detail="Access record not found"
+        )
 
     db.delete(access)
     db.commit()
-    return {"status": "success", "message": "Access revoked"}
+    return {"message": "Access revoked successfully"}
 
-@router.get("/users", response_model=List[User])
-async def list_all_users(
-    db: Session = Depends(get_session),
-    _user: Any = Depends(get_current_user)
+
+@router.patch("/project/{project_id}/users/{user_id}")
+async def update_user_role(
+    project_id: str,
+    user_id: str,
+    update_data: ProjectAccessUpdate,
+    current_user: User = Depends(verify_project_admin),
+    db: Session = Depends(get_session)
 ):
-    """List all users in the system (requires global login)."""
-    return db.exec(select(User)).all()
+    """Change a user's role."""
+    access = db.get(UserProjectAccess, (user_id, project_id))
+    if not access:
+        raise HTTPException(
+            status_code=404,
+            detail="Access record not found"
+        )
+
+    access.role = update_data.role
+    db.add(access)
+    db.commit()
+    return {"message": "Role updated successfully"}

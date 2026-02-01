@@ -62,7 +62,7 @@ export const ForensicNotificationProvider = ({ children }: { children?: ReactNod
         // Only import and use in client side
         if (typeof window === 'undefined') return;
 
-        import('@/lib/ForensicEventBus').then(({ forensicBus }) => {
+        import('../lib/ForensicEventBus').then(({ forensicBus }) => {
             const subscriptions: string[] = [];
 
             // Subscribe to each event type

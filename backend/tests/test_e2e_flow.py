@@ -15,7 +15,7 @@ def auth_headers():
     return {"Authorization": "Bearer mock_token"}
 
 
-def test_batch_job_submission_flow():
+def test_batch_job_submission_flow(auth_headers):
     """
     Test the lifecycle of submitting a batch job.
     """
@@ -29,10 +29,10 @@ def test_batch_job_submission_flow():
     # Note: Adjust endpoint if prefix is different. Currently /api/v1/project or /project?
     # project_router prefix is /project, likely mounted under /api/v1?
     # Assuming standard mounting. If fails, we'll check main.py.
-    proj_response = client.post("/project/", json=project_payload)
+    proj_response = client.post("/project/", json=project_payload, headers=auth_headers)
     if proj_response.status_code == 404:
         # Try /api/v1/project/
-        proj_response = client.post("/api/v1/project/", json=project_payload)
+        proj_response = client.post("/api/v1/project/", json=project_payload, headers=auth_headers)
 
     # If project creation fails (e.g. auth), we might need to handle it
     assert proj_response.status_code == 200, f"Project creation failed: {proj_response.text}"
@@ -46,9 +46,9 @@ def test_batch_job_submission_flow():
     }
     # 1. Submit Job
     # Check both paths just in case
-    response = client.post("/api/v1/batch-jobs/submit", json=payload)
+    response = client.post("/api/v1/batch-jobs/submit", json=payload, headers=auth_headers)
     if response.status_code == 404:
-        response = client.post("/batch-jobs/submit", json=payload)
+        response = client.post("/batch-jobs/submit", json=payload, headers=auth_headers)
 
     if response.status_code == 401:  # Auth required
         pytest.skip("Authentication required for batch submission, skipping for now")
@@ -57,18 +57,18 @@ def test_batch_job_submission_flow():
     assert "job_id" in data
     job_id = data["job_id"]
     # 2. Check Status
-    response = client.get(f"/api/v1/batch-jobs/{job_id}")
+    response = client.get(f"/api/v1/batch-jobs/{job_id}", headers=auth_headers)
     if response.status_code == 404:
-        response = client.get(f"/batch-jobs/{job_id}")
+        response = client.get(f"/batch-jobs/{job_id}", headers=auth_headers)
 
     assert response.status_code == 200
     status_data = response.json()
     assert status_data["id"] == job_id
     assert status_data["status"] in ["pending", "processing", "completed"]
     # 3. List Jobs
-    response = client.get(f"/api/v1/batch-jobs/?project_id={project_id}")
+    response = client.get(f"/api/v1/batch-jobs/?project_id={project_id}", headers=auth_headers)
     if response.status_code == 404:
-        response = client.get(f"/batch-jobs/?project_id={project_id}")
+        response = client.get(f"/batch-jobs/?project_id={project_id}", headers=auth_headers)
 
     assert response.status_code == 200
     jobs = response.json()
@@ -76,7 +76,7 @@ def test_batch_job_submission_flow():
     assert jobs[0]["id"] == job_id
 
 
-def test_alert_generation_flow():
+def test_alert_generation_flow(auth_headers):
     """
     Test that events trigger alerts which are retrievable via API.
     """
@@ -100,7 +100,7 @@ def test_alert_generation_flow():
     # seems to run checks on-demand when GET /alerts is called,
     # OR it might rely on background tasks.
     # Let's verify GET /alerts
-    response = client.get(f"/api/v1/ai/alerts?project_id={project_id}")
+    response = client.get(f"/api/v1/ai/alerts?project_id={project_id}", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     # Since ProactiveMonitor logic might be complex and depend effectively on DB state

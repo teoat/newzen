@@ -6,7 +6,7 @@ Provides multi-currency conversion and exchange rate endpoints
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, UTC
 from app.core.currency_converter import get_currency_converter
 
 router = APIRouter(prefix="/api/v1/currency", tags=["Currency"])
@@ -78,7 +78,7 @@ async def convert_currency(request: CurrencyConvertRequest):
             rate=rate,
             from_currency=request.from_currency,
             to_currency=request.to_currency,
-            date=request.date or datetime.now().strftime("%Y-%m-%d")
+            date=request.date or datetime.now(UTC).strftime("%Y-%m-%d")
         )
         
     except ValueError as e:
@@ -113,7 +113,7 @@ async def get_exchange_rates(
         return ExchangeRatesResponse(
             base_currency=base,
             rates=rates,
-            last_updated=datetime.now().isoformat()
+            last_updated=datetime.now(UTC).isoformat()
         )
         
     except Exception as e:

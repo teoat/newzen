@@ -1,0 +1,194 @@
+[
+  {
+    "category": "Environment",
+    "test": "Hardcoded secret key",
+    "status": "WARN",
+    "details": "Found in backend/.env: SECRET_KEY=***MASKED***",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:39.082805"
+  },
+  {
+    "category": "Environment",
+    "test": "Hardcoded API key",
+    "status": "WARN",
+    "details": "Found in backend/.env: API_KEY=***MASKED***",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:39.082920"
+  },
+  {
+    "category": "Environment",
+    "test": "Database credentials",
+    "status": "WARN",
+    "details": "Found in backend/.env: DATABASE_URL=***MASKED***",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:39.083086"
+  },
+  {
+    "category": "Environment",
+    "test": "Secret patterns in backend/.env",
+    "status": "PASS",
+    "details": "No hardcoded secrets found",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.083095"
+  },
+  {
+    "category": "Environment",
+    "test": "Secret patterns in frontend/.env.local",
+    "status": "PASS",
+    "details": "No hardcoded secrets found",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.083231"
+  },
+  {
+    "category": "API Headers",
+    "test": "Security Headers",
+    "status": "WARN",
+    "details": "Missing headers: X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Strict-Transport-Security, Content-Security-Policy",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:39.104865"
+  },
+  {
+    "category": "Authentication",
+    "test": "SQL Injection Protection",
+    "status": "PASS",
+    "details": "SQL injection blocked",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.179052"
+  },
+  {
+    "category": "Authentication",
+    "test": "Rate Limiting",
+    "status": "PASS",
+    "details": "Rate limited after 6 requests",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.260223"
+  },
+  {
+    "category": "CSRF",
+    "test": "CSRF Token Protection",
+    "status": "PASS",
+    "details": "CSRF protection active",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.268065"
+  },
+  {
+    "category": "Database",
+    "test": "Password Encryption",
+    "status": "PASS",
+    "details": "Password encryption configured",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.437199"
+  },
+  {
+    "category": "Database",
+    "test": "SSL Configuration",
+    "status": "WARN",
+    "details": "Database SSL not enabled",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:39.563324"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_backend User Context",
+    "status": "PASS",
+    "details": "Container running as non-root: 1000",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.728984"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_backend Mounts",
+    "status": "WARN",
+    "details": "Sensitive mounts: /var/lib/docker/volumes/5fa3f69426febaa6e049080fb77f45ab011ae1d0e1a3359deb408b78ed604b16/_data",
+    "risk": "Low",
+    "timestamp": "2026-01-31T05:13:39.781410"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_frontend User Context",
+    "status": "PASS",
+    "details": "Container running as non-root: 0",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:39.961445"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_frontend Mounts",
+    "status": "WARN",
+    "details": "Sensitive mounts: /var/lib/docker/volumes/2909cb3b510fffa8911fa1a44a041d629da60fede8a12c0b2090512d963e2243/_data, /var/lib/docker/volumes/b0ab8d0a3a0639913e0e2c6a778a202003bd3fb9a5d9712a9ec90dbc692cddc9/_data",
+    "risk": "Low",
+    "timestamp": "2026-01-31T05:13:40.009167"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_db User Context",
+    "status": "PASS",
+    "details": "Container running as non-root: 0",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:40.141314"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_db Mounts",
+    "status": "WARN",
+    "details": "Sensitive mounts: /var/lib/docker/volumes/zenith-lite_postgres_data/_data",
+    "risk": "Low",
+    "timestamp": "2026-01-31T05:13:40.187660"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_redis User Context",
+    "status": "PASS",
+    "details": "Container running as non-root: 0",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:40.321186"
+  },
+  {
+    "category": "Container",
+    "test": "zenith_redis Mounts",
+    "status": "WARN",
+    "details": "Sensitive mounts: /var/lib/docker/volumes/ffa2622c4c5040fd12f709a9440afdc9c96537f608b1e639257815f79f4bc185/_data",
+    "risk": "Low",
+    "timestamp": "2026-01-31T05:13:40.368943"
+  },
+  {
+    "category": "Dependencies",
+    "test": "Security Audit",
+    "status": "WARN",
+    "details": "Could not audit dependencies: [Errno 2] No such file or directory: 'pip-audit'",
+    "risk": "Low",
+    "timestamp": "2026-01-31T05:13:40.380655"
+  },
+  {
+    "category": "SSL",
+    "test": "Certificate Files",
+    "status": "PASS",
+    "details": "SSL certificate files exist",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:45.791558"
+  },
+  {
+    "category": "SSL",
+    "test": "Certificate Expiry",
+    "status": "PASS",
+    "details": "notAfter=Jan 30 20:10:41 2027 GMT",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:45.843219"
+  },
+  {
+    "category": "Logging",
+    "test": "Log Configuration",
+    "status": "WARN",
+    "details": "Only 1 log files found",
+    "risk": "Medium",
+    "timestamp": "2026-01-31T05:13:45.843427"
+  },
+  {
+    "category": "Monitoring",
+    "test": "Monitoring Script",
+    "status": "PASS",
+    "details": "Production monitoring script available",
+    "risk": "",
+    "timestamp": "2026-01-31T05:13:45.843450"
+  }
+]

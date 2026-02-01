@@ -10,7 +10,7 @@ import statistics
 from typing import List, Dict, Any
 import httpx
 import sqlalchemy as sa
-from sqlmodel import Session, create_engine, select
+from sqlmodel import Session, select
 from tabulate import tabulate
 import sys
 import os

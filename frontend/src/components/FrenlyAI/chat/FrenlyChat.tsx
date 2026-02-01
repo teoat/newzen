@@ -2,7 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Copy, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Send, Sparkles, Copy, ThumbsUp, ThumbsDown, Info, Terminal } from 'lucide-react';
+import { TypewriterResponse } from './TypewriterResponse';
 
 export interface Message {
   id: string;
@@ -86,8 +87,24 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
 
                 {/* Message Content */}
                 <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {message.content}
+                  {message.role === 'assistant' && index === messages.length - 1 && isLoading === false ? (
+                    <TypewriterResponse text={message.content} />
+                  ) : (
+                    message.content
+                  )}
                 </div>
+
+                {/* Context Debugger (for assistant) */}
+                {message.role === 'assistant' && (
+                  <div className="mt-3 pt-2 border-t border-white/5 flex gap-2">
+                    <button className="text-[8px] font-black uppercase text-slate-500 hover:text-indigo-400 flex items-center gap-1">
+                      <Terminal size={8} /> Logic Trace
+                    </button>
+                    <button className="text-[8px] font-black uppercase text-slate-500 hover:text-indigo-400 flex items-center gap-1">
+                      <Info size={8} /> Grounding Data
+                    </button>
+                  </div>
+                )}
 
                 {/* SQL Generated (if available) */}
                 {message.sql && (

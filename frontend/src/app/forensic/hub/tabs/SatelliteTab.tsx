@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import SatelliteVerificationPage from '@/app/forensic/satellite/page';
+import SatelliteVerificationPage from '../../../../app/forensic/satellite/page';
 
 export default function SatelliteTab() {
   return (

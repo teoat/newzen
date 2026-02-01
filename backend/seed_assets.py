@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 from app.models import Asset, Entity, CorporateRelationship, Project, Transaction
 from app.core.db import engine
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +18,7 @@ def seed_assets():
                 name="Zenith Demo Project",
                 code="ZENITH-DEMO-001",
                 contract_value=75_000_000_000.0,
-                start_date=datetime.utcnow() - timedelta(days=120),
+                start_date=datetime.now(UTC) - timedelta(days=120),
                 contractor_name="PT. Mega Konstruksi",
                 site_location="Jakarta, Indonesia",
                 latitude=-6.2088,

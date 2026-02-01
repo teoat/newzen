@@ -3,8 +3,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Activity } from 'lucide-react';
-import { useProject } from '@/store/useProject';
-import HolographicBadge from '@/app/components/HolographicBadge';
+import { useProject } from '../../../store/useProject';
+import HolographicBadge from '../../../app/components/HolographicBadge';
 
 export default function AnalyticsWorkspace() {
     const { activeProject } = useProject();

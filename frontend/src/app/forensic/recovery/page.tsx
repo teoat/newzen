@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { 
@@ -6,7 +7,7 @@ import {
     ArrowRight, Lock, Loader2, 
     Database, Globe, Target
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
+import { API_URL } from '../../../lib/constants';
 
 interface TraceNode {
     id: string;

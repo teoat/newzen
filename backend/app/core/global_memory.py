@@ -54,7 +54,8 @@ class GlobalMemoryService:
         
         results = []
         for insight in all_insights:
-            if not insight.embeddings_json: continue
+            if not insight.embeddings_json:
+                continue
             
             # Cosine Similarity
             vec_a = np.array(current_vec)
@@ -62,7 +63,8 @@ class GlobalMemoryService:
             norm_a = np.linalg.norm(vec_a)
             norm_b = np.linalg.norm(vec_b)
             
-            if norm_a == 0 or norm_b == 0: continue
+            if norm_a == 0 or norm_b == 0:
+                continue
             
             similarity = np.dot(vec_a, vec_b) / (norm_a * norm_b)
             

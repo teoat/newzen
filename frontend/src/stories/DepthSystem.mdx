@@ -1,0 +1,29 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Sovereign Design/Depth System" />
+
+# 🏗️ The Depth System
+
+The Zenith platform uses a volumetric design language based on layered HSL tokens.
+
+## Layers
+
+| Class | Variable | Description |
+| :--- | :--- | :--- |
+| `.depth-layer-0` | `--depth-0-bg` | Fundamental background |
+| `.depth-layer-1` | `--depth-1-bg` | Secondary panels / Hub background |
+| `.depth-layer-2` | `--depth-2-bg` | Elevated cards / Widgets |
+| `.depth-layer-3` | `--depth-3-bg` | Active focus elements |
+| `.depth-layer-4` | `--depth-4-bg` | High-priority overlays |
+
+## 🧪 Glassmorphism
+
+Zenith uses custom backdrop filters to achieve the "Holographic" effect.
+
+```css
+.glass-tactical {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+```

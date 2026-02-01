@@ -1,8 +1,8 @@
 import sys
 import os
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlmodel import Session
-from app.models import Transaction, BankTransaction, TransactionCategory
+from app.models import Transaction, TransactionCategory, TransactionSource
 from app.core.db import engine
 
 # Add current dir to path
@@ -24,6 +24,7 @@ def seed():
                 status="pending",
                 sender="Field",
                 receiver="Bapa Banda",
+                source_type=TransactionSource.INTERNAL_LEDGER
             )
             # 2. 'BUTUH BUKTI' Case
             tx2 = Transaction(
@@ -35,6 +36,7 @@ def seed():
                 status="pending",
                 sender="Field",
                 receiver="Vendor Gas",
+                source_type=TransactionSource.INTERNAL_LEDGER
             )
             # 3. 'Personal XP' Case
             tx3 = Transaction(
@@ -46,13 +48,21 @@ def seed():
                 status="pending",
                 sender="Personal",
                 receiver="Restaurant",
+                source_type=TransactionSource.INTERNAL_LEDGER
             )
             # 4. Bank Entry for Aggregate Matching (Minimal Arus Uang)
-            bank_tx = BankTransaction(
+            bank_tx = Transaction(
                 amount=5000000,
+                actual_amount=5000000,
+                proposed_amount=0,
                 bank_name="BCA 921",
                 description="WITHDRAWAL - FIELD OPS",
-                timestamp=datetime.utcnow(),
+                transaction_date=datetime.now(UTC),
+                timestamp=datetime.now(UTC),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             )
             # Adding some V/F vouchers that sum to 5M
             tx4 = Transaction(

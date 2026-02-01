@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import NexusWorkspace from '@/app/forensic/components/NexusWorkspace';
-import { useHubStore } from '@/store/useHubStore';
+import NexusWorkspace from '../../../../app/forensic/components/NexusWorkspace';
+import { useHubStore } from '../../../../store/useHubStore';
 
 export default function NexusTab() {
   const { selectedEntity } = useHubStore();

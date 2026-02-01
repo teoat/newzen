@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useForensicNotifications } from '@/components/ForensicNotificationProvider';
+import { useForensicNotifications } from '../components/ForensicNotificationProvider';
+import { errorWithInfo } from '../lib/logger';
 
 interface UseApiOptions<T> {
     onSuccess?: (data: T) => void;
@@ -46,7 +47,7 @@ export function useApi<T = unknown>() {
         } catch (err) {
             const error = err instanceof Error ? err : new Error(String(err));
             setError(error);
-            console.error("API Error:", error);
+            errorWithInfo("API Error", error);
             
             if (hookOptions.showErrorToast !== false) {
                  notifications.error('EXECUTION_FAILURE', error.message || 'An unexpected error occurred during the request.');

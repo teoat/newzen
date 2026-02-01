@@ -1,15 +1,14 @@
 'use client';
 
 import React from 'react';
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Area,
-  ComposedChart
-} from 'recharts';
+import NextDynamic from 'next/dynamic';
+const ComposedChart = NextDynamic(() => import('recharts').then(mod => mod.ComposedChart), { ssr: false });
+const Area = NextDynamic(() => import('recharts').then(mod => mod.Area), { ssr: false });
+const XAxis = NextDynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = NextDynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = NextDynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const Tooltip = NextDynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const ResponsiveContainer = NextDynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 
 type DataPoint = {
   date: string;

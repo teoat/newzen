@@ -6,17 +6,22 @@ Tests complete user journeys from login to data analysis.
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine, SQLModel
+from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.core.db import get_session
 from app.core.security import create_access_token
-from app.models import User, Project, Transaction, UserProjectAccess, ProjectRole
+from app.models import User, Project, Transaction, UserProjectAccess, ProjectRole, TransactionSource
 from datetime import datetime
 
 
 @pytest.fixture(name="engine")
 def engine_fixture():
     """Create test database"""
-    engine = create_engine("sqlite:///:memory:")
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
     SQLModel.metadata.create_all(engine)
     return engine
 
@@ -62,7 +67,7 @@ class TestAuthenticationFlow:
         # Login
         response = client.post(
             "/api/v1/auth/login",
-            json={
+            data={
                 "username": "e2e_analyst",
                 "password": "test_password"
             }

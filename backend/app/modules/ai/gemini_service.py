@@ -10,7 +10,8 @@ from typing import Dict, Any, Optional
 class GeminiService:
     def __init__(self):
         self.key_manager = KeyManager()
-        self.model_name = "gemini-pro"  # Or gemini-1.5-flash
+        from app.core.config import settings
+        self.model_name = settings.MODEL_FLASH
 
     def _get_configured_model(self):
         key = self.key_manager.get_key()

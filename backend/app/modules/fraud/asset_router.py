@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 import uuid
 from app.core.db import get_session
 from app.models import Asset, Entity, AuditLog, Project
@@ -142,10 +142,29 @@ def generate_asset_report(
         raise HTTPException(status_code=400, detail="Cannot generate report for unverified asset.")
 
     report_id = f"REP-{uuid.uuid4().hex[:8].upper()}"
+    
+    # Generate REAL report content (Affidavit Style)
+    report_content = (
+        f"AFFIDAVIT OF ASSET STATUS\n"
+        f"-------------------------\n"
+        f"CASE REF: {project_id}\n"
+        f"REPORT ID: {report_id}\n"
+        f"DATE: {datetime.now(UTC).isoformat()}\n\n"
+        f"SUBJECT ASSET: {asset.name.upper()}\n"
+        f"TYPE: {asset.type.upper()}\n"
+        f"ESTIMATED VALUE: {asset.estimated_value:,.2f}\n"
+        f"STATUS: {'FROZEN/VERIFIED' if asset.is_frozen else 'UNVERIFIED'}\n\n"
+        f"LOCATION:\n{asset.location or 'Unknown'}\n\n"
+        f"METADATA DUMP:\n{str(asset.metadata_json)}\n\n"
+        f"CERTIFICATION:\n"
+        f"This digital record certifies the status of the asset as recorded "
+        f"in the Zenith Reconciliation Ledger."
+    )
+    
     return WarrantResponse(
         warrant_id=report_id,
         asset_id=asset.id,
         status="GENERATED",
-        generated_at=datetime.utcnow(),
-        message=f"Forensic Asset Report {report_id} generated for {asset.name}. Ready for analyst review.",
+        generated_at=datetime.now(UTC),
+        message=report_content, # Return actual content instead of just "Generated"
     )

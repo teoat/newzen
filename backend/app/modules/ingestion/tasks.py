@@ -10,15 +10,35 @@ from app.core.event_bus import publish_event, EventType
 from app.models import (
     Transaction,
     Project,
-    BankTransaction,
     Ingestion,
     Entity,
     ReconciliationMatch,
     CopilotInsight,
+    TransactionSource
 )
 from app.core.reconciliation_intelligence import BatchReferenceDetector
 from app.modules.forensic.service import EntityResolver
 from app.core.global_memory import GlobalMemoryService
+from app.core.sync import manager
+from app.modules.fraud.rules import fraud_engine
+
+class LocationResolver:
+    """Specialized Geocoding logic for Zenith V3"""
+    COORDINATES_MAP = {
+        "JAKARTA": (-6.2088, 106.8456),
+        "SURABAYA": (-7.2575, 112.7521),
+        "BANDUNG": (-6.9175, 107.6191),
+        "MEDAN": (3.5952, 98.6722),
+        "BALI": (-8.3405, 115.0920),
+        "MAKASSAR": (-5.1476, 119.4327),
+        "SEMARANG": (-6.9667, 110.4167),
+    }
+
+    @staticmethod
+    def resolve(city_name: str) -> Optional[tuple]:
+        if not city_name:
+            return None
+        return LocationResolver.COORDINATES_MAP.get(city_name.strip().upper())
 
 # ... existing code ...
 
@@ -43,10 +63,13 @@ class VectorEngine:
         try:
             model = cls.get_model()
             if not model:
-                # Return random vector if model fails to load for demo
+                # Deterministic Fingerprint: seed with text hash
                 import random
-
-                return [random.uniform(-1, 1) for _ in range(384)]
+                import hashlib
+                
+                seed = int(hashlib.sha256(text.encode()).hexdigest(), 16) % (2**32)
+                rng = random.Random(seed)
+                return [rng.uniform(-1, 1) for _ in range(384)]
             return model.encode(text).tolist()
         except Exception:
             return []
@@ -74,12 +97,14 @@ class ReconciliationEngine:
         ledgers = db.exec(
             select(Transaction)
             .where(Transaction.project_id == project_id)
-            .where(Transaction.embeddings_json is not None)
+            .where(Transaction.source_type == "INTERNAL_LEDGER")
+            .where(Transaction.embeddings_json.is_not(None))
         ).all()
         banks = db.exec(
-            select(BankTransaction)
-            .where(BankTransaction.project_id == project_id)
-            .where(BankTransaction.embeddings_json is not None)
+            select(Transaction)
+            .where(Transaction.project_id == project_id)
+            .where(Transaction.source_type == "BANK_STATEMENT")
+            .where(Transaction.embeddings_json.is_not(None))
         ).all()
 
         def cosine_similarity(v1, v2):
@@ -145,12 +170,12 @@ class ReconciliationEngine:
             # Sliding window of 24h
             for i in range(len(r_txns)):
                 window = [r_txns[i]]
-                window_sum = r_txns[i].amount
+                window_sum = r_txns[i].verified_amount
                 for j in range(i + 1, len(r_txns)):
                     diff = r_txns[j].transaction_date - r_txns[i].transaction_date
                     if diff <= timedelta(hours=24):
                         window.append(r_txns[j])
-                        window_sum += r_txns[j].amount
+                        window_sum += r_txns[j].verified_amount
                     else:
                         break
                 if window_sum >= threshold and len(window) >= 3:
@@ -183,9 +208,9 @@ class ReconciliationEngine:
         Identifies potential matches where bank amount differs from ledger
         due to standard taxes (VAT 11%, PPh 2%, etc.)
         """
-        ledgers = db.exec(select(Transaction).where(Transaction.project_id == project_id)).all()
+        ledgers = db.exec(select(Transaction).where(Transaction.project_id == project_id, Transaction.source_type == "INTERNAL_LEDGER")).all()
         banks = db.exec(
-            select(BankTransaction).where(BankTransaction.project_id == project_id)
+            select(Transaction).where(Transaction.project_id == project_id, Transaction.source_type == "BANK_STATEMENT")
         ).all()
         matches = 0
         for ledger_entry in ledgers:
@@ -208,7 +233,7 @@ class ReconciliationEngine:
                 ]
                 found_match = False
                 for r in ratios:
-                    if math.isclose(ledger_entry.amount, b.amount * r, rel_tol=0.001):
+                    if math.isclose(ledger_entry.verified_amount, b.amount * r, rel_tol=0.001):
                         match = ReconciliationMatch(
                             internal_tx_id=ledger_entry.id,
                             bank_tx_id=b.id,
@@ -280,7 +305,7 @@ class ReconciliationEngine:
             return {"status": "no_data"}
         first_digits = []
         for t in txns:
-            val = abs(t.amount or t.actual_amount)
+            val = abs(t.verified_amount)
             if val > 0:
                 first_digits.append(int(str(val).replace(".", "")[0]))
         if not first_digits:
@@ -460,6 +485,20 @@ async def process_ingestion_task(payload_dict: Dict[str, Any], ingestion_id: str
                     percent = int((row_idx / total_rows) * 100)
                     await manager.broadcast(f"INGESTION_PROGRESS:{ingestion_id}:{percent}")
                 try:
+                    # IDEMPOTENCY CHECK: Skip if row already processed for this ingestion
+                    # Uses metadata_json (Postgres JSONB support or SQLModel JSON parsing)
+                    # For SQLite in memory, we manually verify
+                    from app.models import TransactionSource
+                    existing = db.exec(
+                        select(Transaction).where(
+                            Transaction.project_id == project_id,
+                            Transaction.metadata_json["ingestion_id"] == ingestion_id,
+                            Transaction.metadata_json["row_index"] == row_idx + 1
+                        )
+                    ).first()
+                    if existing:
+                        processed_count += 1
+                        continue
 
                     def get_value(field_name: str, default=None):
                         col_name = field_map.get(field_name)
@@ -608,8 +647,13 @@ async def process_ingestion_task(payload_dict: Dict[str, Any], ingestion_id: str
                             custom_fields[m.get("label", field_name)] = val
                             # SEMANTIC ROUTING
                             if intent == "LOCATION":
-                                # Placeholder for future geocoding engine
-                                custom_fields["_forensic_geo_tagged"] = True
+                                # ADVANCED V3: Automated Geocoding
+                                coords = LocationResolver.resolve(str(val))
+                                if coords:
+                                    custom_fields["_forensic_geo_tagged"] = True
+                                    custom_fields["_lat"] = coords[0]
+                                    custom_fields["_lng"] = coords[1]
+                                    anomalies.append("GEO_TAGGED")
                             elif intent == "SECONDARY_ID" and receiver_id:
                                 # Bridge IDs to Entity metadata
                                 receiver_ent = db.get(Entity, receiver_id)
@@ -628,18 +672,25 @@ async def process_ingestion_task(payload_dict: Dict[str, Any], ingestion_id: str
                     embedding_text = ForensicCopilot.get_embedding_text(row, mappings)
                     vector = VectorEngine.encode(embedding_text)
                     if ingestion_type == "Statement":
-                        txn_record = BankTransaction(
+                        transaction = Transaction(
                             project_id=project_id,
                             amount=amount,
+                            actual_amount=amount,
+                            proposed_amount=0,
                             currency="IDR",
                             bank_name=get_value("bank_name") or "Unknown Bank",
                             description=get_value("description") or f"Statement Item {row_idx}",
-                            timestamp=txn_date,
+                            transaction_date=txn_date,
+                            timestamp=datetime.now(),
                             booking_date=txn_date,
                             batch_reference=batch_ref,
                             embeddings_json=vector,
+                            source_type="BANK_STATEMENT",
+                            sender="BANK_UNKNOWN",
+                            receiver="BANK_UNKNOWN",
+                            status="COMPLETED"
                         )
-                        db.add(txn_record)
+                        db.add(transaction)
                     else:
                         transaction = Transaction(
                             project_id=project_id,
@@ -663,7 +714,20 @@ async def process_ingestion_task(payload_dict: Dict[str, Any], ingestion_id: str
                                 "custom_fields": custom_fields,
                             },
                             embeddings_json=vector,
+                            source_type="INTERNAL_LEDGER"
                         )
+                        
+                        # Apply Geocoding if found in custom fields
+                        if custom_fields.get("_forensic_geo_tagged"):
+                            transaction.latitude = custom_fields.get("_lat")
+                            transaction.longitude = custom_fields.get("_lng")
+                        
+                        # HOOK 3: Automated Forensic Fraud Evaluation
+                        evaluation = fraud_engine.evaluate_transaction(transaction)
+                        transaction.risk_score = evaluation.get("risk_score", 0.05)
+                        if evaluation.get("status") == "flagged":
+                            anomaly_map["FORENSIC_FRAUD_FLAG"] = anomaly_map.get("FORENSIC_FRAUD_FLAG", 0) + 1
+                        
                         db.add(transaction)
                     if reasoning["confidence"] >= 90:
                         state_dashboard["processed"] += 1

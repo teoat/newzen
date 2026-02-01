@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,9 +11,9 @@ import {
   Clock, Hash, ChevronRight, FileText
 } from 'lucide-react';
 import Link from 'next/link';
-import { ASSET_RECOVERY_MOCK } from '@/utils/recoveryMock';
+import { ASSET_RECOVERY_MOCK } from '../../../lib/recoveryMock';
 
-import DossierGenerator from '@/components/DossierGenerator';
+import DossierGenerator from '../../../components/DossierGenerator';
 
 interface UBONode {
   id: string;
@@ -68,12 +69,12 @@ interface RecoveryProfileResponse {
     ubo_nodes: ApiUBONode[];
 }
 
-import { API_ROUTES } from '@/services/apiRoutes';
-import { useApi } from '@/hooks/useApi';
+import { API_ROUTES } from '../../../services/apiRoutes';
+import { useApi } from '../../../hooks/useApi';
 
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-import { useAssetActions } from '@/hooks/useAssetActions';
+import { useProject } from '../../../store/useProject';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
+import { useAssetActions } from '../../../hooks/useAssetActions';
 
 export default function AssetRecoveryPage() {
   const { activeProjectId } = useProject();

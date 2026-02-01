@@ -4,7 +4,10 @@
  */
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { authenticatedFetch } from '../lib/api';
+import { secureStorage } from '../lib/crypto';
+import { audioService } from '../lib/audioService';
 
 export interface InvestigationResult {
   evidenceId?: string;
@@ -83,8 +86,12 @@ export interface Investigation {
 interface InvestigationState {
   activeInvestigation: Investigation | null;
   investigations: Investigation[];
+  history: {
+    past: Array<{ activeInvestigation: Investigation | null; investigations: Investigation[] }>;
+    future: Array<{ activeInvestigation: Investigation | null; investigations: Investigation[] }>;
+  };
   
-  // Actions
+  setActiveProject: (projectId: string | null) => void;
   startInvestigation: (title: string, context?: Partial<Investigation['context']>) => string;
   endInvestigation: () => void;
   pauseInvestigation: () => void;
@@ -101,12 +108,17 @@ interface InvestigationState {
   getInvestigation: (id: string) => Investigation | undefined;
   clearAllInvestigations: () => void;
   
-  // Verdict Command Actions
   injectEvidence: (investigationId: string, evidence: EvidenceItem) => void;
   updateEvidenceStatus: (investigationId: string, evidenceId: string, status: 'ADMITTED' | 'REJECTED' | 'PENDING') => void;
   generateNarrative: (investigationId: string) => Promise<string>;
   fetchContradictions: (investigationId: string) => Promise<void>;
   sealCase: (investigationId: string) => Promise<string>;
+  /** Forensic Purge: Clears all cached state for security */
+  purgeState: () => void;
+  
+  undo: () => void;
+  redo: () => void;
+  saveToHistory: () => void;
 }
 
 export const useInvestigation = create<InvestigationState>()(
@@ -114,8 +126,72 @@ export const useInvestigation = create<InvestigationState>()(
     (set, get) => ({
       activeInvestigation: null,
       investigations: [],
+      history: { past: [], future: [] },
+
+      saveToHistory: () => {
+        const { activeInvestigation, investigations, history } = get();
+        set({
+          history: {
+            past: [...history.past.slice(-19), { activeInvestigation, investigations }],
+            future: [],
+          }
+        });
+      },
+
+      undo: () => {
+        const { history, activeInvestigation, investigations } = get();
+        if (history.past.length === 0) return;
+
+        const previous = history.past[history.past.length - 1];
+        const newPast = history.past.slice(0, history.past.length - 1);
+
+        void audioService.playClick();
+        set({
+          activeInvestigation: previous.activeInvestigation,
+          investigations: previous.investigations,
+          history: {
+            past: newPast,
+            future: [{ activeInvestigation, investigations }, ...history.future],
+          }
+        });
+      },
+
+      redo: () => {
+        const { history, activeInvestigation, investigations } = get();
+        if (history.future.length === 0) return;
+
+        const next = history.future[0];
+        const newFuture = history.future.slice(1);
+
+        void audioService.playClick();
+        set({
+          activeInvestigation: next.activeInvestigation,
+          investigations: next.investigations,
+          history: {
+            past: [...history.past, { activeInvestigation, investigations }],
+            future: newFuture,
+          }
+        });
+      },
+
+      purgeState: () => {
+        set({ activeInvestigation: null, investigations: [], history: { past: [], future: [] } });
+        localStorage.removeItem('forensic-investigation-storage');
+      },
+
+      setActiveProject: (projectId) => {
+        if (!projectId) return;
+        get().saveToHistory();
+        set((state) => ({
+          activeInvestigation: state.activeInvestigation
+            ? { ...state.activeInvestigation, context: { ...state.activeInvestigation.context, projectId } }
+            : null
+        }));
+      },
 
       startInvestigation: (title, context = {}) => {
+        get().saveToHistory();
+        void audioService.playClick();
         const id = `INV-${Date.now()}`;
         const now = new Date();
         const investigation: Investigation = {
@@ -152,6 +228,7 @@ export const useInvestigation = create<InvestigationState>()(
       endInvestigation: () => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         set((state) => ({
           activeInvestigation: null,
@@ -166,6 +243,7 @@ export const useInvestigation = create<InvestigationState>()(
       pauseInvestigation: () => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updated = { ...activeInvestigation, status: 'paused' as const, updatedAt: new Date() };
         set((state) => ({
@@ -179,6 +257,7 @@ export const useInvestigation = create<InvestigationState>()(
       resumeInvestigation: (id) => {
         const investigation = get().investigations.find((inv) => inv.id === id);
         if (!investigation) return;
+        get().saveToHistory();
 
         const updated = { ...investigation, status: 'active' as const, updatedAt: new Date() };
         set((state) => ({
@@ -192,6 +271,8 @@ export const useInvestigation = create<InvestigationState>()(
       addAction: (action) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
+        void audioService.playClick();
 
         const newAction: InvestigationAction = {
           ...action,
@@ -223,6 +304,7 @@ export const useInvestigation = create<InvestigationState>()(
       addTransaction: (txId) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedTxIds = Array.from(
           new Set([...activeInvestigation.context.transactionIds, txId])
@@ -248,6 +330,7 @@ export const useInvestigation = create<InvestigationState>()(
       addSuspect: (name) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedSuspects = Array.from(
           new Set([...activeInvestigation.context.suspects, name])
@@ -273,6 +356,7 @@ export const useInvestigation = create<InvestigationState>()(
       addEvidence: (evidenceId) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedEvidence = Array.from(
           new Set([...activeInvestigation.context.evidenceIds, evidenceId])
@@ -298,6 +382,7 @@ export const useInvestigation = create<InvestigationState>()(
       addFinding: (finding) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedInvestigation = {
           ...activeInvestigation,
@@ -316,6 +401,7 @@ export const useInvestigation = create<InvestigationState>()(
       updateRiskScore: (score) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedInvestigation = {
           ...activeInvestigation,
@@ -334,6 +420,7 @@ export const useInvestigation = create<InvestigationState>()(
       updatePhaseProgress: (phase, progress) => {
         const { activeInvestigation } = get();
         if (!activeInvestigation) return;
+        get().saveToHistory();
 
         const updatedInvestigation = {
           ...activeInvestigation,
@@ -357,6 +444,7 @@ export const useInvestigation = create<InvestigationState>()(
       },
 
       clearAllInvestigations: () => {
+        get().saveToHistory();
         set({ activeInvestigation: null, investigations: [] });
       },
 
@@ -365,12 +453,10 @@ export const useInvestigation = create<InvestigationState>()(
         if (!investigation) return;
 
         const currentItems = investigation.context.evidence_items || [];
-        // Prevent duplicates
         if (currentItems.some(item => item.id === evidence.id && item.type === evidence.type)) return;
 
+        get().saveToHistory();
         const updatedItems = [...currentItems, evidence];
-        
-        // Also add logic to update standard fields based on evidence type if needed
         const contextUpdates: Partial<Investigation['context']> = { evidence_items: updatedItems };
         if (evidence.type === 'transaction') {
             contextUpdates.transactionIds = Array.from(new Set([...investigation.context.transactionIds, evidence.id]));
@@ -384,7 +470,6 @@ export const useInvestigation = create<InvestigationState>()(
           updatedAt: new Date()
         };
         
-        // Add an action to the timeline automatically
         const injectionAction: InvestigationAction = {
              timestamp: new Date(),
              action: 'EVIDENCE_INJECTED',
@@ -403,6 +488,7 @@ export const useInvestigation = create<InvestigationState>()(
       },
 
       updateEvidenceStatus: (investigationId, evidenceId, status) => {
+        get().saveToHistory();
         set(state => {
           const updatedInvestigations = state.investigations.map(inv => {
             if (inv.id !== investigationId) return inv;
@@ -417,7 +503,6 @@ export const useInvestigation = create<InvestigationState>()(
               updatedAt: new Date()
             };
 
-            // Log action to timeline
             const action: InvestigationAction = {
                 timestamp: new Date(),
                 action: `EVIDENCE_${status}`,
@@ -440,11 +525,11 @@ export const useInvestigation = create<InvestigationState>()(
 
       generateNarrative: async (investigationId) => {
           try {
-              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'}/api/v1/ai/dossier/${investigationId}`);
+              const { API_ROUTES } = await import('../services/apiRoutes');
+              const res = await authenticatedFetch(API_ROUTES.AI.DOSSIER(investigationId));
               const data = await res.json();
               return data.narrative;
           } catch (e) {
-              console.error("Narrative API failed, falling back to local synthesis", e);
               const inv = get().investigations.find(i => i.id === investigationId);
               if (!inv) return "Investigation not found.";
               return `## ${inv.title}\nFallback local narrative logic...`;
@@ -453,13 +538,14 @@ export const useInvestigation = create<InvestigationState>()(
 
       fetchContradictions: async (investigationId) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'}/api/v1/ai/contradictions/${investigationId}`);
+            const { API_ROUTES } = await import('../services/apiRoutes');
+            const res = await authenticatedFetch(API_ROUTES.AI.CONTRADICTIONS(investigationId));
             const data = await res.json();
             
             set(state => {
                 const inv = state.investigations.find(i => i.id === investigationId);
                 if (!inv) return state;
-                const updated = { ...inv, context: { ...inv.context, contradictions: data.contradictions }};
+                const updated = { ...inv, context: { ...inv.context, contradictions: data.contradictions}};
                 return {
                     investigations: state.investigations.map(i => i.id === investigationId ? updated : i),
                     activeInvestigation: state.activeInvestigation?.id === investigationId ? updated : state.activeInvestigation
@@ -472,7 +558,10 @@ export const useInvestigation = create<InvestigationState>()(
 
       sealCase: async (investigationId) => {
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'}/api/v1/cases/${investigationId}/seal`, { method: 'POST' });
+            get().saveToHistory();
+            void audioService.playSuccess();
+            const { API_ROUTES } = await import('../services/apiRoutes');
+            const res = await authenticatedFetch(API_ROUTES.AI.SEAL(investigationId), { method: 'POST' });
             const data = await res.json();
             
             set(state => ({
@@ -491,6 +580,7 @@ export const useInvestigation = create<InvestigationState>()(
     }),
     {
       name: 'forensic-investigation-storage',
+      storage: createJSONStorage(() => secureStorage as any),
     }
   )
 );

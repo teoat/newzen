@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from sqlmodel import Session, select
 from dotenv import load_dotenv
 from app.core.db import engine, init_db
@@ -32,7 +32,7 @@ def seed_project_data():
             name="Project Alpha - High Rise Office",
             code="CTR-2024-001",
             contract_value=50_000_000_000.0,  # 50 Billion IDR
-            start_date=datetime.utcnow() - timedelta(days=120),
+            start_date=datetime.now(UTC) - timedelta(days=120),
             contractor_name="PT. Mega Konstruksi Utama",
             status="audit_mode",
         )

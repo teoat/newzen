@@ -6,7 +6,7 @@ Tests intent detection, SQL generation safety, and AI response handling.
 import pytest
 from sqlmodel import Session, create_engine, SQLModel
 from app.modules.ai.frenly_orchestrator import FrenlyOrchestrator
-from app.models import Transaction, Project, User
+from app.models import Project, User
 from datetime import datetime
 
 
@@ -185,6 +185,7 @@ class TestProactiveAlerts:
     async def test_fetch_alerts(self, session):
         """Should retrieve proactive alerts"""
         from app.models import FraudAlert
+        from app.modules.ai.frenly_orchestrator import ProactiveMonitor
         
         # Create test alert
         alert = FraudAlert(
@@ -198,8 +199,8 @@ class TestProactiveAlerts:
         session.add(alert)
         session.commit()
         
-        orchestrator = FrenlyOrchestrator(session)
-        alerts = await orchestrator._fetch_db_alerts("proj1")
+        monitor = ProactiveMonitor(session)
+        alerts = await monitor._fetch_db_alerts("proj1")
         
         assert len(alerts) > 0
         assert alerts[0]["severity"] == "critical"

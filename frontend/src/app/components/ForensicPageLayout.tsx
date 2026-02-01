@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useProject } from '@/store/useProject';
+import { useProject } from '../../store/useProject';
 import { Loader2 } from 'lucide-react';
-import HolographicBadge from '@/app/components/HolographicBadge';
-import CommandBar from '@/app/components/CommandBar';
+import HolographicBadge from './HolographicBadge';
+import CommandBar from './CommandBar';
 
 interface ForensicPageLayoutProps {
     title: string | React.ReactNode;

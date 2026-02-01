@@ -1,5 +1,5 @@
 import hashlib
-from datetime import datetime
+from datetime import datetime, UTC
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -50,7 +50,7 @@ class LegalPDFService:
         story.append(Paragraph(f"Official Investigative Dossier: {case.title}", styles["Heading2"]))
         story.append(Spacer(1, 12))
         story.append(Paragraph(f"Case ID: {case.id}", styles["Normal"]))
-        story.append(Paragraph(f"Generated On: {datetime.utcnow()} UTC", styles["Normal"]))
+        story.append(Paragraph(f"Generated On: {datetime.now(UTC)} UTC", styles["Normal"]))
         story.append(Spacer(1, 50))
         story.append(Paragraph("CONFIDENTIAL - FOR AUTHORIZED USE ONLY", styles["Normal"]))
         story.append(PageBreak())
@@ -106,7 +106,7 @@ class LegalPDFService:
         def add_watermark(canvas, doc):
             canvas.saveState()
             qr = qrcode.QRCode(box_size=2)
-            qr.add_data(f"ZENITH-VERIFY:{case.id}:{datetime.utcnow().isoformat()}")
+            qr.add_data(f"ZENITH-VERIFY:{case.id}:{datetime.now(UTC).isoformat()}")
             qr.make(fit=True)
             qr_img = qr.make_image(fill_color="black", back_color="white")
             img_byte_arr = BytesIO()

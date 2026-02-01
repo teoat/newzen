@@ -1,262 +1,210 @@
 """
-Event Bus - Unified event-driven architecture for Zenith
-Enables decoupled communication between modules and Frenly AI context awareness
+Zenith V3 Event Bus Schema Definition.
+Defines the language of the Event-Driven Architecture.
 """
-
-from typing import Callable, List, Dict, Any, Optional
-from enum import Enum
+import enum
+import uuid
 import logging
-from datetime import datetime
-import json
+from typing import Dict, Any, List, Callable, Optional
+from datetime import datetime, UTC
+from app.core.redis_client import RedisStreamClient
 
 logger = logging.getLogger(__name__)
 
+# Global Event Bus Client (Redis Stream)
+event_bus = RedisStreamClient("zenith:v3:events")
 
-class EventType(Enum):
-    """All system events that can be published"""
 
-    # Ingestion Events
+class EventType(str, enum.Enum):
+    # Transaction Lifecycle
+    TRANSACTION_CREATED = "transaction.created"
+    TRANSACTION_UPDATED = "transaction.updated"
+    TRANSACTION_FLAGGED = "transaction.flagged"
+
+    # Forensic Triggers
+    ALERT_RAISED = "alert.raised"
+    ANOMALY_DETECTED = "anomaly.detected"
+    HIGH_RISK_ALERT = "high.risk.alert"
+
+    # Entity Verification
+    ENTITY_VERIFIED = "entity.verified"
+    ENTITY_WATCHLISTED = "entity.watchlisted"
+
+    # Case Management
+    CASE_OPENED = "case.opened"
+    CASE_CLOSED = "case.closed"
+    EVIDENCE_ADDED = "evidence.added"
+
+    # Ingestion Lifecycle
     DATA_UPLOADED = "data.uploaded"
     DATA_VALIDATED = "data.validated"
     DATA_INGESTED = "data.ingested"
-    BATCH_JOB_STARTED = "batch.job.started"
-    BATCH_JOB_COMPLETED = "batch.job.completed"
+
+    # Batch & AI
     BATCH_JOB_FAILED = "batch.job.failed"
-    # Reconciliation Events
-    TRANSACTION_MATCHED = "transaction.matched"
-    VARIANCE_DETECTED = "variance.detected"
-    BULK_MATCHED = "bulk.matched"
-    RECONCILIATION_COMPLETED = "reconciliation.completed"
-    # Investigation Events
-    CASE_CREATED = "case.created"
-    CASE_UPDATED = "case.updated"
-    CASE_CLOSED = "case.closed"
-    EVIDENCE_ADDED = "evidence.added"
-    EVIDENCE_VERIFIED = "evidence.verified"
-    ENTITY_FLAGGED = "entity.flagged"
-    # Fraud Detection Events
-    ANOMALY_DETECTED = "anomaly.detected"
-    RISK_SCORE_UPDATED = "risk.updated"
     PATTERN_IDENTIFIED = "pattern.identified"
-    HIGH_RISK_ALERT = "high_risk.alert"
-    CIRCULAR_FLOW_DETECTED = "circular_flow.detected"
-    # Forensic Events
-    SATELLITE_VERIFIED = "satellite.verified"
-    NEXUS_ANALYZED = "nexus.analyzed"
-    CORRELATION_FOUND = "correlation.found"
-    # AI Events
-    FRENLY_SUGGESTION = "frenly.suggestion"
-    AI_INSIGHT_GENERATED = "ai.insight"
-    PROACTIVE_ALERT = "proactive.alert"
-    SQL_QUERY_EXECUTED = "sql.query.executed"
-    # User Events
-    USER_LOGIN = "user.login"
-    USER_LOGOUT = "user.logout"
-    PAGE_VIEWED = "page.viewed"
-    ACTION_PERFORMED = "action.performed"
-    # System Events
-    HEALTH_CHECK = "system.health_check"
-    ERROR_OCCURRED = "system.error"
-    PERFORMANCE_ALERT = "system.performance"
+    RECONCILIATION_COMPLETED = "reconciliation.completed"
 
 
 class Event:
-    """Event container with metadata"""
-
+    """
+    Standardized Event Object for Zenith V3.
+    """
     def __init__(
-        self,
-        event_type: EventType,
-        data: Dict[str, Any],
-        user_id: Optional[str] = None,
-        project_id: Optional[str] = None,
+        self, 
+        event_type: EventType, 
+        data: Dict[str, Any], 
+        project_id: str = "global", 
+        entity_id: str = "global", 
+        user_id: str = "system",
+        event_id: Optional[str] = None,
+        timestamp: Optional[datetime] = None
     ):
         self.event_type = event_type
         self.data = data
-        self.user_id = user_id
         self.project_id = project_id
-        self.timestamp = datetime.utcnow()
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert event to dictionary for serialization"""
-        return {
-            "event_type": self.event_type.value,
-            "data": self.data,
-            "user_id": self.user_id,
-            "project_id": self.project_id,
-            "timestamp": self.timestamp.isoformat(),
-        }
-
-    def to_json(self) -> str:
-        """Convert event to JSON string"""
-        return json.dumps(self.to_dict())
+        self.entity_id = entity_id
+        self.user_id = user_id
+        self.event_id = event_id or str(uuid.uuid4())
+        self.timestamp = timestamp or datetime.now(UTC)
 
 
 class EventBus:
     """
-    Central event bus for pub/sub pattern.
-    Modules publish events, subscribers (including Frenly AI) react.
+    Central Event Bus for the application.
+    Provides a unified interface for publishing and subscribing to events.
     """
-
     def __init__(self):
-        self._subscribers: Dict[EventType, List[Callable[[Event], None]]] = {}
-        self._global_subscribers: List[Callable[[Event], None]] = []  # Listen to all events
-        self._event_log: List[Event] = []  # Keep last 1000 events in memory
-        self._max_log_size = 1000
-        logger.info("EventBus initialized")
-
-    def subscribe(self, event_type: EventType, callback: Callable[[Event], None]):
-        """
-        Subscribe to specific event type.
-        Args:
-            event_type: Type of event to listen for
-            callback: Function to call when event is published
-                      Should accept Event as parameter
-        """
-        if event_type not in self._subscribers:
-            self._subscribers[event_type] = []
-        self._subscribers[event_type].append(callback)
-        logger.info(f"Subscribed to {event_type.value}: {callback.__name__}")
-
-    def subscribe_all(self, callback: Callable[[Event], None]):
-        """
-        Subscribe to ALL events (global listener).
-        Useful for Frenly AI context tracking and audit logging.
-        Args:
-            callback: Function called for every event
-        """
-        self._global_subscribers.append(callback)
-        logger.info(f"Global subscriber added: {callback.__name__}")
+        self._subscribers: Dict[str, List[Callable]] = {}
+        self._all_subscribers: List[Callable] = []
 
     def publish(
-        self,
-        event_type: EventType,
-        data: Dict[str, Any],
-        user_id: Optional[str] = None,
-        project_id: Optional[str] = None,
+        self, 
+        event_type: str, 
+        data: Optional[Dict[str, Any]] = None, 
+        project_id: str = "global", 
+        entity_id: str = "global",
+        user_id: str = "system"
     ):
         """
-        Publish an event to all subscribers.
-        Args:
-            event_type: Type of event
-            data: Event data payload
-            user_id: Optional user ID who triggered event
-            project_id: Optional project ID context
+        Publish an event to the bus.
         """
-        event = Event(event_type, data, user_id, project_id)
-        # Add to event log
-        self._event_log.append(event)
-        if len(self._event_log) > self._max_log_size:
-            self._event_log = self._event_log[-self._max_log_size:]
-        logger.debug(f"Event published: {event_type.value} | Data: {data}")
-        # Notify specific subscribers
-        if event_type in self._subscribers:
-            for callback in self._subscribers[event_type]:
-                try:
-                    callback(event)
-                except Exception as e:
-                    logger.error(
-                        f"Subscriber error for {event_type.value}: "
-                        f"{callback.__name__} - {str(e)}"
-                    )
-        # Notify global subscribers (Frenly AI, audit log, etc.)
-        for callback in self._global_subscribers:
+        # Ensure it's an EventType enum if possible
+        et = event_type
+        if isinstance(event_type, str):
             try:
-                callback(event)
+                et = EventType(event_type)
+            except ValueError:
+                pass
+
+        event = Event(
+            event_type=et,
+            data=data or {},
+            project_id=project_id,
+            entity_id=entity_id,
+            user_id=user_id
+        )
+
+        payload = {
+            "event_id": event.event_id,
+            "entity_id": event.entity_id,
+            "project_id": event.project_id,
+            "data": event.data,
+            "user_id": event.user_id,
+            "published_at": event.timestamp.isoformat()
+        }
+        
+        # 1. Publish to Redis (Durable)
+        msg_id = event_bus.publish_event(str(et), payload)
+        
+        # 2. Trigger local subscribers (In-process, immediate)
+        self._trigger_local(event)
+        
+        return msg_id
+
+    def subscribe(self, event_type: str, callback: Callable):
+        """Subscribe to a specific event type."""
+        et_str = str(event_type)
+        if et_str not in self._subscribers:
+            self._subscribers[et_str] = []
+        self._subscribers[et_str].append(callback)
+
+    def subscribe_all(self, callback: Callable):
+        """Subscribe to all events."""
+        self._all_subscribers.append(callback)
+
+    def _trigger_local(self, event: Event):
+        import asyncio
+        import inspect
+
+        def run_callback(cb, ev):
+            try:
+                if inspect.iscoroutinefunction(cb):
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(cb(ev))
+                    except RuntimeError:
+                        # No running loop, can't easily run async from here 
+                        # in a thread-safe way without a loop. 
+                        # But in FastAPI/Uvicorn there's usually a loop.
+                        pass
+                else:
+                    cb(ev)
             except Exception as e:
-                logger.error(f"Global subscriber error: {callback.__name__} - {str(e)}")
+                logger.error(f"Error in event subscriber {cb}: {e}")
 
-    def get_recent_events(
-        self,
-        event_type: Optional[EventType] = None,
-        user_id: Optional[str] = None,
-        project_id: Optional[str] = None,
-        limit: int = 100,
-    ) -> List[Event]:
-        """
-        Get recent events with optional filtering.
-        Args:
-            event_type: Filter by event type
-            user_id: Filter by user
-            project_id: Filter by project
-            limit: Max number of events to return
-        Returns:
-            List of Event objects
-        """
-        filtered = self._event_log
-        if event_type:
-            filtered = [e for e in filtered if e.event_type == event_type]
-        if user_id:
-            filtered = [e for e in filtered if e.user_id == user_id]
-        if project_id:
-            filtered = [e for e in filtered if e.project_id == project_id]
-        return filtered[-limit:]
+        # Specific subscribers
+        et_str = str(event.event_type)
+        if et_str in self._subscribers:
+            for cb in self._subscribers[et_str]:
+                run_callback(cb, event)
+        
+        # Global subscribers
+        for cb in self._all_subscribers:
+            run_callback(cb, event)
 
-    def clear_log(self):
-        """Clear event log (use with caution)"""
-        self._event_log = []
-        logger.info("Event log cleared")
+# Singleton Instance
+_global_bus = EventBus()
 
 
-# Global singleton instance
-_event_bus = None
+def get_event_bus():
+    """Retrieve the global event bus instance."""
+    return _global_bus
 
-
-def get_event_bus() -> EventBus:
-    """Get or create global event bus instance"""
-    global _event_bus
-    if _event_bus is None:
-        _event_bus = EventBus()
-    return _event_bus
-
-
-# Convenience function for publishing
 def publish_event(
-    event_type: EventType,
-    data: Dict[str, Any],
-        user_id: Optional[str] = None,
-        project_id: Optional[str] = None,
+    event_type: str, 
+    data: Optional[Dict[str, Any]] = None,
+    project_id: str = "global", 
+    entity_id: str = "global",
+    user_id: str = "system"
 ):
     """
-    Convenience function to publish an event.
-    Usage:
-        from app.core.event_bus import publish_event, EventType
-        publish_event(
-            EventType.ANOMALY_DETECTED,
-            {'transaction_id': 'T-123', 'risk_score': 0.95},
-            user_id='user-456',
-            project_id='proj-789'
+    Compatibility wrapper for publishing events.
+    """
+    return get_event_bus().publish(
+        event_type=event_type,
+        data=data,
+        project_id=project_id,
+        entity_id=entity_id,
+        user_id=user_id
+    )
+
+class EventPublisher:
+    """
+    Static publisher class for convenience.
+    """
+    @staticmethod
+    def publish(
+        event_type: str, 
+        entity_id: str = "global", 
+        project_id: str = "global", 
+        data: Optional[Dict[str, Any]] = None,
+        user_id: str = "system"
+    ):
+        return get_event_bus().publish(
+            event_type=event_type,
+            data=data,
+            project_id=project_id,
+            entity_id=entity_id,
+            user_id=user_id
         )
-    """
-    bus = get_event_bus()
-    bus.publish(event_type, data, user_id, project_id)
-
-
-# Decorator for automatic event publishing
-def publishes_event(event_type: EventType):
-    """
-    Decorator to automatically publish event when function completes.
-    Usage:
-        @publishes_event(EventType.CASE_CREATED)
-        def create_case(case_data: dict):
-            # ... case creation logic ...
-            return new_case
-        # Event will be published with return value as data
-    """
-
-    def decorator(func: Callable):
-        def wrapper(*args, **kwargs):
-            result = func(*args, **kwargs)
-            # Extract user_id and project_id if available
-            user_id = kwargs.get("user_id")
-            project_id = kwargs.get("project_id")
-            # Publish event with result as data
-            if isinstance(result, dict):
-                data = result
-            else:
-                data = {"result": str(result)}
-            publish_event(event_type, data, user_id, project_id)
-            return result
-
-        return wrapper
-
-    return decorator

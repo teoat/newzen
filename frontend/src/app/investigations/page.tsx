@@ -1,8 +1,9 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React from 'react';
-import { useInvestigation } from '@/store/useInvestigation';
-import type { Investigation } from '@/store/useInvestigation';
+import { useInvestigation } from '../../store/useInvestigation';
+import type { Investigation } from '../../store/useInvestigation';
 import { motion } from 'framer-motion';
 import { 
     Clock, Play, Pause, CheckCircle, 

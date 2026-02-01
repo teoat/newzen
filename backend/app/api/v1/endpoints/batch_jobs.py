@@ -4,9 +4,9 @@ Allows job submission, monitoring, and cancellation.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from sqlmodel import Session, select
 from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from pydantic import BaseModel, Field
 from app.core.db import get_session as get_db
 from app.models import ProcessingJob, JobStatus
@@ -103,20 +103,20 @@ async def get_job_status(job_id: str, db: Session = Depends(get_db)):
     Get detailed status of a processing job.
     - **job_id**: Job identifier returned from submit endpoint
     """
-    job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+    job = db.get(ProcessingJob, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     # Calculate ETA if job is processing
     eta = None
     if job.status == JobStatus.PROCESSING and job.started_at:
-        elapsed_seconds = (datetime.utcnow() - job.started_at).total_seconds()
+        elapsed_seconds = (datetime.now(UTC) - job.started_at).total_seconds()
         if job.items_processed > 0:
             # items per second
             rate = job.items_processed / elapsed_seconds
             remaining_items = job.total_items - job.items_processed
             eta_seconds = remaining_items / rate if rate > 0 else None
             if eta_seconds:
-                eta = datetime.utcnow() + timedelta(seconds=eta_seconds)
+                eta = datetime.now(UTC) + timedelta(seconds=eta_seconds)
     return JobStatusResponse(
         id=job.id,
         status=job.status.value,
@@ -146,7 +146,7 @@ async def cancel_job(job_id: str, db: Session = Depends(get_db)):
     """
     from app.core.celery_config import celery_app
 
-    job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+    job = db.get(ProcessingJob, job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     if job.status in [
@@ -159,7 +159,7 @@ async def cancel_job(job_id: str, db: Session = Depends(get_db)):
     for task_id in job.celery_task_ids.values():
         celery_app.control.revoke(task_id, terminate=True)
     job.status = JobStatus.CANCELLED
-    job.completed_at = datetime.utcnow()
+    job.completed_at = datetime.now(UTC)
     db.commit()
     return {
         "status": "cancelled",
@@ -187,13 +187,17 @@ async def list_jobs(
     - **limit**: Max results (1-100, default 50)
     - **offset**: Pagination offset
     """
-    query = db.query(ProcessingJob)
+    statement = select(ProcessingJob)
     if project_id:
-        query = query.filter(ProcessingJob.project_id == project_id)
+        statement = statement.where(ProcessingJob.project_id == project_id)
     if status:
-        query = query.filter(ProcessingJob.status == status)
-        jobs = query.order_by(ProcessingJob.created_at.desc()) \
-        .offset(offset).limit(limit).all()
+        statement = statement.where(ProcessingJob.status == status)
+
+    jobs = db.exec(
+        statement.order_by(ProcessingJob.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
     return [
         JobListItem(
             id=job.id,
@@ -216,10 +220,10 @@ async def get_job_stats(
     Get aggregate statistics for batch jobs.
     - **project_id**: Limit stats to specific project (optional)
     """
-    query = db.query(ProcessingJob)
+    statement = select(ProcessingJob)
     if project_id:
-        query = query.filter(ProcessingJob.project_id == project_id)
-    all_jobs = query.all()
+        statement = statement.where(ProcessingJob.project_id == project_id)
+    all_jobs = db.exec(statement).all()
     stats = {
         "total_jobs": len(all_jobs),
         "by_status": {
@@ -240,14 +244,14 @@ async def get_job_stats(
             ]),
         },
         "total_items_processed": sum(
-                j.items_processed for j in all_jobs
-            ),
-            "total_items_failed": sum(
-                j.items_failed for j in all_jobs
-            ),
+            j.items_processed for j in all_jobs
+        ),
+        "total_items_failed": sum(
+            j.items_failed for j in all_jobs
+        ),
         "average_success_rate": (
-                sum(j.success_rate for j in all_jobs) / len(all_jobs)
-                if all_jobs else 0
-            ),
+            sum(j.success_rate for j in all_jobs) / len(all_jobs)
+            if all_jobs else 0
+        ),
     }
     return stats

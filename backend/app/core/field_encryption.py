@@ -5,7 +5,7 @@ Provides AES-256 encryption for sensitive database fields.
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 import os
@@ -31,8 +31,8 @@ class FieldEncryption:
                 "ENCRYPTION_SECRET must be set in environment variables"
             )
 
-        # Derive encryption key using PBKDF2
-        kdf = PBKDF2(
+        # Derive encryption key using PBKDF2HMAC
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b'zenith_salt_v1',  # In production, use random salt per field
@@ -78,6 +78,14 @@ class FieldEncryption:
             return decrypted_bytes.decode('utf-8')
         except Exception as e:
             raise ValueError(f"Decryption failed: {e}")
+
+    def encrypt_file(self, data: bytes) -> bytes:
+        """Encrypt raw bytes (files)"""
+        return self.cipher.encrypt(data)
+
+    def decrypt_file(self, encrypted_data: bytes) -> bytes:
+        """Decrypt raw bytes (files)"""
+        return self.cipher.decrypt(encrypted_data)
 
     def rotate_key(self, new_secret: str) -> 'FieldEncryption':
         """

@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from sqlmodel import Session, create_engine
 from app.models import (
     User,
     Case,
     Transaction,
-    BankTransaction,
+    TransactionSource,
     TransactionCategory,
     CaseStatus,
     CasePriority,
@@ -51,7 +51,7 @@ def seed():
             db.refresh(case_aldi)
         # 3. Create Internal Transactions (Journal Entries)
         # We'll create some "suspicious" ones based on the Aldi case
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         txs = [
             # Normal Project Expense
             Transaction(
@@ -140,29 +140,57 @@ def seed():
             db.add(tx)
         # 4. Create Bank Transactions (Mutations)
         bank_txs = [
-            BankTransaction(
+            Transaction(
                 amount=50000000,
+                actual_amount=50000000,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TRANSFER SEMEN JAYA",
+                transaction_date=now - timedelta(days=10, hours=2),
                 timestamp=now - timedelta(days=10, hours=2),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
-            BankTransaction(
+            Transaction(
                 amount=120000000,
+                actual_amount=120000000,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TRANSFER ALAT BERAT",
+                transaction_date=now - timedelta(days=9, hours=4),
                 timestamp=now - timedelta(days=9, hours=4),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
-            BankTransaction(
+            Transaction(
                 amount=15000000,
+                actual_amount=15000000,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TRSF ALDI AWAL",
+                transaction_date=now - timedelta(days=8, hours=1),
                 timestamp=now - timedelta(days=8, hours=1),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
-            BankTransaction(
+            Transaction(
                 amount=20000000,  # Discrepancy with 25m internal
+                actual_amount=20000000,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TRANSFER BANK LAIN",
+                transaction_date=now - timedelta(days=7, hours=5),
                 timestamp=now - timedelta(days=7, hours=5),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
         ]
         for btx in bank_txs:

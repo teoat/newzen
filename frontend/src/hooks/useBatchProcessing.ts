@@ -1,6 +1,6 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { API_URL } from '@/utils/constants';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { API_URL } from '../lib/constants';
 
 export interface BatchJob {
     id: string;
@@ -25,10 +25,14 @@ interface UseBatchProcessingResult {
 
 export function useBatchProcessing(projectId: string): UseBatchProcessingResult {
     const [jobs, setJobs] = useState<BatchJob[]>([]);
+    const activeJobsRef = useRef<BatchJob[]>([]);
 
     // Determine jobs requiring polling (pending or processing)
     const activeJobs = jobs.filter(j => ['pending', 'processing'].includes(j.status));
     const completedJobs = jobs.filter(j => ['completed', 'failed'].includes(j.status));
+
+    // Keep ref in sync
+    activeJobsRef.current = activeJobs;
 
     const activeJobIds = activeJobs.map(j => j.id).join(',');
     
@@ -37,12 +41,14 @@ export function useBatchProcessing(projectId: string): UseBatchProcessingResult 
         if (activeJobs.length === 0) return;
 
         const intervalId = setInterval(async () => {
-            const updatedJobs = await Promise.all(activeJobs.map(async (job) => {
+            const currentActiveJobs = activeJobsRef.current;
+            if (currentActiveJobs.length === 0) return;
+
+            const updatedJobs = await Promise.all(currentActiveJobs.map(async (job) => {
                 try {
                     const res = await fetch(`${API_URL}/api/v1/batch-jobs/${job.id}`);
                     if (res.ok) {
                         const data = await res.json();
-                        // Map backend format to frontend format if needed
                         return {
                             ...job,
                             status: data.status,
@@ -55,19 +61,18 @@ export function useBatchProcessing(projectId: string): UseBatchProcessingResult 
                 } catch (error) {
                     console.error(`Failed to poll job ${job.id}`, error);
                 }
-                return job; // Return unchanged on error
+                return job;
             }));
 
-            // Smart merge update
             setJobs(prev => prev.map(current => {
                 const updated = updatedJobs.find(u => u.id === current.id);
                 return updated ? { ...current, ...updated } : current;
             }));
 
-        }, 2000); // 2 second polling interval
+        }, 2000);
 
         return () => clearInterval(intervalId);
-    }, [activeJobIds]); // Depend on memoized/stable ID list
+    }, [activeJobIds, activeJobs.length]);
 
     const submitBatchJob = useCallback(async (type: BatchJob['type'], data: unknown, name: string) => {
         try {

@@ -7,19 +7,20 @@ import os
 import uuid
 import re
 import hashlib
-from datetime import datetime
-from pydantic import BaseModel, validator
+from datetime import datetime, UTC
+from pydantic import BaseModel, field_validator
 from app.core.db import get_session, engine
 from app.core.audit import AuditLogger
 from app.core.event_bus import publish_event, EventType
 from app.core.auth_middleware import verify_project_access
 from app.models import (
     Transaction,
-    BankTransaction,
+    TransactionSource,
     TransactionCategory,
     Document,
     Ingestion,
-    Project,  # Moved this Project import here
+    Project,
+    QuarantineRow,
 )
 from app.modules.fraud.reconciliation_router import detect_forensic_triggers
 from app.core.reconciliation_intelligence import BatchReferenceDetector
@@ -29,16 +30,20 @@ UPLOAD_DIR = "storage/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-def process_internal_batch(file_path: str, project_id: str):
+def process_internal_batch(
+    file_path: str, project_id: str, ingestion_id: str = None
+):
     """Background task to process internal ledger files."""
     try:
         # Create a new session for the background task
         with Session(engine) as db:
-            df = pd.read_csv(file_path) if file_path.endswith(".csv") else pd.read_excel(file_path)
+            is_csv = file_path.endswith(".csv")
+            df = pd.read_csv(file_path) if is_csv else pd.read_excel(file_path)
             # Simple normalization
             df.columns = [c.lower().replace(" ", "_") for c in df.columns]
             count = 0
-            for _, row in df.iterrows():
+            quarantine_count = 0
+            for idx, row in df.iterrows():
                 try:
                     # Robust Coordinate Parsing
                     lat = row.get("latitude")
@@ -64,71 +69,154 @@ def process_internal_batch(file_path: str, project_id: str):
                         audit_comment=str(row.get("audit_comment", "")),
                         latitude=float(lat) if lat and str(lat).strip() else None,
                         longitude=float(lng) if lng and str(lng).strip() else None,
-                        # ...
-                        timestamp=pd.to_datetime(
-                            row.get("timestamp", datetime.utcnow())
+                        transaction_date=pd.to_datetime(
+                            row.get("timestamp", datetime.now(UTC))
                         ).to_pydatetime(),
+                        timestamp=datetime.now(UTC),
                         status="pending",
                         batch_reference=batch_ref,
+                        source_type=TransactionSource.INTERNAL_LEDGER
                     )
                     # Run forensic triggers
                     detect_forensic_triggers(tx, db)
                     db.add(tx)
                     count += 1
                 except Exception as row_err:
-                    print(f"Row error: {row_err}")
+                    quarantine_count += 1
+                    q_row = QuarantineRow(
+                        project_id=project_id,
+                        ingestion_id=ingestion_id,
+                        raw_content=str(row.to_dict()),
+                        row_index=idx + 1,
+                        error_message=str(row_err),
+                        error_type="parsing_error"
+                    )
+                    db.add(q_row)
                     continue
+
+            # Update ingestion record if ID provided
+            if ingestion_id:
+                ing_rec = db.get(Ingestion, ingestion_id)
+                if ing_rec:
+                    ing_rec.status = "warning" if quarantine_count > 0 else "completed"
+                    ing_rec.records_processed = count
+                    ing_rec.metadata_json = {
+                        **(ing_rec.metadata_json or {}),
+                        "quarantine_count": quarantine_count
+                    }
+                    db.add(ing_rec)
+
             db.commit()
             publish_event(
                 EventType.DATA_INGESTED,
-                {"file": file_path, "rows": count, "type": "internal"},
+                {
+                    "file": file_path,
+                    "rows": count,
+                    "quarantined": quarantine_count,
+                    "type": "internal",
+                    "ingestion_id": ingestion_id
+                },
                 project_id=project_id,
             )
-            print(f"Background Ingestion Complete: {count} rows processed from {file_path}")
+            print(f"Background Ingestion Complete: {count} processed, {quarantine_count} quarantined")
     except Exception as e:
         print(f"File Processing Error: {e}")
+        with Session(engine) as db:
+            if ingestion_id:
+                ing_rec = db.get(Ingestion, ingestion_id)
+                if ing_rec:
+                    ing_rec.status = "failed"
+                    ing_rec.metadata_json = {**(ing_rec.metadata_json or {}), "error": str(e)}
+                    db.add(ing_rec)
+                    db.commit()
     finally:
         # Cleanup
         if os.path.exists(file_path):
             os.remove(file_path)
 
 
-def process_bank_batch(file_path: str, project_id: str):
+def process_bank_batch(
+    file_path: str, project_id: str, ingestion_id: str = None
+):
     """Background task to process bank statement files."""
     try:
         with Session(engine) as db:
-            df = pd.read_csv(file_path) if file_path.endswith(".csv") else pd.read_excel(file_path)
+            is_csv = file_path.endswith(".csv")
+            df = pd.read_csv(file_path) if is_csv else pd.read_excel(file_path)
             df.columns = [c.lower().replace(" ", "_") for c in df.columns]
             count = 0
-            for _, row in df.iterrows():
+            quarantine_count = 0
+            for idx, row in df.iterrows():
                 try:
                     desc = str(row.get("description", ""))
                     # Extract batch ref
                     batch_ref = BatchReferenceDetector.extract_batch_id(desc)
-                    bank_tx = BankTransaction(
+                    transaction = Transaction(
                         project_id=project_id,
                         amount=float(row.get("amount", 0) or 0),
+                        actual_amount=float(row.get("amount", 0) or 0),
+                        proposed_amount=0,
                         bank_name=str(row.get("bank_name", "BCA")),
                         description=desc,
-                        timestamp=pd.to_datetime(
-                            row.get("timestamp", datetime.utcnow())
+                        transaction_date=pd.to_datetime(
+                            row.get("timestamp", datetime.now(UTC))
                         ).to_pydatetime(),
+                        timestamp=datetime.now(UTC),
                         batch_reference=batch_ref,
+                        source_type=TransactionSource.BANK_STATEMENT,
+                        sender="BANK_UNKNOWN",
+                        receiver="BANK_UNKNOWN",
+                        status="COMPLETED"
                     )
-                    db.add(bank_tx)
+                    db.add(transaction)
                     count += 1
                 except Exception as row_err:
-                    print(f"Row error: {row_err}")
+                    quarantine_count += 1
+                    q_row = QuarantineRow(
+                        project_id=project_id,
+                        ingestion_id=ingestion_id,
+                        raw_content=str(row.to_dict()),
+                        row_index=idx + 1,
+                        error_message=str(row_err),
+                        error_type="parsing_error"
+                    )
+                    db.add(q_row)
                     continue
+
+            if ingestion_id:
+                ing_rec = db.get(Ingestion, ingestion_id)
+                if ing_rec:
+                    ing_rec.status = "warning" if quarantine_count > 0 else "completed"
+                    ing_rec.records_processed = count
+                    ing_rec.metadata_json = {
+                        **(ing_rec.metadata_json or {}),
+                        "quarantine_count": quarantine_count
+                    }
+                    db.add(ing_rec)
+
             db.commit()
             publish_event(
                 EventType.DATA_INGESTED,
-                {"file": file_path, "rows": count, "type": "bank"},
+                {
+                    "file": file_path,
+                    "rows": count,
+                    "quarantined": quarantine_count,
+                    "type": "bank",
+                    "ingestion_id": ingestion_id
+                },
                 project_id=project_id,
             )
-            print(f"Background Bank Ingestion Complete: {count} rows processed from {file_path}")
+            print(f"Background Bank Ingestion Complete: {count} processed, {quarantine_count} quarantined")
     except Exception as e:
         print(f"File Processing Error: {e}")
+        with Session(engine) as db:
+            if ingestion_id:
+                ing_rec = db.get(Ingestion, ingestion_id)
+                if ing_rec:
+                    ing_rec.status = "failed"
+                    ing_rec.metadata_json = {**(ing_rec.metadata_json or {}), "error": str(e)}
+                    db.add(ing_rec)
+                    db.commit()
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
@@ -140,27 +228,44 @@ async def upload_internal_ledger(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     project: Project = Depends(verify_project_access),
+    db: Session = Depends(get_session),
 ):
     """
     Async upload for Internal Ledger (Expenses/Journal).
     Processes file in background to prevent timeouts.
     """
     file_id = str(uuid.uuid4())
+    ing_seed = f"INT_{file_id}_{datetime.now(UTC).isoformat()}"
+    ingestion_id = hashlib.sha256(ing_seed.encode()).hexdigest()[:16].upper()
+
     ext = file.filename.split(".")[-1]
     file_path = f"{UPLOAD_DIR}/internal_{file_id}.{ext}"
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # Create Ingestion Record
+    new_ingestion = Ingestion(
+        id=ingestion_id,
+        project_id=project.id,
+        file_name=file.filename,
+        file_type="internal",
+        file_hash=f"SHA256:{file_id}", # Placeholder for real hash
+        records_processed=0,
+        status="pending",
+    )
+    db.add(new_ingestion)
+    db.commit()
+
     publish_event(
         EventType.DATA_UPLOADED,
-        {"filename": file.filename, "type": "internal"},
+        {"filename": file.filename, "type": "internal", "ingestion_id": ingestion_id},
         project_id=project.id,
     )
-    background_tasks.add_task(process_internal_batch, file_path, project.id)
+    background_tasks.add_task(process_internal_batch, file_path, project.id, ingestion_id)
     return {
         "status": "queued",
         "message": "File uploaded and ingestion started in background.",
-        "file_id": file_id,
+        "ingestion_id": ingestion_id,
     }
 
 
@@ -170,26 +275,42 @@ async def upload_bank_statement(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     project: Project = Depends(verify_project_access),
+    db: Session = Depends(get_session),
 ):
     """
     Async upload for Bank Statements.
     """
     file_id = str(uuid.uuid4())
+    ingestion_id = hashlib.sha256(f"BNK_{file_id}_{datetime.now(UTC).isoformat()}".encode()).hexdigest()[:16].upper()
+
     ext = file.filename.split(".")[-1]
     file_path = f"{UPLOAD_DIR}/bank_{file_id}.{ext}"
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
+    # Create Ingestion Record
+    new_ingestion = Ingestion(
+        id=ingestion_id,
+        project_id=project.id,
+        file_name=file.filename,
+        file_type="bank",
+        file_hash=f"SHA256:{file_id}", # Placeholder
+        records_processed=0,
+        status="pending",
+    )
+    db.add(new_ingestion)
+    db.commit()
+
     publish_event(
         EventType.DATA_UPLOADED,
-        {"filename": file.filename, "type": "bank"},
+        {"filename": file.filename, "type": "bank", "ingestion_id": ingestion_id},
         project_id=project.id,
     )
-    background_tasks.add_task(process_bank_batch, file_path, project.id)
+    background_tasks.add_task(process_bank_batch, file_path, project.id, ingestion_id)
     return {
         "status": "queued",
         "message": "File uploaded and ingestion started in background.",
-        "file_id": file_id,
+        "ingestion_id": ingestion_id,
     }
 
 
@@ -258,7 +379,8 @@ class IngestionPayload(BaseModel):
     endingBalance: Optional[float] = None
     batchMetadata: Optional[Dict[str, Any]] = None  # For chunked processing
 
-    @validator("fileHash")
+    @field_validator("fileHash")
+    @classmethod
     def validate_hash(cls, v):
         if not v.startswith("SHA256:"):
             raise ValueError("Hash must use SHA256 format")
@@ -396,7 +518,7 @@ async def consolidate_ingestion(
     if not project:
         raise HTTPException(status_code=404, detail=f"Project {payload.projectId} not found")
     # 2. Generate ID
-    ing_seed = f"{payload.projectId}_{payload.fileName}_{datetime.now().isoformat()}"
+    ing_seed = f"{payload.projectId}_{payload.fileName}_{datetime.now(UTC).isoformat()}"
     ingestion_id = hashlib.sha256(ing_seed.encode()).hexdigest()[:16].upper()
     # 3. Create Draft Record
     try:
@@ -441,7 +563,7 @@ async def consolidate_ingestion(
                 recordsProcessed=0,
                 validationErrors=[],
                 warnings=["Batch processing started for large dataset."],
-                timestamp=datetime.now().isoformat(),
+                timestamp=datetime.now(UTC).isoformat(),
                 diagnostics={
                     "status": "pending",
                     "mode": "batch",

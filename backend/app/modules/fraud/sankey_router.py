@@ -4,6 +4,7 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.modules.fraud.sankey_service import SankeyMapService
 from app.core.auth_middleware import verify_project_access
+from app.core.redis_client import cache_endpoint
 from app.models import Project, Case
 
 logger = logging.getLogger(__name__)
@@ -23,6 +24,7 @@ async def validate_case_in_project(case_id: str, project_id: str, db: Session):
 
 
 @router.get("/flow/{case_id}")
+@cache_endpoint(ttl=300)
 async def get_sankey_flow(
     project_id: str,
     case_id: str,
@@ -39,6 +41,7 @@ async def get_sankey_flow(
 
 
 @router.get("/high-velocity/{case_id}")
+@cache_endpoint(ttl=300)
 async def get_high_velocity_alerts(
     project_id: str,
     case_id: str,

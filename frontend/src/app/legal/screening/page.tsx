@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { 
@@ -6,7 +7,7 @@ import {
     CheckCircle, AlertOctagon, 
     Loader2, Hash, FileText 
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
+import { API_URL } from '../../../lib/constants';
 
 interface ScreeningResult {
     entity: string;
@@ -22,8 +23,8 @@ interface ScreeningResult {
     }[];
 }
 
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
 
 export default function SanctionScreeningPage() {
     const { activeProjectId } = useProject();

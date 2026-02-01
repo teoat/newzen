@@ -13,7 +13,7 @@ from app.models import (
     Project,
 )
 from app.core.auth_middleware import verify_project_access
-from datetime import datetime
+from datetime import datetime, UTC
 import hashlib
 
 from app.core.sync import manager
@@ -88,7 +88,7 @@ async def add_exhibit(
     # In a real app we'd fetch the source evidence to calculate hash,
     # here we assume frontend sends it or we mock it.
     if not exhibit.hash_signature:
-        exhibit.hash_signature = hashlib.sha256(str(datetime.utcnow()).encode()).hexdigest()
+        exhibit.hash_signature = hashlib.sha256(str(datetime.now(UTC)).encode()).hexdigest()
     db.add(exhibit)
     db.commit()
     db.refresh(exhibit)
@@ -151,7 +151,7 @@ async def update_exhibit(
                 inc = exhibit.metadata_json.get("risk_increment", 20.0)
                 entity.risk_score = min(100.0, entity.risk_score + inc)
                 db.add(entity)
-    exhibit.adjudicated_at = datetime.utcnow()
+    exhibit.adjudicated_at = datetime.now(UTC)
     db.add(exhibit)
     db.commit()
     db.refresh(exhibit)

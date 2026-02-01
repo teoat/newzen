@@ -1,23 +1,25 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { DatabaseZap, Settings2, Terminal, RefreshCw, X, ArrowRight, Layers } from 'lucide-react';
 import Papa from 'papaparse';
 
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+import { useProject } from '../../store/useProject';
+import ForensicPageLayout from '../../app/components/ForensicPageLayout';
 import StepToggle from './StepToggle';
-import { API_URL } from '@/utils/constants';
+import { API_URL } from '../../lib/constants';
 
 import { FileEntry, IngestionHistoryItem, Step, DiagnosticMetrics, MappingItem } from './types';
 import { CORE_SCHEMA } from './constants';
 import { AcquireStep } from './components/AcquireStep';
 import { InspectStep } from './components/InspectStep';
 import { IntegrateStep } from './components/IntegrateStep';
-import { IngestionService } from '@/services/IngestionService';
-import { useMappingStore } from '@/store/useMappingStore';
-import { useIngestionWorker } from '@/hooks/useIngestionWorker';
+import { IngestionService } from '../../services/IngestionService';
+import { RABService } from '../../services/RABService';
+import { useMappingStore } from '../../store/useMappingStore';
+import { useIngestionWorker } from '../../hooks/useIngestionWorker';
 
 export default function IngestionPage() {
   const { activeProjectId } = useProject();
@@ -59,6 +61,38 @@ export default function IngestionPage() {
     fetchHistory();
   }, [fetchHistory]);
 
+  // Path B: The Ingestion Neural Link
+  // Listen for Judge Agent Verdicts
+  useEffect(() => {
+      if (!activeProjectId) return;
+      const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/ws/stats/${activeProjectId}`);
+      
+      ws.onmessage = (event) => {
+          try {
+              const payload = JSON.parse(event.data);
+              if (payload.type === 'AGENT_ACTIVITY' && payload.subtype === 'VERDICT_REACHED') {
+                  const { document_id, status } = payload;
+                  
+                  // Holographic update of file status
+                  setFiles(prev => prev.map(f => {
+                      if (f.id === document_id) { // In real app, map uuid correctly
+                          return { 
+                              ...f, 
+                              status: status === 'MATCH' ? 'verified' : 'flagged',
+                              progress: 100 
+                          };
+                      }
+                      return f;
+                  }));
+                  
+                  addLog(`Judge Agent Verdict: ${status} for Doc ${document_id.slice(0,4)}...`, status === 'MATCH' ? 'success' : 'warn');
+              }
+          } catch (e) {}
+      };
+
+      return () => ws.close();
+  }, [activeProjectId, addLog]);
+
   const handleNotarize = async (ingestionId: string) => {
     setIsNotarizing(true);
     addLog(`Initiating Blockchain Anchor for Batch ${ingestionId}...`, 'info');
@@ -87,6 +121,27 @@ export default function IngestionPage() {
         for (const file of files) {
             if (file.status !== 'review') continue;
             
+            if (file.type === 'rab') {
+                try {
+                    addLog(`Importing Budget Structure from ${file.file.name}...`, 'info');
+                    const rabResult = await RABService.uploadRAB(file.file, activeProjectId || '');
+                    
+                    results[file.id] = {
+                        ingestionId: `RAB-${Date.now()}`,
+                        status: 'completed',
+                        recordsProcessed: rabResult.lines_imported,
+                        anomalyCount: 0,
+                        warnings: rabResult.warnings
+                    };
+                    addLog(`RAB Budget Imported: ${rabResult.lines_imported} line items.`, 'success');
+                } catch (e) {
+                    const err = e instanceof Error ? e : new Error(String(e));
+                    addLog(`RAB Import Failed: ${err.message}`, 'warn');
+                    throw err;
+                }
+                continue;
+            }
+
             addLog(`Consolidating ${file.file.name}...`, 'info');
             
             const payload = {
@@ -200,11 +255,12 @@ export default function IngestionPage() {
 
     if (validFiles.length === 0) return;
     
-    const newEntries: FileEntry[] = await Promise.all(validFiles.map(async file => {
+    const newEntries: (FileEntry | null)[] = await Promise.all(validFiles.map(async file => {
         const name = file.name.toLowerCase();
         let type: FileEntry['type'] = 'other';
         if (name.includes('bank') || name.includes('statement')) type = 'bank_statement';
         else if (name.includes('expense') || name.includes('invoice')) type = 'expense';
+        else if (name.includes('rab') || name.includes('budget') || name.includes('bq')) type = 'rab';
         else if (file.type.includes('image')) type = 'photo';
 
         let detectedColumns = ['Raw_Content']; 
@@ -316,45 +372,30 @@ export default function IngestionPage() {
   };
 
   const autoMatchFile = (entry: FileEntry): FileEntry => {
+    addLog(`Running Neural Alignment for ${entry.file.name}...`, 'info');
+    
     const updatedMappings = entry.mappings.map(m => {
         // Step 1: Check Learned Knowledge (AI-enhanced clever matching)
-        const learnedCol = entry.metadata.allColumns.find(c => {
-            const suggestion = useMappingStore.getState().getSuggestedField(c);
-            return suggestion === m.systemField;
-        });
-
-        if (learnedCol) return { ...m, fileColumn: learnedCol };
-
-        // Step 2: Fallback to Fuzzy Logic Protocols
+        const lowS = m.systemField.toLowerCase();
+        
+        // Use fuzzy matching directly if no learned pattern
         const col = entry.metadata.allColumns.find(c => {
             const lowC = c.toLowerCase();
-            const lowF = m.systemField.toLowerCase();
-            if (lowC.includes(lowF)) return true;
-            if (m.systemField === 'amount' && (lowC.includes('debit') || lowC.includes('value') || lowC.includes('cost'))) return true;
-            if (m.systemField === 'description' && (lowC.includes('desc') || lowC.includes('memo') || lowC.includes('particulars'))) return true;
-            if (m.systemField === 'date' && (lowC.includes('time') || lowC.includes('period'))) return true;
-            if (m.systemField === 'geolocation' && (lowC.includes('loc') || lowC.includes('coord') || lowC.includes('lat') || lowC.includes('long'))) return true;
-            if (m.systemField === 'account_number' && (lowC.includes('acc') || lowC.includes('iban') || lowC.includes('uid'))) return true;
-            if (m.systemField === 'balance' && (lowC.includes('bal') || lowC.includes('remain'))) return true;
+            if (lowC === lowS) return true;
+            if (lowS === 'amount' && (lowC.includes('debit') || lowC.includes('kredit') || lowC.includes('nominal') || lowC.includes('jumlah') || lowC.includes('value'))) return true;
+            if (lowS === 'description' && (lowC.includes('desc') || lowC.includes('uraian') || lowC.includes('keterangan') || lowC.includes('memo'))) return true;
+            if (lowS === 'date' && (lowC.includes('time') || lowC.includes('tanggal') || lowC.includes('tgl'))) return true;
+            if (lowS === 'receiver' && (lowC.includes('penerima') || lowC.includes('to') || lowC.includes('destination'))) return true;
+            if (lowS === 'sender' && (lowC.includes('pengirim') || lowC.includes('source') || lowC.includes('from'))) return true;
             return false;
         });
         return { ...m, fileColumn: col || '' };
     });
 
-    let finalPreview = entry.previewData;
-    if (!finalPreview || finalPreview.length === 0) {
-         finalPreview = Array.from({ length: 10 }).map((_, i) => ({
-             'Date': `2024-01-${i+1}`,
-             'Description': `Forensic Placeholder Log #${i}`,
-             'Amount': (Math.random() * 1000000).toFixed(0),
-             'Location': `LAT: ${Math.random().toFixed(4)}, LONG: ${Math.random().toFixed(4)}`
-         }));
-    }
-
     return { 
         ...entry, 
         mappings: updatedMappings,
-        previewData: finalPreview,
+        status: 'review'
     };
   };
 

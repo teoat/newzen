@@ -2,6 +2,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertOctagon, RefreshCw, ShieldAlert } from 'lucide-react';
+import { logger, errorWithInfo } from '../../lib/logger';
 
 interface Props {
   children?: ReactNode;
@@ -22,7 +23,7 @@ export default class ForensicErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught Forensic Error:", error, errorInfo);
+    errorWithInfo("Uncaught Forensic Error", error, { componentStack: errorInfo.componentStack });
   }
 
   public render() {

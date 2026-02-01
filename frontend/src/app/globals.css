@@ -1,6 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 :root {
   /* Zenith Premium Brand Colors - HSL for easy opacity manipulation */
@@ -46,11 +44,35 @@
   --chart-5: 340 75% 55%;
 
   /* DEPTH SYSTEM VARIABLES */
-  --depth-0-bg: rgb(8, 10, 15);
-  --depth-1-bg: rgb(15, 18, 25);
-  --depth-2-bg: rgb(22, 26, 35);
-  --depth-3-bg: rgb(28, 32, 42);
-  --depth-4-bg: rgb(35, 40, 52);
+  --depth-0-bg: rgb(5, 6, 10);
+  --depth-1-bg: rgb(10, 12, 18);
+  --depth-2-bg: rgb(18, 22, 30);
+  --depth-3-bg: rgb(24, 28, 38);
+  --depth-4-bg: rgb(32, 36, 48);
+
+  /* WCAG AAA HIGH CONTRAST TOKENS */
+  --aaa-text-main: #ffffff;
+  --aaa-text-muted: #cbd5e1;
+  --aaa-accent: #60a5fa;
+  --aaa-danger: #fb7185;
+}
+
+/* ACCESSIBILITY UTILITIES */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.high-contrast-text {
+  color: var(--aaa-text-main);
+  text-shadow: 0 0 1px rgba(0,0,0,0.5);
 }
 
 /* Base resets */
@@ -155,3 +177,131 @@ body {
 .text-depth-primary { color: rgba(255, 255, 255, 0.9); }
 .text-depth-secondary { color: rgba(255, 255, 255, 0.6); }
 .text-depth-tertiary { color: rgba(255, 255, 255, 0.4); }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.5);
+}
+
+
+
+/* FORENSIC DNA DESIGN TOKENS */
+@layer components {
+  .glass-tactical {
+    @apply bg-slate-900/40 backdrop-blur-2xl border border-white/10 shadow-2xl;
+  }
+  
+  .glass-holographic {
+    @apply bg-indigo-500/5 backdrop-blur-3xl border border-indigo-500/20 shadow-[0_0_30px_rgba(79,70,229,0.1)];
+  }
+
+  .shimmer-unverified {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer-unverified::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.03) 50%,
+      transparent 100%
+    );
+    animation: forensic-shimmer 3s infinite linear;
+    pointer-events: none;
+  }
+}
+
+@keyframes forensic-shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.scan-line-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(79, 70, 229, 0.05) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 10;
+  animation: scan-line 10s infinite linear;
+}
+
+/* VOLUMETRIC 3D DESIGN TOKENS */
+@layer utilities {
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .tilt-forward {
+    transform: rotateX(2deg) rotateY(-1deg);
+  }
+
+  .shadow-ao {
+    box-shadow: 
+      0 10px 30px -10px rgba(0, 0, 0, 0.5),
+      0 20px 50px -20px rgba(79, 70, 229, 0.2);
+  }
+
+  .neon-glow-indigo {
+    filter: drop-shadow(0 0 8px rgba(79, 70, 229, 0.6));
+  }
+
+  .neon-glow-rose {
+    filter: drop-shadow(0 0 8px rgba(244, 63, 94, 0.6));
+  }
+}
+
+@keyframes float-parabolic {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  50% { transform: translate(100px, -200px) scale(0.5); opacity: 0.8; }
+  100% { transform: translate(200px, -400px) scale(0); opacity: 0; }
+}
+
+.animate-pin-fly {
+  animation: float-parabolic 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* VIEW TRANSITIONS API SUPPORT */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.3s;
+}

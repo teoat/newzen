@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: zenith_backend
+    ports:
+      - "8443:8000"
+    volumes:
+      - ./backend:/app
+      - /app/venv
+      - ./ssl:/etc/ssl/certs:ro  # SSL certificates (read-only)
+    environment:
+      - DATABASE_URL=postgresql://zenith:zenith@db:5432/zenith_lite
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=changesme_in_prod_please
+      - SSL_ENABLED=true
+      - SSL_CERT_PATH=/etc/ssl/certs/zenith.crt
+      - SSL_KEY_PATH=/etc/ssl/certs/zenith.key
+    depends_on:
+      - db
+      - redis
+    networks:
+      - zenith_net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: zenith_redis
+    networks:
+      - zenith_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod  # Use production Dockerfile
+    container_name: zenith_frontend
+    ports:
+      - "3443:3000"
+    volumes:
+      - ./ssl:/etc/ssl/certs:ro  # SSL certificates (read-only)
+    environment:
+      - NEXT_PUBLIC_API_URL=https://localhost:8443
+      - API_URL=https://backend:8000
+      - SSL_ENABLED=true
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - zenith_net
+
+  db:
+    image: postgres:15-alpine
+    container_name: zenith_db
+    environment:
+      - POSTGRES_USER=zenith
+      - POSTGRES_PASSWORD=zenith
+      - POSTGRES_DB=zenith_lite
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups  # Backup directory
+    ports:
+      - "127.0.0.1:5442:5432"
+    networks:
+      - zenith_net
+
+  # SSL/TLS Termination with Nginx (Alternative option)
+  nginx:
+    image: nginx:alpine
+    container_name: zenith_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/ssl/certs:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - zenith_net
+    profiles:
+      - ssl-proxy  # Optional: Use Nginx as SSL proxy
+
+  # Backup service
+  backup:
+    image: postgres:15-alpine
+    container_name: zenith_backup
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:ro
+      - ./backups:/backups
+      - ./scripts:/scripts:ro
+    environment:
+      - POSTGRES_USER=zenith
+      - POSTGRES_PASSWORD=zenith
+      - POSTGRES_DB=zenith_lite
+      - PGPASSWORD=zenith
+    entrypoint: /bin/sh -c "while true; do /scripts/backup_database.sh; sleep 86400; done"
+    depends_on:
+      - db
+    networks:
+      - zenith_net
+    profiles:
+      - backup  # Optional: Automated backup service
+
+networks:
+  zenith_net:
+    driver: bridge
+
+volumes:
+  postgres_data:

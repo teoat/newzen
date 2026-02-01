@@ -1,41 +1,58 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { secureStorage } from '../lib/crypto';
 
+/**
+ * Hub tab types for forensic analysis views
+ */
 export type HubTab = 'analytics' | 'flow' | 'lab' | 'nexus' | 'satellite';
 
+/**
+ * HubState interface for the hub store
+ */
 interface HubState {
   // Active tab
   activeTab: HubTab;
+  /** Set the active tab */
   setActiveTab: (tab: HubTab) => void;
   
   // Focus mode
   focusMode: boolean;
+  /** Toggle focus mode on/off */
   toggleFocusMode: () => void;
   
   // Comparison Mode
   comparisonMode: boolean;
+  /** Toggle comparison mode */
   toggleComparisonMode: () => void;
   secondaryTab: HubTab | null;
+  /** Set secondary tab for comparison */
   setSecondaryTab: (tab: HubTab | null) => void;
 
   // Shared investigation context
   selectedEntity: string | null;
+  /** Set selected entity ID */
   setSelectedEntity: (id: string | null) => void;
   
   selectedMilestone: string | null;
+  /** Set selected milestone ID */
   setSelectedMilestone: (id: string | null) => void;
   
   selectedHotspot: string | null;
+  /** Set selected hotspot ID */
   setSelectedHotspot: (id: string | null) => void;
 
   selectedTransaction: string | null;
+  /** Set selected transaction ID */
   setSelectedTransaction: (id: string | null) => void;
   
   // Evidence flags
   evidenceFlags: Record<string, boolean>;
+  /** Set evidence flag status */
   setEvidenceFlag: (id: string, flagged: boolean) => void;
   
   // Cross-tool navigation
+  /** Navigate to a tab with optional context */
   navigateToTab: (tab: HubTab, context?: {
     entityId?: string;
     milestoneId?: string;
@@ -47,9 +64,25 @@ interface HubState {
   tabHistory: HubTab[];
   
   // Reset context
+  /** Clear all selected context */
   clearContext: () => void;
 }
 
+/**
+ * useHubStore - Zustand store for managing forensic hub state
+ * Handles tab navigation, focus mode, comparison mode, and investigation context
+ * 
+ * @example
+ * ```tsx
+ * const { activeTab, setActiveTab, focusMode, toggleFocusMode } = useHubStore()
+ * 
+ * // Switch tabs
+ * setActiveTab('nexus')
+ * 
+ * // Toggle focus mode
+ * toggleFocusMode()
+ * ```
+ */
 export const useHubStore = create<HubState>()(
   persist(
     (set) => ({
@@ -130,7 +163,8 @@ export const useHubStore = create<HubState>()(
         selectedHotspot: state.selectedHotspot,
         comparisonMode: state.comparisonMode,
         secondaryTab: state.secondaryTab
-      })
+      }),
+      storage: createJSONStorage(() => secureStorage as any)
     }
   )
 );

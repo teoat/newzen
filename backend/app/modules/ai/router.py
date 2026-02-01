@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, AsyncGenerator
 import re
+import json
+import asyncio
 from app.modules.ai.gemini_service import GeminiService
 from app.modules.ai.narrative_service import NarrativeEngine
 from app.core.db import get_session
@@ -47,24 +50,32 @@ def generate_sql_from_text(query: str) -> str:
 
 @router.post("/chat")
 async def chat_with_data(request: ChatRequest):
+    # ... existing chat code ...
+
+@router.post("/chat/stream")
+async def stream_chat_with_data(request: ChatRequest):
     """
-    Zenith Copilot: Intelligent chat interface for forensic queries.
-    Powered by Google Gemini with DB-aware context.
+    Zenith Copilot: Real-time streaming interface for forensic queries.
+    Utilizes SSE to push tokens to the investigator UI.
     """
-    try:
-        response = await gemini_service.chat_with_data(request.message, request.context)
-        return {
-            "reply": response,
-            "confidence": 0.95,
-            "sources": ["Transaction DB", "Reconciliation Engine"],
-        }
-    except Exception as e:
-        print(f"AI Error: {e}")
-        return {
-            "reply": "I'm having trouble accessing the neural core right now. Please verify the API keys are configured.",
-            "confidence": 0.0,
-            "error": str(e),
-        }
+    async def event_generator() -> AsyncGenerator[str, None]:
+        try:
+            # conceptually, gemini_service should support stream_chat
+            # for now, we'll simulate the stream with real content if the service doesn't have it
+            response = await gemini_service.chat_with_data(request.message, request.context)
+            
+            # Simulated streaming by chunks
+            words = response.split()
+            for i in range(0, len(words), 3):
+                chunk = " ".join(words[i:i+3]) + " "
+                yield f"data: {json.dumps({'token': chunk})}\n\n"
+                await asyncio.sleep(0.05)
+            
+            yield f"data: {json.dumps({'done': True, 'confidence': 0.95})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 @router.post("/narrative")

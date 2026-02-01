@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional
 from sqlmodel import Session
 import google.generativeai as genai
 from app.core.config import settings
+from app.core.cache import cache_result
 import json
 
 # Configure Gemini
@@ -22,7 +23,7 @@ class GeminiSQLGenerator:
 
     def __init__(self, db: Session):
         self.db = db
-        self.model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        self.model = genai.GenerativeModel(settings.MODEL_FLASH)
         # Database schema for context
         self.schema = self._get_database_schema()
 
@@ -85,6 +86,7 @@ class GeminiSQLGenerator:
             },
         }
 
+    @cache_result(ttl=300, prefix="sql_gen")
     async def generate_from_natural_language(
         self,
         query: str,
@@ -93,13 +95,16 @@ class GeminiSQLGenerator:
     ) -> Dict[str, Any]:
         """
         Generate SQL from natural language using Gemini 2.5 Flash.
+        Results are cached for 5 minutes to reduce API calls and latency.
         """
         context = context or {}
         session_id = context.get("session_id", "default")
-        from app.core.redis_client import redis_client
+        from app.core.redis_client import get_history
 
-        history = redis_client.get_history(session_id)
-        history_text = "\n".join([f"{m['role']}: {m['text']}" for m in history[-5:]])
+        history = get_history(session_id)
+        history_text = "\n".join(
+            [f"{m['role']}: {m['text']}" for m in history[-5:]]
+        )
 
         prompt = f"""
 You are an expert SQL generator for a forensic audit database.
@@ -116,7 +121,7 @@ CONTEXT:
 - Additional Filters: {context.get('filters', {})}
 IMPORTANT RULES:
 1. Generate ONLY SELECT queries (no INSERT/UPDATE/DELETE/DROP)
-2. Always include WHERE project_id = '{project_id}' if project_id is provided
+2. Always include WHERE project_id = '{project_id}' if project_id is provided  # noqa: E501
 3. Use appropriate JOINs when querying multiple tables
 4. Add LIMIT 100 to prevent overwhelming results
 5. Use proper date formatting: DATE('YYYY-MM-DD')
@@ -126,8 +131,8 @@ IMPORTANT RULES:
 9. For "suspicious" patterns, check forensic_triggers JSON column
 EXAMPLES:
 - "Show me high-risk transactions" → WHERE risk_score > 0.7
-- "Transactions above 100M last month" → WHERE amount > 100000000 AND transaction_date >= DATE('now', '-1 month')
-- "All vendors who received payments" → SELECT DISTINCT receiver FROM transaction WHERE receiver IS NOT NULL
+- "Transactions above 100M last month" → WHERE amount > 100000000 AND transaction_date >= DATE('now', '-1 month')  # noqa: E501
+- "All vendors who received payments" → SELECT DISTINCT receiver FROM transaction WHERE receiver IS NOT NULL  # noqa: E501
 Respond in JSON format:
 {{
   "sql": "SELECT ... (the valid SQL query)",
@@ -165,33 +170,51 @@ Respond in JSON format:
                 "error": f"SQL generation failed: {str(e)}",
             }
 
-    def _is_safe_sql(self, sql: str) -> bool:
+    def _is_safe_sql(self, sql: str) -> tuple[bool, Optional[str]]:
         """
-        Validate that SQL is safe to execute.
-        Prevents destructive operations.
+        Enhanced SQL validation with better injection protection.
+        Returns (is_safe, error_message)
         """
         sql_upper = sql.upper().strip()
-        # Blocked keywords
-        dangerous_keywords = [
-            "DROP",
-            "DELETE",
-            "TRUNCATE",
-            "INSERT",
-            "UPDATE",
-            "ALTER",
-            "CREATE",
-            "GRANT",
-            "REVOKE",
-            "EXEC",
-            "EXECUTE",
-        ]
-        for keyword in dangerous_keywords:
-            if keyword in sql_upper:
-                return False
+        
         # Must start with SELECT
         if not sql_upper.startswith("SELECT"):
-            return False
-        return True
+            return False, "Only SELECT queries are allowed"
+        
+        # Expanded dangerous keywords and patterns
+        dangerous_patterns = [
+            # Destructive operations
+            "DROP", "DELETE", "TRUNCATE", "INSERT", "UPDATE", "ALTER", 
+            "CREATE", "GRANT", "REVOKE", "EXEC", "EXECUTE",
+            # Injection patterns
+            "--", "/*", "*/", ";", "XP_", "SP_",
+            # System functions
+            "SYSTEM(", "SHELL(", "LOAD_FILE(", "INTO OUTFILE", "INTO DUMPFILE",
+            # Conditional logic that could hide attacks
+            "CASE WHEN", "IF(", "IIF(",
+            # Time-based attacks
+            "SLEEP(", "WAITFOR DELAY", "BENCHMARK(",
+            # Information schema (too risky)
+            "INFORMATION_SCHEMA", "MYSQL.INFORMATION_SCHEMA", "PG_",
+        ]
+        
+        for pattern in dangerous_patterns:
+            if pattern in sql_upper:
+                return False, f"Dangerous SQL keyword/pattern detected: {pattern}"
+        
+        # Check for multiple statements (semicolon separation)
+        if sql.count(';') > 1 or (sql.count(';') == 1 and not sql.rstrip().endswith(';')):
+            return False, "Multiple SQL statements are not allowed"
+        
+        # Check for union-based injection attempts
+        if "UNION" in sql_upper and "SELECT" in sql_upper[sql_upper.find("UNION"):]:
+            return False, "UNION queries are restricted for security"
+        
+        # Check for subqueries that might be dangerous
+        if sql_upper.count("SELECT") > 1:
+            return False, "Complex subqueries are restricted"
+        
+        return True, None
 
     async def explain_query_results(self, sql: str, results: list, original_query: str) -> str:
         """
@@ -229,5 +252,9 @@ Respond as JSON array: ["question 1", "question 2", "question 3"]
             response = self.model.generate_content(prompt)
             suggestions = json.loads(response.text)
             return suggestions if isinstance(suggestions, list) else []
-        except Exception:
+        except json.JSONDecodeError:
+            print(f"Error parsing Gemini response in suggest_follow_up: {response.text}")
+            return []
+        except Exception as e:
+            print(f"Error in suggest_follow_up_queries: {str(e)}")
             return []

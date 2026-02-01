@@ -1,0 +1,348 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zenith API Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 40px; padding: 40px 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .header p { font-size: 1.2rem; opacity: 0.9; }
+        .search-box { margin-bottom: 30px; position: relative; }
+        .search-box input { width: 100%; padding: 15px 20px; font-size: 16px; border: 2px solid #e1e5e9; border-radius: 10px; outline: none; transition: border-color 0.3s; }
+        .search-box input:focus { border-color: #667eea; }
+        .api-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; }
+        .category-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: transform 0.3s, box-shadow 0.3s; }
+        .category-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .category-title { font-size: 1.5rem; font-weight: bold; color: #2c3e50; margin-bottom: 15px; display: flex; align-items: center; }
+        .category-icon { margin-right: 10px; font-size: 1.8rem; }
+        .endpoint { border-left: 4px solid #3498db; padding: 15px; margin-bottom: 15px; background: #f8f9fa; border-radius: 0 8px 8px 0; }
+        .endpoint:hover { background: #e3f2fd; }
+        .endpoint-method { font-weight: bold; color: #2980b9; margin-right: 10px; min-width: 60px; display: inline-block; }
+        .endpoint-path { font-family: 'Monaco', 'Consolas', monospace; font-size: 1.1rem; }
+        .endpoint-description { margin: 10px 0; color: #555; }
+        .examples { margin-top: 15px; }
+        .example-tabs { display: flex; gap: 5px; margin-bottom: 15px; }
+        .example-tab { padding: 8px 16px; background: #ecf0f1; border: none; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .example-tab:hover { background: #bdc3c7; color: white; }
+        .example-tab.active { background: #3498db; color: white; }
+        .example-content { display: none; background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 10px; overflow-x: auto; }
+        .example-content.active { display: block; }
+        .example-content pre { margin: 0; white-space: pre-wrap; font-family: 'Monaco', 'Consolas', monospace; font-size: 14px; }
+        .method-get { color: #27ae60; }
+        .method-post { color: #3498db; }
+        .method-put { color: #f39c12; }
+        .method-delete { color: #e74c3c; }
+        .stats { margin-top: 40px; padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center; }
+        .sidebar { position: fixed; right: 20px; top: 20px; width: 200px; background: #2c3e50; color: white; padding: 20px; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Zenith API Documentation</h1>
+            <p>Financial Intelligence Platform - REST API Reference</p>
+        </div>
+
+        <div class="search-box">
+            <input type="text" placeholder="🔍 Search endpoints..." id="searchInput" />
+        </div>
+
+        <div class="api-grid" id="apiGrid">
+            
+        <div class="category-card" id="authentication">
+            <div class="category-title">
+                <span class="category-icon">🔐</span>
+                Authentication
+            </div>
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-post">POST</span>
+                <span class="endpoint-path">POST /api/v1/auth/login</span>
+            </div>
+            <div class="endpoint-description">Authenticate user and get JWT token</div>
+            
+                    <div class="examples">
+                        <div class="example-tabs">
+                            
+                    <div class="example-tab" data-tab="tab_0" data-endpoint="POST__api_v1_auth_login">
+                        Curl
+                    </div>
+                    
+                    <div class="example-tab" data-tab="tab_1" data-endpoint="POST__api_v1_auth_login">
+                        Python
+                    </div>
+                    
+                    <div class="example-tab" data-tab="tab_2" data-endpoint="POST__api_v1_auth_login">
+                        Javascript
+                    </div>
+                    
+                        </div>
+                        
+                    <div class="example-content" id="tab_0_content_POST__api_v1_auth_login">
+                        <pre><code>curl -X POST http://localhost:8200/api/v1/auth/login \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=admin&password=admin123"</code></pre>
+                    </div>
+                    
+                    <div class="example-content" id="tab_1_content_POST__api_v1_auth_login">
+                        <pre><code>import requests
+
+response = requests.post(
+    "http://localhost:8200/api/v1/auth/login",
+    data={"username": "admin", "password": "admin123"}
+)
+print(response.json())</code></pre>
+                    </div>
+                    
+                    <div class="example-content" id="tab_2_content_POST__api_v1_auth_login">
+                        <pre><code>fetch('http://localhost:8200/api/v1/auth/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: 'username=admin&password=admin123'
+})
+.then(response => response.json())
+.then(data => console.log(data))</code></pre>
+                    </div>
+                    
+                    </div>
+                    
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-post">POST</span>
+                <span class="endpoint-path">POST /api/v1/auth/register</span>
+            </div>
+            <div class="endpoint-description">Register new user</div>
+            
+            
+        </div>
+        
+        <div class="category-card" id="projects">
+            <div class="category-title">
+                <span class="category-icon">📁</span>
+                Projects
+            </div>
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-get">GET</span>
+                <span class="endpoint-path">GET /api/v1/projects</span>
+            </div>
+            <div class="endpoint-description">Get all projects for current user</div>
+            
+                    <div class="examples">
+                        <div class="example-tabs">
+                            
+                    <div class="example-tab" data-tab="tab_0" data-endpoint="GET__api_v1_projects">
+                        Curl
+                    </div>
+                    
+                    <div class="example-tab" data-tab="tab_1" data-endpoint="GET__api_v1_projects">
+                        Python
+                    </div>
+                    
+                        </div>
+                        
+                    <div class="example-content" id="tab_0_content_GET__api_v1_projects">
+                        <pre><code>curl -X GET http://localhost:8200/api/v1/projects \
+  -H "Authorization: Bearer <your-jwt-token>"</code></pre>
+                    </div>
+                    
+                    <div class="example-content" id="tab_1_content_GET__api_v1_projects">
+                        <pre><code>import requests
+
+headers = {"Authorization": "Bearer <your-jwt-token>"}
+response = requests.get("http://localhost:8200/api/v1/projects", headers=headers)
+print(response.json())</code></pre>
+                    </div>
+                    
+                    </div>
+                    
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-post">POST</span>
+                <span class="endpoint-path">POST /api/v1/projects</span>
+            </div>
+            <div class="endpoint-description">Create new project</div>
+            
+                    <div class="examples">
+                        <div class="example-tabs">
+                            
+                    <div class="example-tab" data-tab="tab_0" data-endpoint="POST__api_v1_projects">
+                        Curl
+                    </div>
+                    
+                    <div class="example-tab" data-tab="tab_1" data-endpoint="POST__api_v1_projects">
+                        Python
+                    </div>
+                    
+                        </div>
+                        
+                    <div class="example-content" id="tab_0_content_POST__api_v1_projects">
+                        <pre><code>curl -X POST http://localhost:8200/api/v1/projects \
+  -H "Authorization: Bearer <your-jwt-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "New Investigation", "description": "Financial investigation case"}' </code></pre>
+                    </div>
+                    
+                    <div class="example-content" id="tab_1_content_POST__api_v1_projects">
+                        <pre><code>import requests
+
+headers = {
+    "Authorization": "Bearer <your-jwt-token>",
+    "Content-Type": "application/json"
+}
+
+data = {
+    "name": "New Investigation",
+    "description": "Financial investigation case"
+}
+
+response = requests.post("http://localhost:8200/api/v1/projects", headers=headers, json=data)
+print(response.json())</code></pre>
+                    </div>
+                    
+                    </div>
+                    
+            
+        </div>
+        
+        <div class="category-card" id="users">
+            <div class="category-title">
+                <span class="category-icon">👥</span>
+                Users
+            </div>
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-get">GET</span>
+                <span class="endpoint-path">GET /api/v1/users</span>
+            </div>
+            <div class="endpoint-description">Get all users (admin only)</div>
+            
+            
+        </div>
+        
+        <div class="category-card" id="forensics">
+            <div class="category-title">
+                <span class="category-icon">🔬</span>
+                Forensics
+            </div>
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-get">GET</span>
+                <span class="endpoint-path">GET /api/v1/forensics</span>
+            </div>
+            <div class="endpoint-description">Get forensic analysis data</div>
+            
+            
+        </div>
+        
+        <div class="category-card" id="system">
+            <div class="category-title">
+                <span class="category-icon">⚙️</span>
+                System
+            </div>
+            
+            <div class="endpoint">
+                <span class="endpoint-method method-get">GET</span>
+                <span class="endpoint-path">GET /health</span>
+            </div>
+            <div class="endpoint-description">System health check</div>
+            
+                    <div class="examples">
+                        <div class="example-tabs">
+                            
+                    <div class="example-tab" data-tab="tab_0" data-endpoint="GET__health">
+                        Curl
+                    </div>
+                    
+                    <div class="example-tab" data-tab="tab_1" data-endpoint="GET__health">
+                        Python
+                    </div>
+                    
+                        </div>
+                        
+                    <div class="example-content" id="tab_0_content_GET__health">
+                        <pre><code>curl -X GET http://localhost:8200/health</code></pre>
+                    </div>
+                    
+                    <div class="example-content" id="tab_1_content_GET__health">
+                        <pre><code>import requests
+response = requests.get("http://localhost:8200/health")
+print(response.json())</code></pre>
+                    </div>
+                    
+                    </div>
+                    
+            
+        </div>
+        
+        </div>
+
+        <div class="stats">
+            <p><strong>7</strong> endpoints documented</p>
+            <p><strong>5</strong> API categories</p>
+            <p>Interactive examples • Live testing • Multiple languages</p>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <h3>🔗 Quick Links</h3>
+        <a href="#authentication" style="color: #ecf0f1; text-decoration: none; display: block; margin: 10px 0;">🔐 Authentication</a>
+        <a href="#projects" style="color: #ecf0f1; text-decoration: none; display: block; margin: 10px 0;">📁 Projects</a>
+        <a href="#users" style="color: #ecf0f1; text-decoration: none; display: block; margin: 10px 0;">👥 Users</a>
+        <a href="#forensics" style="color: #ecf0f1; text-decoration: none; display: block; margin: 10px 0;">🔬 Forensics</a>
+        <a href="#system" style="color: #ecf0f1; text-decoration: none; display: block; margin: 10px 0;">⚙️ System</a>
+    </div>
+
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.category-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+            });
+        });
+
+        // Tab switching functionality
+        function showTab(tabName, endpointId) {
+            // Hide all tabs and contents for this endpoint
+            const tabs = document.querySelectorAll(`[data-endpoint="${endpointId}"] .example-tab`);
+            const contents = document.querySelectorAll(`[data-endpoint="${endpointId}"] .example-content`);
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Show selected tab and content
+            document.getElementById(`${tabName}_${endpointId}`).classList.add('active');
+            document.getElementById(`${tabName}_content_${endpointId}`).classList.add('active');
+        }
+        
+        // Initialize all tabs
+        document.querySelectorAll('.example-tab').forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                const tabName = e.target.getAttribute('data-tab');
+                const endpointId = e.target.getAttribute('data-endpoint');
+                showTab(tabName, endpointId);
+            });
+        });
+
+        // Show first tab by default
+        document.querySelectorAll('.category-card').forEach(card => {
+            const firstTab = card.querySelector('.example-tab');
+            const firstContent = card.querySelector('.example-content');
+            if (firstTab && firstContent) {
+                firstTab.classList.add('active');
+                firstContent.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
+    

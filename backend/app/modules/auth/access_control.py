@@ -5,7 +5,7 @@ Ensures users can only access projects they have permission to view.
 """
 
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from uuid import uuid4
 from sqlmodel import SQLModel, Field
 from enum import Enum
@@ -32,7 +32,7 @@ class UserProjectAccess(SQLModel, table=True):
     # Role assignment
     role: ProjectRole = Field(default=ProjectRole.VIEWER)
     # Timestamps
-    granted_at: datetime = Field(default_factory=datetime.utcnow)
+    granted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     granted_by: Optional[str] = Field(
         default=None, foreign_key="user.id"
     )  # Admin who granted access

@@ -5,7 +5,7 @@ from app.core.db import engine
 from app.models import Transaction, TransactionCategory
 from app.modules.fraud.reconciliation_router import detect_forensic_triggers
 import uuid
-from datetime import datetime
+from datetime import datetime, UTC
 
 # Make sure we flush stdout
 sys.stdout.reconfigure(line_buffering=True)
@@ -24,7 +24,7 @@ async def run_test():
                 description="Bpa Banda - Tre/Pikul Cost",
                 category_code=TransactionCategory.P,
                 status="pending",
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
                 sender="Field",
                 receiver="Bapa Banda",
             )

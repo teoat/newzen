@@ -2,14 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlmodel import Session, select
 from app.core.db import get_session
+from app.core.pagination import PaginationParams, paginate_query
+from app.core.database_optimizer import optimize_transaction_query
 from app.models import (
     Transaction,
-    BankTransaction,
     AuditLog,
     TransactionCategory,
+    Project,
     Case,
     FraudAlert,
-    Project,
     CaseExhibit,
 )
 from sqlalchemy import func, or_
@@ -49,8 +50,20 @@ async def export_pdf_dossier(
     """
     Generates a full evidentiary dossier PDF for legal proceedings for a specific project.
     """
-    transactions = db.exec(select(Transaction).where(Transaction.project_id == project.id)).all()
-    logs = db.exec(select(AuditLog).order_by(AuditLog.timestamp.desc())).all()
+    # Use optimized transaction query for exports
+    transactions = optimize_transaction_query(
+        session=db,
+        project_id=project.id,
+        limit=10000,
+        offset=0
+    )
+    len(transactions)  # Approximate for exports
+    
+    audit_pagination = PaginationParams(limit=100, offset=0)
+    logs, log_total = paginate_query(
+        db, AuditLog, audit_pagination,
+        order_by=AuditLog.timestamp.desc()
+    )
     # 1. Calculate Leakage Summary
     total_inflation = sum(t.delta_inflation for t in transactions if t.delta_inflation > 0)
     total_xp = sum(
@@ -103,7 +116,7 @@ async def export_pdf_dossier(
         for log in logs
     ]
     report_data = {
-        "report_generated_at": datetime.datetime.utcnow().isoformat(),
+        "report_generated_at": datetime.datetime.now(datetime.UTC).isoformat(),
         "executive_summary": {
             "total_inflation_detected": total_inflation,
             "total_personal_leakage": total_xp,
@@ -134,7 +147,11 @@ async def export_excel_audit(
     """
     Generates a full Excel spreadsheet for forensic auditors.
     """
-    transactions = db.exec(select(Transaction).where(Transaction.project_id == project.id)).all()
+    pagination = PaginationParams(limit=10000, offset=0)  # Large limit for exports
+    transactions, _ = paginate_query(
+        db, Transaction, pagination,
+        filters=(Transaction.project_id == project.id)
+    )
     data = [t.model_dump() for t in transactions]
     if not data:
         raise HTTPException(status_code=404, detail="No forensic data found")
@@ -203,7 +220,7 @@ async def update_transaction_status(
             "title": f"Transaction Verified: {status}",
             "source": "Investigator Console",
             "priority": "normal" if status == "VERIFIED" else "high",
-            "time": datetime.datetime.utcnow().strftime("%H:%M"),
+            "time": datetime.datetime.now(datetime.UTC).strftime("%H:%M"),
         },
         user_id=current_user.id,
         project_id=tx.project_id,
@@ -213,32 +230,16 @@ async def update_transaction_status(
     return {"status": "success", "id": tx.id, "new_verification_status": status}
 
 
-@router.get("/{project_id}/variance")
+@router.get("/variance/{project_id}")
 async def get_variance_analysis(
     project: Project = Depends(verify_project_access),
     db: Session = Depends(get_session),
 ):
     """Calculates monthly variance between Reported Logs and Bank mutations."""
-    reported = db.exec(select(Transaction).where(Transaction.project_id == project.id)).all()
-    bank = db.exec(select(BankTransaction).where(BankTransaction.project_id == project.id)).all()
-    total_reported = sum(t.actual_amount for t in reported if t.actual_amount > 0)
-    total_bank = sum(b.amount for b in bank if b.amount > 0)
-    delta = total_reported - total_bank
+    # Deprecated in favor of V2 RAB Service
     return {
-        "summary": {
-            "total_reported": total_reported,
-            "total_bank": total_bank,
-            "variance": delta,
-            "leakage_percent": ((delta / total_reported * 100) if total_reported > 0 else 0),
-        },
-        "anomalies": [
-            {
-                "month": "March 2020",
-                "reported": 2690000000,
-                "bank": 1610000000,
-                "delta": 1080000000,
-            }
-        ],
+        "status": "deprecated",
+        "message": "Use /api/v2/forensic-v2/rab/variance/"
     }
 
 
@@ -321,7 +322,7 @@ async def analyze_evidence_image(
         status = "FLAGGED"
     return {
         "file_name": file_name,
-        "analysis_timestamp": datetime.datetime.utcnow(),
+        "analysis_timestamp": datetime.datetime.now(datetime.UTC),
         "findings": result.get("findings", []),
         "metadata": result.get("metadata", {}),
         "status": status,
@@ -450,18 +451,7 @@ async def get_integrity_score(
     }
 
 
-@router.get("/site-truth/{project_id}")
-async def get_site_truth(
-    project: Project = Depends(verify_project_access),
-    db: Session = Depends(get_session),
-):
-    """
-    Horizon V3: The Reality Check.
-    Returns physical verification data vs financial claims.
-    """
-    from app.modules.forensic.service import SiteTruthValidator
-
-    return SiteTruthValidator.get_site_audit_data(project.id)
+# Removed: Site truth is now managed in RAB (V2) services.
 
 
 @router.get("/recovery-profile/{project_id}")
@@ -692,10 +682,12 @@ async def get_dashboard_stats(
     )
 
     # 5. Hotspots
+    # 5. Hotspots
+    # Mypy/SQLModel hack for optional fields check
     hotspots = db.exec(
         select(Transaction.latitude, Transaction.longitude, Transaction.risk_score)
         .where(Transaction.project_id == project.id)
-        .where(Transaction.latitude.is_not(None))
+        .where(Transaction.latitude is not None)  # type: ignore
         .where(Transaction.risk_score > 0.5)
         .limit(20)
     ).all()
@@ -893,9 +885,12 @@ async def cross_module_search(
     # 3. Search Exhibits
     exhibit_results = db.exec(
         select(CaseExhibit)
+        .where(CaseExhibit.project_id == project.id)
         .where(
-            CaseExhibit.project_id == project.id,
-            or_(CaseExhibit.filename.contains(q), CaseExhibit.description.contains(q)),
+            or_(
+                 CaseExhibit.filename.contains(q),
+                 CaseExhibit.description.contains(q)
+            )
         )
         .limit(5)
     ).all()

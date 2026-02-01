@@ -1,22 +1,29 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    Clock, Download, RefreshCw
+    Clock, Download, RefreshCw, Search, Activity
 } from 'lucide-react';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-import { useProject } from '@/store/useProject';
-import { API_URL } from '@/utils/constants';
-import { ForensicChronology, TimelineEvent } from '@/components/ForensicChronology/ForensicChronology';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import { API_URL } from '../../../lib/constants';
+import VirtualizedTimeline from '../../../components/ForensicChronology/VirtualizedTimeline';
+import EventDetailModal from '../../../components/ForensicChronology/EventDetailModal';
+import { TimelineEvent } from '../../../components/ForensicChronology/ForensicChronology';
 
 export default function ForensicTimelinePage() {
     const { activeProjectId } = useProject();
     const [events, setEvents] = useState<TimelineEvent[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+    const [showEventModal, setShowEventModal] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterType, setFilterType] = useState('all');
 
-    const fetchTimeline = async () => {
+    const fetchTimeline = useCallback(async () => {
         if (!activeProjectId) {
             setIsLoading(false);
             return;
@@ -25,11 +32,17 @@ export default function ForensicTimelinePage() {
         setIsLoading(true);
         setError(null);
         try {
-            // Use the new Phase 4 chronology endpoint
             const res = await fetch(`${API_URL}/api/v1/forensic-tools/${activeProjectId}/chronology`);
-            if  (res.ok) {
+            if (res.ok) {
                 const data = await res.json();
-                setEvents(data.events || []);
+                // Convert string timestamps to Date objects for the Chronology component
+                const processedEvents = (data.events || []).map((ev: any) => ({
+                    ...ev,
+                    timestamp: new Date(ev.timestamp),
+                    // Map snake_case to camelCase for the component
+                    riskLevel: ev.risk_level || ev.riskLevel || 'low'
+                }));
+                setEvents(processedEvents);
             } else {
                 setError('Failed to load chronology data');
             }
@@ -39,109 +52,123 @@ export default function ForensicTimelinePage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [activeProjectId]);
 
     useEffect(() => {
         fetchTimeline();
-    }, [activeProjectId]);
+    }, [fetchTimeline]);
+
+    const filteredEvents = useMemo(() => {
+        if (!events) return [];
+        return events.filter((e: TimelineEvent) => {
+            const matchesSearch = e.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                 e.title?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = filterType === 'all' || e.type === filterType;
+            return matchesSearch && matchesFilter;
+        });
+    }, [events, searchTerm, filterType]);
 
     const handleEventClick = (event: TimelineEvent) => {
-        console.log('Event clicked:', event);
-        // TODO: Open event details modal or navigate to related entity
+        setSelectedEvent(event);
+        setShowEventModal(true);
     };
 
+    const isMock = events.length === 0 && !isLoading;
+
     return (
-        <ForensicPageLayout
-            title="Forensic Chronology"
-            subtitle="Interactive Timeline of Evidence & Events"
-            icon={Clock}
+        <ForensicPageLayout 
+            title="Investigation Chronology"
         >
-            <div className="p-10 h-full flex flex-col gap-6">
-                {/* Header Actions */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                            Phase 4 Enhanced Timeline
-                        </h3>
-                        {events.length > 0 && (
-                            <span className="px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 rounded-lg text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-                                {events.length} Events
-                            </span>
-                        )}
+            <div className="space-y-6">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-100 italic tracking-tighter">ZENITH_CHRONOLOGY_v3.0</h1>
+                        <p className="text-slate-500 text-xs font-mono uppercase tracking-[0.3em]">High-Fidelity Event Reconstruction & Sequence Verification</p>
                     </div>
-
-                    <button
-                        onClick={fetchTimeline}
-                        disabled={isLoading}
-                        className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest transition-all flex items-center gap-2 disabled:opacity-50"
-                    >
-                        <RefreshCw className={`w-3 h-3 ${isLoading ? 'animate-spin' : ''}`} />
-                        Refresh
-                    </button>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => fetchTimeline()}
+                            className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-white/5 transition-all"
+                        >
+                            <RefreshCw className={`w-4 h-4 text-indigo-400 ${isLoading ? 'animate-spin' : ''}`} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Sync</span>
+                        </button>
+                        <button className="bg-indigo-600 hover:bg-indigo-500 rounded-xl px-4 py-2 flex items-center gap-2 transition-all">
+                            <Download className="w-4 h-4 text-white" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white">Export</span>
+                        </button>
+                    </div>
                 </div>
 
-                {/* Timeline Component */}
-                <div className="flex-1 relative">
-                    {isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm rounded-3xl z-10">
-                            <div className="text-center">
-                                <RefreshCw className="w-12 h-12 text-indigo-500 animate-spin mx-auto mb-4" />
-                                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">
-                                    Loading Chronology...
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {error && !isLoading && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm rounded-3xl">
-                            <div className="text-center max-w-md">
-                                <p className="text-sm font-black text-rose-400 uppercase tracking-widest mb-4">
-                                    {error}
-                                </p>
-                                <button
-                                    onClick={fetchTimeline}
-                                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-[10px] font-black text-white uppercase tracking-widest transition-all"
-                                >
-                                    Try Again
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {!isLoading && !error && (
-                        <ForensicChronology
-                            events={events}
-                            onEventClick={handleEventClick}
-                            height={700}
-                            allowFilter={true}
-                            allowExport={true}
+                {/* Search & Filters */}
+                <div className="flex gap-4 mb-8">
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                        <input 
+                            type="text" 
+                            placeholder="SEARCH RECONSTRUCTED SEQUENCES..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-4 text-xs font-mono focus:outline-none focus:border-indigo-500 transition-all text-white"
                         />
-                    )}
-
-                    {!isLoading && !error && events.length === 0 && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/30 backdrop-blur-sm rounded-3xl">
-                            <div className="text-center">
-                                <Clock className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-                                <p className="text-sm font-black text-slate-500 uppercase tracking-widest">
-                                    No events in chronology
-                                </p>
-                                <p className="text-xs text-slate-600 mt-2">
-                                    Add transactions or evidence to see timeline
-                                </p>
-                            </div>
-                        </div>
-                    )}
+                    </div>
+                    <div className="flex gap-2">
+                        {['all', 'transaction', 'evidence', 'milestone', 'risk_flag'].map((type) => (
+                            <button 
+                                key={type}
+                                onClick={() => setFilterType(type)}
+                                className={`rounded-lg text-[10px] font-bold uppercase tracking-widest py-3 px-4 transition-all border ${
+                                    filterType === type 
+                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/20' 
+                                    : 'bg-slate-900 border-white/5 text-slate-400 hover:border-white/20'
+                                }`}
+                            >
+                                {type.replace('_', ' ')}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Info Footer */}
-                <div className="tactical-card p-4 rounded-2xl border border-white/5">
-                    <div className="flex items-center justify-between text-[8px] font-mono text-slate-600 uppercase tracking-widest">
-                        <span>🤖 Phase 4 Enhanced • AI-Powered Timeline Visualization</span>
-                        <span>⚡ Real-time • Zoom/Filter • Export Enabled</span>
-                    </div>
+                {/* Timeline Display */}
+                <div className="relative rounded-2xl bg-slate-950 border border-white/5 overflow-hidden min-h-[600px] shadow-2xl">
+                    <AnimatePresence>
+                        {isLoading && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-50 backdrop-blur-sm"
+                            >
+                                <Activity className="w-12 h-12 text-indigo-500 animate-pulse mb-4" />
+                                <span className="text-indigo-400 font-mono text-xs uppercase tracking-[0.5em] animate-pulse">Syncing Event Logs...</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {events.length > 0 ? (
+                        <VirtualizedTimeline 
+                            events={filteredEvents} 
+                            height={600} 
+                            onEventClick={handleEventClick}
+                            // itemSize={90} // Adjust based on row height
+                        />
+                    ) : !isLoading && (
+                        <div className="flex flex-col items-center justify-center h-[600px] text-slate-500 font-mono text-xs uppercase tracking-widest">
+                            <Clock className="w-12 h-12 mb-4 opacity-20" />
+                            <span>No encoded sequences found in this project</span>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            {/* Event Exploration Modal */}
+            {selectedEvent && (
+                <EventDetailModal 
+                    isOpen={showEventModal}
+                    onClose={() => setShowEventModal(false)}
+                    event={selectedEvent}
+                />
+            )}
         </ForensicPageLayout>
     );
 }

@@ -54,8 +54,10 @@ async def verify_project_access(
     if required_role:
         role_hierarchy = {
             ProjectRole.VIEWER: 1,
-            ProjectRole.ANALYST: 2,
-            ProjectRole.ADMIN: 3,
+            ProjectRole.AUDITOR: 2,
+            ProjectRole.ANALYST: 3,
+            ProjectRole.ADJUDICATOR: 4,
+            ProjectRole.ADMIN: 5,
         }
         if role_hierarchy.get(access.role, 0) < role_hierarchy.get(required_role, 99):
             raise HTTPException(

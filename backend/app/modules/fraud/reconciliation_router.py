@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from typing import List
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from app.core.db import get_session
 from app.core.event_bus import publish_event, EventType
 from app.models import (
     Transaction,
     ReconciliationMatch,
-    BankTransaction,
+    TransactionSource,
     TransactionCategory,
     AuditLog,
     AMLStage,
@@ -134,7 +134,7 @@ def detect_forensic_triggers(tx: Transaction, db: Session):
                 AMLStage.INTEGRATION
             )  # Geo mismatches often suggest integration anomalies
     except Exception as e:
-        print(f"Geo validation failed: {e}")
+        logger.error(f"Geo validation failed: {str(e)}")
 
     # 9. Global Recidivism Detection (V6 Organization Brain)
     if tx.receiver:
@@ -168,15 +168,23 @@ async def get_internal_transactions(
     project: Project = Depends(verify_project_access),
     db: Session = Depends(get_session),
 ):
-    return db.exec(select(Transaction).where(Transaction.project_id == project.id)).all()
+    return db.exec(
+        select(Transaction)
+        .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.INTERNAL_LEDGER)
+    ).all()
 
 
-@router.get("/{project_id}/bank", response_model=List[BankTransaction])
+@router.get("/{project_id}/bank", response_model=List[Transaction])
 async def get_bank_transactions(
     project: Project = Depends(verify_project_access),
     db: Session = Depends(get_session),
 ):
-    return db.exec(select(BankTransaction).where(BankTransaction.project_id == project.id)).all()
+    return db.exec(
+        select(Transaction)
+        .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.BANK_STATEMENT)
+    ).all()
 
 
 @router.post("/{project_id}/scan")
@@ -232,7 +240,7 @@ async def ingest_internal_ledger(
                 timestamp=(
                     datetime.fromisoformat(entry["timestamp"])
                     if "timestamp" in entry
-                    else datetime.utcnow()
+                    else datetime.now(UTC)
                 ),
             )
             # Run immediate forensic check
@@ -256,18 +264,25 @@ async def ingest_bank_statement(
     processed = 0
     for mut in mutations:
         try:
-            bank_tx = BankTransaction(
+            transaction = Transaction(
                 project_id=project.id,
                 amount=mut.get("amount", 0),
+                actual_amount=mut.get("amount", 0),
+                proposed_amount=0,
                 bank_name=mut.get("bank_name", "BCA"),
                 description=mut.get("description", ""),
-                timestamp=(
+                transaction_date=(
                     datetime.fromisoformat(mut["timestamp"])
                     if "timestamp" in mut
-                    else datetime.utcnow()
+                    else datetime.now(UTC)
                 ),
+                timestamp=datetime.now(UTC),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             )
-            db.add(bank_tx)
+            db.add(transaction)
             processed += 1
         except Exception as e:
             print(f"Error ingesting mutation: {e}")
@@ -317,8 +332,7 @@ async def get_suggested_matches(
     3. 'Minimal Arus Uang' logic: aggregates V/P/F vouchers to match U (Bank) entries.
     """
     from app.core.reconciliation_intelligence import (
-        CurrencyService, SemanticMatcher, VendorMatcher, 
-        ConfidenceCalculator, extract_all_references
+        CurrencyService, SemanticMatcher
     )
 
     matches = []
@@ -326,11 +340,14 @@ async def get_suggested_matches(
     internal_txs = db.exec(
         select(Transaction)
         .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.INTERNAL_LEDGER)
         .where(Transaction.status.in_(["pending", "flagged"]))
     ).all()
     # Fetch bank records
     bank_txs = db.exec(
-        select(BankTransaction).where(BankTransaction.project_id == project.id)
+        select(Transaction)
+        .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.BANK_STATEMENT)
     ).all()
     # Fetch user-configured settings or use defaults
     settings = db.exec(
@@ -421,10 +438,14 @@ async def get_suggested_matches(
                 f"{time_diff.days}d (Window:{dynamic_window}d)",
                 f"Channel:{channel}",
             ]
-            if invoice_match: reasoning_parts.append(f"INV:{internal_refs['invoice_ref']}")
-            if batch_match: reasoning_parts.append(f"BATCH:{i_tx.batch_reference}")
-            if vendor_sim > 80: reasoning_parts.append(f"Vendor:{vendor_sim:.0f}%")
-            if semantic_sim > 80: reasoning_parts.append(f"Semantic:{semantic_sim:.0f}%")
+            if invoice_match:
+                reasoning_parts.append(f"INV:{internal_refs['invoice_ref']}")
+            if batch_match:
+                reasoning_parts.append(f"BATCH:{i_tx.batch_reference}")
+            if vendor_sim > 80:
+                reasoning_parts.append(f"Vendor:{vendor_sim:.0f}%")
+            if semantic_sim > 80:
+                reasoning_parts.append(f"Semantic:{semantic_sim:.0f}%")
             reasoning_parts.append(tier)
 
             # Auto-confirmation flags
@@ -505,11 +526,14 @@ async def get_semantic_matches(
     internal_txs = db.exec(
         select(Transaction)
         .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.INTERNAL_LEDGER)
         .where(Transaction.status.in_(["pending", "flagged"]))
     ).all()
     
     bank_txs = db.exec(
-        select(BankTransaction).where(BankTransaction.project_id == project.id)
+        select(Transaction)
+        .where(Transaction.project_id == project.id)
+        .where(Transaction.source_type == TransactionSource.BANK_STATEMENT)
     ).all()
     
     if not internal_txs or not bank_txs:

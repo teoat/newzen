@@ -5,20 +5,26 @@
 
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { Filter, ZoomIn, ZoomOut, Download, Calendar } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import type { TimelineEventMetadata } from '../../schemas';
 
 export interface TimelineEvent {
   id: string;
   timestamp: Date;
   title: string;
   description: string;
-  type: 'transaction' | 'evidence' | 'milestone' | 'risk_flag';
+  type: 'transaction' | 'evidence' | 'milestone' | 'risk_flag' | 'alert' | 'document' | 'user_action';
   entity?: string;
   amount?: number;
   currency?: string;
   riskLevel?: 'low' | 'medium' | 'high' | 'critical';
-  metadata?: Record<string, any>;
+  source?: string;
+  details?: string;
+  tags?: string[];
+  related_entities?: string[];
+  metadata?: TimelineEventMetadata;
 }
 
 interface ForensicChronologyProps {
@@ -103,22 +109,52 @@ export function ForensicChronology({
   };
 
   // Sort events by timestamp
-  const sortedEvents = [...filteredEvents].sort((a, b) => 
-    a.timestamp.getTime() - b.timestamp.getTime()
+  const sortedEvents = useMemo(() =>
+    [...filteredEvents].sort((a, b) => 
+      a.timestamp.getTime() - b.timestamp.getTime()
+    ),
+    [filteredEvents]
   );
 
-  // Group events by date
-  const groupedByDate = sortedEvents.reduce((groups, event) => {
-    const dateKey = event.timestamp.toISOString().split('T')[0];
-    if (!groups[dateKey]) {
-      groups[dateKey] = [];
-    }
-    groups[dateKey].push(event);
-    return groups;
-  }, {} as Record<string, TimelineEvent[]>);
+// Flatten events into a single list for virtualization
+  const virtualItems = useMemo(() => {
+    const items: Array<{ type: 'date' | 'event'; data: any; index: number }> = [];
+    const groupedByDate = sortedEvents.reduce((groups, event) => {
+      const dateKey = event.timestamp.toISOString().split('T')[0];
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(event);
+      return groups;
+    }, {} as Record<string, TimelineEvent[]>);
+
+    let idx = 0;
+    Object.entries(groupedByDate).forEach(([date, dayEvents]) => {
+      // Add date header
+      items.push({ type: 'date', data: date, index: idx++ });
+      // Add events for this date
+      dayEvents.forEach(event => {
+        items.push({ type: 'event', data: event, index: idx++ });
+      });
+    });
+
+    return items;
+  }, [sortedEvents]);
+
+  // Virtualization
+  const parentRef = useRef<HTMLDivElement>(null);
+  const virtualizer = useVirtualizer({
+    count: virtualItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => {
+      const item = virtualItems[index];
+      return item?.type === 'date' ? 60 : 140; // Date headers are smaller
+    },
+    overscan: 5, // Render 5 items outside viewport for smooth scrolling
+  });
 
   return (
-    <div className="bg-slate-900 rounded-lg border border-slate-700 flex flex-col" style={{ height }}>
+    <div className="bg-slate-900 rounded-lg border border-slate-700 flex flex-col forensic-glass-panel" style={{ height }}>
       {/* Header */}
       <div className="p-4 border-b border-slate-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -190,94 +226,121 @@ export function ForensicChronology({
         </div>
       )}
 
-      {/* Timeline Content */}
+      {/* Virtualized Timeline Content */}
       <div 
-        ref={timelineRef}
-        className="flex-1 overflow-y-auto p-6"
+        ref={parentRef}
+        className="flex-1 overflow-y-auto p-6 tactical-scrollbar"
         style={{ transform: `scale(${zoomLevel})`, transformOrigin: 'top left' }}
       >
-        <div className="relative">
-          {/* Vertical Line */}
-          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-700" />
+        {virtualItems.length > 0 ? (
+          <div 
+            className="relative"
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative'
+            }}
+          >
+  {/* Vertical Line */}
+            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-700" />
 
-          {/* Events */}
-          <div className="space-y-6">
-            {Object.entries(groupedByDate).map(([date, dayEvents]) => (
-              <div key={date}>
-                {/* Date Header */}
-                <div className="mb-4">
-                  <h4 className="text-cyan-400 font-mono text-sm">
-                    {new Date(date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </h4>
-                </div>
+            {/* Virtualized Items */}
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const item = virtualItems[virtualRow.index];
+              
+              if (item.type === 'date') {
+                return (
+                  <div
+                    key={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <div className="mb-4">
+                      <h4 className="text-cyan-400 font-mono text-sm">
+                        {new Date(item.data).toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              }
 
-                {/* Day Events */}
-                <div className="space-y-4">
-                  {dayEvents.map(event => (
-                    <div
-                      key={event.id}
-                      className="relative pl-12 cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 -ml-3 transition-colors"
-                      onClick={() => onEventClick?.(event)}
-                    >
-                      {/* Event Dot */}
-                      <div className={`absolute left-2.5 top-5 w-3 h-3 rounded-full ${getEventColor(event)} ring-4 ring-slate-900`} />
+              // Event item
+              const event = item.data as TimelineEvent;
+              return (
+                <div
+                  key={virtualRow.index}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <div
+                    className="relative pl-12 cursor-pointer hover:bg-slate-800/30 rounded-lg p-3 -ml-3 transition-colors"
+                    onClick={() => onEventClick?.(event)}
+                  >
+                    {/* Event Dot */}
+                    <div className={`absolute left-2.5 top-5 w-3 h-3 rounded-full ${getEventColor(event)} ring-4 ring-slate-900`} />
 
-                      {/* Event Card */}
-                      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{getEventIcon(event.type)}</span>
-                            <h5 className="text-white font-medium">{event.title}</h5>
-                            {event.riskLevel && (
-                              <span className={`text-xs px-2 py-0.5 rounded ${
-                                event.riskLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
-                                event.riskLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                                event.riskLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                'bg-slate-500/20 text-slate-400'
-                              }`}>
-                                {event.riskLevel.toUpperCase()}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-slate-400 text-xs font-mono">
-                            {event.timestamp.toLocaleTimeString()}
-                          </span>
-                        </div>
-
-                        <p className="text-slate-300 text-sm mb-2">{event.description}</p>
-
-                        {/* Metadata */}
-                        <div className="flex gap-4 text-xs text-slate-400">
-                          {event.entity && (
-                            <span>Entity: <span className="text-cyan-400">{event.entity}</span></span>
+                    {/* Event Card */}
+                    <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{getEventIcon(event.type)}</span>
+                          <h5 className="text-white font-medium">{event.title}</h5>
+                          {event.riskLevel && (
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              event.riskLevel === 'critical' ? 'bg-red-500/20 text-red-400' :
+                              event.riskLevel === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                              event.riskLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-slate-500/20 text-slate-400'
+                            }`}>
+                              {event.riskLevel.toUpperCase()}
+                            </span>
                           )}
-                          {event.amount !== undefined && (
-                            <span>Amount: <span className="text-green-400">
-                              {event.currency || ''} {event.amount.toLocaleString()}
-                            </span></span>
-                          )}
                         </div>
+                        <span className="text-slate-400 text-xs font-mono">
+                          {event.timestamp.toLocaleTimeString()}
+                        </span>
+                      </div>
+
+                      <p className="text-slate-300 text-sm mb-2">{event.description}</p>
+
+                      {/* Metadata */}
+                      <div className="flex gap-4 text-xs text-slate-400">
+                        {event.entity && (
+                          <span>Entity: <span className="text-cyan-400">{event.entity}</span></span>
+                        )}
+                        {event.amount !== undefined && (
+                          <span>Amount: <span className="text-green-400">
+                            {event.currency || ''} {event.amount.toLocaleString()}
+                          </span></span>
+                        )}
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-
-          {/* Empty State */}
-          {sortedEvents.length === 0 && (
-            <div className="text-center py-12">
-              <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-400">No events match the selected filters</p>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="text-center py-12">
+            <Calendar className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+            <p className="text-slate-400">No events match the selected filters</p>
+          </div>
+        )}
       </div>
     </div>
   );

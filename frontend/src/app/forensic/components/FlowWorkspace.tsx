@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Coins, Landmark, ArrowRight, Shield, AlertTriangle, Download } from 'lucide-react';
-import HolographicProjection from '@/app/components/HolographicProjection';
-import { HOLOGRAPHIC_SOURCE } from '@/utils/holographicData';
-import { useProject } from '@/store/useProject';
+import HolographicProjection from '../../../app/components/HolographicProjection';
+import { HOLOGRAPHIC_SOURCE } from '../../../lib/holographicData';
+import { useProject } from '../../../store/useProject';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
 

@@ -6,12 +6,8 @@
 // Environment-based API URL
 const getApiUrl = (): string => {
   if (typeof window !== 'undefined') {
-    // Client-side: use environment variable if defined (even if empty), otherwise default
-    // We explicitly check for undefined to allow empty string (relative path)
-    const envUrl = process.env.NEXT_PUBLIC_API_URL;
-    return envUrl !== undefined ? envUrl : 'http://localhost:8200';
+    return '';
   }
-  // Server-side
   return process.env.API_URL || 'http://localhost:8200';
 };
 
@@ -49,6 +45,7 @@ export const API_ROUTES = {
     DELETE: (id: string) => `${API_URL}/api/v1/project/${id}`,
     USERS: (id: string) => `${API_URL}/api/v1/admin/project/${id}/users`,
     S_CURVE: (id: string) => `${API_URL}/api/v1/project/${id}/s-curve-data`,
+    HOTSPOTS: `${API_URL}/api/v1/project/hotspots`,
     TRANSACTIONS: (id: string) => `${API_URL}/api/v1/project/${id}/transactions`,
   },
 
@@ -95,6 +92,7 @@ export const API_ROUTES = {
     DOSSIER: (caseId: string) => `${API_URL}/api/v1/ai/dossier/${caseId}`,
     DOSSIER_PROFESSIONAL: (caseId: string) => `${API_URL}/api/v1/ai/dossier-professional/${caseId}`,
     CONTRADICTIONS: (caseId: string) => `${API_URL}/api/v1/ai/contradictions/${caseId}`,
+    SEAL: (caseId: string) => `${API_URL}/api/v1/cases/${caseId}/seal`,
     MULTIMODAL: `${API_URL}/api/v1/ai/multimodal`,
     VOICE: `${API_URL}/api/v1/ai/voice`,
   },
@@ -130,6 +128,23 @@ export const API_ROUTES = {
     USER_DETAIL: (id: string) => `${API_URL}/api/v1/admin/users/${id}`,
     ANALYTICS: `${API_URL}/api/v1/admin/analytics`,
   },
+
+  // Next-Gen (V2) Endpoints
+  V2: {
+    PROPHET: {
+      FORECAST: (projectId: string) => `${API_URL}/api/v2/prophet/forecast-budget/${projectId}`,
+      RISK: `${API_URL}/api/v2/prophet/predict-risk`,
+    },
+    FLOW: {
+      TRACE: (projectId: string) => `${API_URL}/api/v2/flow/trace/${projectId}`,
+    },
+    JUDGE: {
+      VERDICT: (caseId: string) => `${API_URL}/api/v2/judge/verdict/${caseId}`,
+      DOCUMENT: (caseId: string) => `${API_URL}/api/v2/judge/document/${caseId}`,
+      DOSSIER: (caseId: string, userId: string) => 
+        `${API_URL}/api/v2/forensic-v2/judge/download-dossier?case_id=${caseId}&user_id=${userId}`,
+    }
+  }
 };
 
 /**

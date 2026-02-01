@@ -114,9 +114,32 @@ function transformRow(row: string[], headers: string[]): any {
   return transaction;
 }
 
+// Worker state management for cleanup
+let processingAbortController: AbortController | null = null;
+
+// Cleanup function
+function cleanup() {
+  if (processingAbortController) {
+    processingAbortController.abort();
+    processingAbortController = null;
+  }
+  // Clear any timers or intervals
+  // Close any open file handles or resources
+}
+
+// Handle cleanup on termination
+self.addEventListener('terminate', cleanup);
+self.addEventListener('close', cleanup);
+
 // Main message handler
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const { type, payload } = event.data;
+  
+  // Cancel any ongoing processing
+  cleanup();
+  
+  // Create new abort controller for this operation
+  processingAbortController = new AbortController();
   
   try {
     switch (type) {

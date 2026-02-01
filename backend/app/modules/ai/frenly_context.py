@@ -103,6 +103,25 @@ class FrenlyContextBuilder:
                 item["value"] = item["value"][start:end + 1 if end >= 0 else None]
 
     @classmethod
+    def _cleanup_expired(cls):
+        """Remove expired items from memory store"""
+        if REDIS_AVAILABLE:
+            return
+            
+        now = time.time()
+        keys_to_delete = []
+        
+        for key, item in _memory_store.items():
+            if item.get("expires") and now > item["expires"]:
+                keys_to_delete.append(key)
+                
+        for key in keys_to_delete:
+            del _memory_store[key]
+            
+        if keys_to_delete:
+            logger.debug(f"Cleaned up {len(keys_to_delete)} expired context keys")
+
+    @classmethod
     def update_context(cls, event):
         """
         Update Frenly AI context based on application event.
@@ -110,6 +129,10 @@ class FrenlyContextBuilder:
         Args:
             event: Event object from EventBus
         """
+        # Periodic cleanup (1% chance) to prevent memory leaks
+        if not REDIS_AVAILABLE and uuid.uuid4().int % 100 == 0:
+            cls._cleanup_expired()
+
         # Build context snapshot
         context = {
             "last_event": event.event_type.value,

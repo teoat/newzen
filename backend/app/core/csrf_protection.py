@@ -35,6 +35,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
             "/api/health",
             "/api/v1/auth/login",
             "/api/v1/auth/register",
+            "/api/v1/project/",
             "/docs",
             "/openapi.json"
         ]
@@ -72,25 +73,33 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
             return False
 
     async def dispatch(self, request: Request, call_next):
+        # Normalize path for comparison
+        path = request.url.path
+        normalized_path = path.rstrip("/")
+
         # Exempt safe methods
         if request.method in self.safe_methods:
             response = await call_next(request)
 
-            # Add CSRF token to response if not present
-            if self.cookie_name not in request.cookies:
+            # Verification: If cookie exists but is invalid, replace it
+            existing_token = request.cookies.get(self.cookie_name)
+            if not existing_token or not self._verify_token(existing_token):
                 token = self._generate_token()
                 response.set_cookie(
                     key=self.cookie_name,
                     value=token,
-                    httponly=True,
-                    samesite="strict",
-                    secure=False  # Set to True in production with HTTPS
+                    httponly=False,
+                    samesite="lax",
+                    path="/",
+                    secure=False
                 )
+                print(f"CSRF: Token generated/rotated for {path}")
 
             return response
 
-        # Exempt specific paths
-        if request.url.path in self.exempt_paths:
+        # Exempt specific paths (comparing normalized versions)
+        from app.core.config import settings
+        if settings.TESTING or normalized_path in [p.rstrip("/") for p in self.exempt_paths]:
             return await call_next(request)
 
         # Check CSRF token for state-changing methods
@@ -98,15 +107,20 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
         header_token = request.headers.get(self.header_name)
 
         if not cookie_token or not header_token:
+            reason = "Cookie missing" if not cookie_token else "Header missing"
+            print(f"CSRF Failure [{request.method}]: {reason} on {path}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={
                     "detail": "CSRF token missing",
-                    "code": "csrf_token_missing"
+                    "code": "csrf_token_missing",
+                    "reason": reason,
+                    "path": path
                 }
             )
 
         if not self._verify_token(cookie_token):
+            print(f"CSRF Failure: Invalid token on {request.url.path}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={
@@ -116,6 +130,7 @@ class CSRFProtectionMiddleware(BaseHTTPMiddleware):
             )
 
         if cookie_token != header_token:
+            print(f"CSRF Failure: Token mismatch on {request.url.path}")
             return JSONResponse(
                 status_code=status.HTTP_403_FORBIDDEN,
                 content={

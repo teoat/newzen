@@ -6,7 +6,9 @@ import {
   TrendingUp, GitBranch, Microscope, Network, Satellite,
   Maximize2, Minimize2, Info, Columns
 } from 'lucide-react';
-import { useHubStore, HubTab } from '@/store/useHubStore';
+import { useHubStore, HubTab } from '../../../../store/useHubStore';
+import { startForensicTransition } from '../../../../lib/transitions';
+import { prefetchComponent } from '../../../../lib/prefetch';
 
 const TABS = [
   { id: 'analytics' as const, label: 'Analytics', icon: TrendingUp, color: 'indigo' },
@@ -45,7 +47,8 @@ export function HubTabs() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => startForensicTransition(() => setActiveTab(tab.id))}
+                onMouseEnter={() => prefetchComponent(tab.id)}
                 className={`
                   relative px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider
                   transition-all duration-200 flex items-center gap-2

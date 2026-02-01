@@ -125,7 +125,7 @@ class DeploymentValidator:
             
             if response.status_code == 200:
                 text = response.text
-                metric_count = len([l for l in text.split("\n") if l and not l.startswith("#")])
+                metric_count = len([line for line in text.split("\n") if line and not line.startswith("#")])
                 
                 self.results.append({
                     "check": "Metrics Endpoint",

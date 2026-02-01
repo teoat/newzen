@@ -4,8 +4,8 @@ import {
     Filter, Shield, FileText, Database, Layers, Download, Clock, Fingerprint, AlertTriangle, Lock,
     ShieldCheck, RefreshCw
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
-import { useInvestigation } from '@/store/useInvestigation';
+import { API_URL } from '../../../lib/constants';
+import { useInvestigation } from '../../../store/useInvestigation';
 import { format } from 'date-fns';
 
 interface Transaction {
@@ -71,13 +71,18 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
     });
 
     try {
-        await fetch(`${API_URL}/api/v1/forensic/transaction/${investigation.context.projectId}/${id}?status=${status}`, { method: 'PATCH' });
+        const projectId = investigation?.context?.projectId;
+        if (projectId) {
+            await fetch(`${API_URL}/api/v1/forensic/transaction/${projectId}/${id}?status=${status}`, { method: 'PATCH' });
+        }
     } catch (e) {
         console.error(e);
     }
   };
 
   const handleGenerateInterrogationGuide = async () => {
+    if (!investigation?.id) return;
+    
     setIsGeneratingGuide(true);
     try {
         const res = await fetch(`${API_URL}/api/v1/forensic/interrogation-guide/${investigation.id}`);

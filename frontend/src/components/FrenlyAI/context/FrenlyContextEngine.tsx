@@ -1,8 +1,11 @@
 import React, { createContext, useContext } from 'react';
 import { usePathname } from 'next/navigation';
-import { useProject } from '@/store/useProject';
-import { useInvestigation } from '@/store/useInvestigation';
-import { useHubStore } from '@/store/useHubStore';
+import { useProject } from '../../../store/useProject';
+import { useInvestigation } from '../../../store/useInvestigation';
+import { useHubStore } from '../../../store/useHubStore';
+import { logger } from '../../../lib/logger';
+
+const noop = () => { logger.debug('Action triggered'); };
 
 export interface QuickAction {
   label: string;
@@ -27,26 +30,35 @@ interface ContextData {
 }
 
 const PAGE_CONTEXTS: Record<string, ContextData> = {
-  '/': {
-    pageName: 'Audit Command Center',
-    greeting: 'System Online. Overview of active cases and financial anomalies.',
+  '\/': {
+    pageName: 'Mission Control Hub',
+    greeting: 'Sovereign Node Active. Monitoring system integrity.',
     quickActions: [
-      { label: 'Review High-Risk Alerts', route: '/investigate' },
-      { label: 'Upload New Evidence', route: '/ingestion' },
-      { label: 'Generate Executive Summary', action: () => console.log('Gen Report') }
+      { label: 'Initiate Triage Mission', route: '/ingestion' },
+      { label: 'Enter War Room', route: '/investigate' },
+      { label: 'System status report', action: noop }
     ],
     tips: [
-      '💡 3 new high-risk transactions detected in the last 24h.',
-      '🎯 Reconciliation gap has increased by 15% in Project Alpha.'
+      '💡 Network traffic shows 3 anomalies in the last hour.',
+      '🎯 Latency is optimal at 45ms. Security encryption active.'
     ]
+  },
+  '/mission-control': {
+      pageName: 'Mission Control Hub',
+      greeting: 'Main dashboard view. Access primary systems.',
+      quickActions: [
+        { label: 'Reconciliation', route: '/reconciliation' },
+        { label: 'Data Ingestion', route: '/ingestion' }
+      ],
+      tips: []
   },
   '/ingestion': {
     pageName: 'Evidence Ingestion',
     greeting: 'Ready to process financial records. Supported formats: CSV, PDF, XLS.',
     quickActions: [
-      { label: 'Use BCA Standard Template', action: () => console.log('Template') },
-      { label: 'View Mapping Guide', action: () => console.log('Guide') },
-      { label: 'Load Sample Dataset', action: () => console.log('Sample') }
+      { label: 'Use BCA Standard Template', action: noop },
+      { label: 'View Mapping Guide', action: noop },
+      { label: 'Load Sample Dataset', action: noop }
     ],
     tips: [
       '💡 CSV files process 40% faster than Excel workbooks.',
@@ -57,9 +69,9 @@ const PAGE_CONTEXTS: Record<string, ContextData> = {
     pageName: 'Reconciliation Workspace',
     greeting: 'Ledger matching engine active. Reviewing discrepancies.',
     quickActions: [
-      { label: 'Auto-Match High Confidence', action: () => console.log('Auto') },
-      { label: 'Filter by Variance > 10%', action: () => console.log('Filter') },
-      { label: 'Export Discrepancy Report', action: () => console.log('Export') }
+      { label: 'Auto-Match High Confidence', action: noop },
+      { label: 'Filter by Variance > 10%', action: noop },
+      { label: 'Export Discrepancy Report', action: noop }
     ],
     tips: [
       '💡 Use the "Forensic History" view to track status changes.',
@@ -70,9 +82,9 @@ const PAGE_CONTEXTS: Record<string, ContextData> = {
     pageName: 'Entity Nexus Graph',
     greeting: 'Visualizing entity relationships and financial flows.',
     quickActions: [
-      { label: 'Highlight High-Risk Nodes', action: () => console.log('Highlight') },
-      { label: 'Trace Fund Flow', action: () => console.log('Trace') },
-      { label: 'Export Graph Snapshot', action: () => console.log('Snapshot') }
+      { label: 'Highlight High-Risk Nodes', action: noop },
+      { label: 'Trace Fund Flow', action: noop },
+      { label: 'Export Graph Snapshot', action: noop }
     ],
     tips: [
       '💡 Red edges indicate inflated transaction values.',
@@ -83,9 +95,9 @@ const PAGE_CONTEXTS: Record<string, ContextData> = {
     pageName: 'Asset Tracing Intelligence',
     greeting: 'Asset identification and recovery analysis module.',
     quickActions: [
-      { label: 'Log New Asset', action: () => console.log('Add') },
-      { label: 'Verify Ownership', action: () => console.log('Verify') },
-      { label: 'Calculate Recoverable Value', action: () => console.log('Calc') }
+      { label: 'Log New Asset', action: noop },
+      { label: 'Verify Ownership', action: noop },
+      { label: 'Calculate Recoverable Value', action: noop }
     ],
     tips: [
       '💡 Verify ownership via AHU database integration.',
@@ -144,7 +156,7 @@ export function FrenlyContextProvider({ children }: { children: React.ReactNode 
             quickActions: [
                 { label: 'Generate Dossier', route: '/investigate' },
                 { label: 'Adjudicate Findings', route: '/investigate' },
-                { label: 'Pause Investigation', action: () => console.log('Pause') }
+                { label: 'Pause Investigation', action: noop }
             ],
             tips: [
                 '💡 3 new pieces of evidence added since last review.',

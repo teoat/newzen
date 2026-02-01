@@ -1,10 +1,11 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Shield, UserPlus, Trash2, ShieldCheck } from 'lucide-react';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-import { useProject } from '@/store/useProject';
-import { API_URL } from '@/utils/constants';
+import ForensicPageLayout from '../../components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import { API_URL } from '../../../lib/constants';
 
 interface User {
   id: string;

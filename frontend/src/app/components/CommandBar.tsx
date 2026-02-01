@@ -1,27 +1,35 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Command, Zap, ArrowRight, X, LayoutDashboard, Database, Network, Satellite, Landmark, TrendingUp, Gavel, Truck, Shield } from 'lucide-react';
+import { Search, Command, Zap, ArrowRight, X, LayoutDashboard, Database, Network, Satellite, Landmark, TrendingUp, Gavel, Truck, Shield, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useProject } from '@/store/useProject';
-import { API_URL } from '@/utils/constants';
-import { forensicBus } from '@/lib/ForensicEventBus';
+import { useProject } from '../../store/useProject';
+import { API_URL } from '../../lib/constants';
+import { forensicBus } from '../../lib/ForensicEventBus';
+import { useDebounced } from '../../hooks/useDebounced';
 
 interface TransactionResult {
     id: string;
     description: string;
     actual_amount?: number;
+    sender?: string;
+    receiver?: string;
 }
 
 interface CaseResult {
     id: string;
-    title: string;
+    title?: string;
+    status?: string;
+    priority?: string;
 }
 
 interface ExhibitResult {
     id: string;
-    filename: string;
+    filename?: string;
+    label?: string;
+    hash_signature?: string;
+    hash?: string;
 }
 
 interface SearchResult {
@@ -56,33 +64,54 @@ const COMMANDS = [
 
 export default function CommandBar() {
     const [isOpen, setIsOpen] = useState(false);
-    const [query, setQuery] = useState('');
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
-    const [isSearching, setIsSearching] = useState(false);
-    const { activeProjectId } = useProject();
-    const router = useRouter();
-    const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounced(query, 300);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const { activeProjectId } = useProject();
+  const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
+
+    // Helper to open command bar with reset state
+    const openCommandBar = useCallback(() => {
+        setQuery('');
+        setSelectedIndex(0);
+        setSearchResults(null);
+        setIsOpen(true);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 setIsOpen(prev => {
-                    const next = !prev;
-                    if (next) {
-                        setQuery('');
-                        setSelectedIndex(0);
-                        setSearchResults(null);
+                    if (!prev) {
+                        // Opening - schedule state reset to avoid setState-in-effect
+                        setTimeout(() => {
+                            setQuery('');
+                            setSelectedIndex(0);
+                            setSearchResults(null);
+                        }, 0);
                     }
-                    return next;
+                    return !prev;
                 });
             }
             if (e.key === 'Escape') setIsOpen(false);
         };
 
         const unbind = forensicBus.on('TOGGLE_SEARCH', () => {
-            setIsOpen(prev => !prev);
+            setIsOpen(prev => {
+                if (!prev) {
+                    // Opening - schedule state reset to avoid setState-in-effect
+                    setTimeout(() => {
+                        setQuery('');
+                        setSelectedIndex(0);
+                        setSearchResults(null);
+                    }, 0);
+                }
+                return !prev;
+            });
         });
 
         window.addEventListener('keydown', handleKeyDown);
@@ -98,30 +127,32 @@ export default function CommandBar() {
         }
     }, [isOpen]);
 
-    // Unified Search Logic
+    // Unified Search Logic - now using debounced query
     useEffect(() => {
-        if (query.length < 2 || !activeProjectId) {
+        if (debouncedQuery.length < 2 || !activeProjectId) {
             setSearchResults(null);
+            setIsSearching(false);
             return;
         }
 
-        const timer = setTimeout(async () => {
+        const performSearch = async () => {
             setIsSearching(true);
             try {
                 const response = await fetch(
-                    `${API_URL}/api/v1/forensic/${activeProjectId}/search?q=${encodeURIComponent(query)}`
+                    `${API_URL}/api/v1/forensic/${activeProjectId}/search?q=${encodeURIComponent(debouncedQuery)}`
                 );
                 const data = await response.json();
                 setSearchResults(data.results);
             } catch (error) {
                 console.error('Intelligence search failed:', error);
+                setSearchResults(null);
             } finally {
                 setIsSearching(false);
             }
-        }, 300);
+        };
 
-        return () => clearTimeout(timer);
-    }, [query, activeProjectId]);
+        performSearch();
+    }, [debouncedQuery, activeProjectId]);
 
     const filteredCommands = COMMANDS.filter(cmd => 
         cmd.label.toLowerCase().includes(query.toLowerCase()) || 
@@ -130,9 +161,29 @@ export default function CommandBar() {
 
     // Flat list for keyboard navigation
     const dataResults = searchResults ? [
-        ...(searchResults.transactions || []).map(t => ({ ...t, _type: 'transaction', label: t.description, icon: Landmark })),
-        ...(searchResults.cases || []).map(c => ({ ...c, _type: 'case', label: c.title, icon: Gavel })),
-        ...(searchResults.exhibits || []).map(e => ({ ...e, _type: 'exhibit', label: e.filename, icon: Database }))
+        ...(searchResults.transactions || []).map(t => ({ 
+            ...t, 
+            _type: 'transaction', 
+            label: t.description, 
+            icon: Landmark,
+            sender: t.sender || 'INTERNAL',
+            receiver: t.receiver || 'EXTERNAL'
+        })),
+        ...(searchResults.cases || []).map(c => ({ 
+            ...c, 
+            _type: 'case', 
+            label: c.title ?? 'Untitled Case', 
+            icon: Gavel,
+            status: c.status || 'OPEN',
+            priority: c.priority || 'LOW'
+        })),
+        ...(searchResults.exhibits || []).map(e => ({ 
+            ...e, 
+            _type: 'exhibit', 
+            label: e.filename || e.label || 'Unnamed Exhibit', 
+            icon: Database,
+            hash: e.hash_signature || e.hash || 'UNVERIFIED'
+        }))
     ] : [];
 
     const allOptions = [...filteredCommands, ...dataResults];
@@ -145,13 +196,18 @@ export default function CommandBar() {
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'ArrowDown') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev + 1) % filteredCommands.length);
+            setSelectedIndex(prev => (prev + 1) % allOptions.length);
         } else if (e.key === 'ArrowUp') {
             e.preventDefault();
-            setSelectedIndex(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
+            setSelectedIndex(prev => (prev - 1 + allOptions.length) % allOptions.length);
         } else if (e.key === 'Enter') {
-            if (filteredCommands[selectedIndex]) {
-                handleSelect(filteredCommands[selectedIndex].href);
+            const opt = allOptions[selectedIndex];
+            if (opt) {
+                if ('href' in opt && opt.href) handleSelect(opt.href);
+                else if ('_type' in opt && opt._type === 'case') router.push(`/investigate?id=${(opt as CaseResult & { _type: string }).id}`);
+                else if ('_type' in opt && opt._type === 'transaction') router.push(`/investigate?transaction=${(opt as TransactionResult & { _type: string }).id}`);
+                else if ('_type' in opt && opt._type === 'exhibit') router.push(`/investigate?evidence=${(opt as ExhibitResult & { _type: string }).id}`);
+                setIsOpen(false);
             }
         }
     };
@@ -181,7 +237,10 @@ export default function CommandBar() {
                                 onChange={(e) => setQuery(e.target.value)}
                                 onKeyDown={handleKeyDown}
                                 placeholder="Search tools, projects, or actions..."
-                                className="bg-transparent border-none outline-none flex-1 text-white placeholder-slate-600 font-mono text-sm"
+                                disabled={isSearching}
+                                className={`bg-transparent border-none outline-none flex-1 text-white placeholder:text-slate-600 font-mono text-sm ${
+                                  isSearching ? 'opacity-50 cursor-wait' : ''
+                                }`}
                             />
                             <div className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 border border-white/5 text-[10px] text-slate-500 font-mono">
                                 <Command className="w-2.5 h-2.5" /> K
@@ -194,35 +253,66 @@ export default function CommandBar() {
                         <div className="max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
                             {allOptions.length > 0 ? (
                                 <div className="space-y-1">
-                                    {allOptions.map((opt: CommandOption, idx) => (
-                                        <div 
-                                            key={opt.id || idx}
-                                            onClick={() => {
-                                                if (opt.href) handleSelect(opt.href);
-                                                else if (opt._type === 'case') router.push(`/investigate?id=${opt.id}`);
-                                            }}
-                                            onMouseEnter={() => setSelectedIndex(idx)}
-                                            className={`flex items-center justify-between px-4 py-3.5 rounded-xl cursor-pointer transition-all ${selectedIndex === idx ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'hover:bg-white/[0.03] text-slate-400'}`}
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${selectedIndex === idx ? 'bg-white/20' : 'bg-slate-950/50 border border-white/5'}`}>
-                                                    {opt.icon ? <opt.icon className="w-4 h-4 text-indigo-400" /> : <Database className="w-4 h-4 text-slate-500" />}
-                                                </div>
+                                    {/* Render by Category if searching */}
+                                    {searchResults ? (
+                                        <div className="space-y-6">
+                                            {/* Category: Commands */}
+                                            {filteredCommands.length > 0 && (
                                                 <div>
-                                                    <div className={`text-sm font-black uppercase tracking-tight ${selectedIndex === idx ? 'text-white' : 'text-slate-200'}`}>
-                                                        {opt.label}
+                                                    <div className="px-4 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <Zap className="w-3 h-3" /> System Protocols
                                                     </div>
-                                                    <div className={`text-[9px] font-bold uppercase tracking-widest ${selectedIndex === idx ? 'text-indigo-200' : 'text-slate-600'}`}>
-                                                        {opt.group || opt._type || 'SEARCH RESULT'} 
-                                                        {opt.actual_amount && ` • IDR ${opt.actual_amount.toLocaleString()}`}
-                                                    </div>
+                                                    {filteredCommands.map((cmd, idx) => (
+                                                        <CommandItem 
+                                                            key={cmd.id} 
+                                                            opt={cmd} 
+                                                            idx={idx} 
+                                                            selectedIndex={selectedIndex} 
+                                                            onSelect={handleSelect}
+                                                            onHover={setSelectedIndex}
+                                                        />
+                                                    ))}
                                                 </div>
-                                            </div>
-                                            {selectedIndex === idx && (
-                                                <ArrowRight className="w-4 h-4 opacity-50" />
+                                            )}
+
+                                            {/* Category: Intelligence */}
+                                            {dataResults.length > 0 && (
+                                                <div>
+                                                    <div className="px-4 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                        <Database className="w-3 h-3" /> Intelligence Bank
+                                                    </div>
+                                                    {dataResults.map((opt, idx) => (
+                                                        <CommandItem 
+                                                            key={'id' in opt ? opt.id : idx} 
+                                                            opt={opt} 
+                                                            idx={filteredCommands.length + idx} 
+                                                            selectedIndex={selectedIndex} 
+                                                            onSelect={() => {
+                                                                if ('id' in opt) {
+                                                                    if (opt._type === 'case') router.push(`/investigate?id=${opt.id}`);
+                                                                    else if (opt._type === 'transaction') router.push(`/investigate?transaction=${opt.id}`);
+                                                                    else if (opt._type === 'exhibit') router.push(`/investigate?evidence=${opt.id}`);
+                                                                }
+                                                                setIsOpen(false);
+                                                            }}
+                                                            onHover={setSelectedIndex}
+                                                        />
+                                                    ))}
+                                                </div>
                                             )}
                                         </div>
-                                    ))}
+                                    ) : (
+                                        filteredCommands.map((cmd, idx) => (
+                                            <CommandItem 
+                                                key={cmd.id} 
+                                                opt={cmd} 
+                                                idx={idx} 
+                                                selectedIndex={selectedIndex} 
+                                                onSelect={handleSelect}
+                                                onHover={setSelectedIndex}
+                                            />
+                                        ))
+                                    )}
                                 </div>
                             ) : (
                                 <div className="py-20 flex flex-col items-center justify-center text-slate-600 gap-4">
@@ -246,5 +336,67 @@ export default function CommandBar() {
                 </div>
             )}
         </AnimatePresence>
+    );
+}
+
+type CommandItemData = {
+    id?: string;
+    label: string;
+    icon?: React.ComponentType<{ size?: number; className?: string }>;
+    href?: string;
+    _type?: string;
+    group?: string;
+    sender?: string;
+    receiver?: string;
+    status?: string;
+    priority?: string;
+    hash?: string;
+    actual_amount?: number;
+};
+
+function CommandItem({ opt, idx, selectedIndex, onSelect, onHover }: { 
+    opt: CommandItemData, 
+    idx: number, 
+    selectedIndex: number, 
+    onSelect: (href: string) => void,
+    onHover: (idx: number) => void
+}) {
+    return (
+        <div 
+            onClick={() => {
+                if (opt.href) onSelect(opt.href);
+                else if (opt._type === 'case' && opt.id) onSelect(`/investigate?id=${opt.id}`);
+                else if (opt._type === 'transaction' && opt.id) onSelect(`/investigate?transaction=${opt.id}`);
+                else if (opt._type === 'exhibit' && opt.id) onSelect(`/investigate?evidence=${opt.id}`);
+            }}
+            onMouseEnter={() => onHover(idx)}
+            className={`flex items-center justify-between px-4 py-3.5 rounded-xl cursor-pointer transition-all ${selectedIndex === idx ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'hover:bg-white/[0.03] text-slate-400'}`}
+        >
+            <div className="flex items-center gap-4 min-w-0">
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${selectedIndex === idx ? 'bg-white/20' : 'bg-slate-950/50 border border-white/5'}`}>
+                    {opt.icon ? <opt.icon className="w-4 h-4 text-indigo-400" /> : <Database className="w-4 h-4 text-slate-500" />}
+                </div>
+                <div className="min-w-0">
+                    <div className={`text-sm font-black uppercase tracking-tight truncate ${selectedIndex === idx ? 'text-white' : 'text-slate-200'}`}>
+                        {opt.label}
+                    </div>
+                    <div className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${selectedIndex === idx ? 'text-indigo-200' : 'text-slate-600'}`}>
+                        <span>{opt.group || opt._type || 'SEARCH RESULT'}</span>
+                        {opt._type === 'transaction' && opt.sender && opt.receiver && (
+                            <span className="opacity-60 italic">({opt.sender} → {opt.receiver})</span>
+                        )}
+                        {opt._type === 'case' && opt.status && opt.priority && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-white/5 text-[7px] uppercase font-black">
+                                {opt.status} • {opt.priority}
+                            </span>
+                        )}
+                        {opt.actual_amount && ` • IDR ${opt.actual_amount.toLocaleString()}`}
+                    </div>
+                </div>
+            </div>
+            {selectedIndex === idx && (
+                <ArrowRight className="w-4 h-4 opacity-50 flex-shrink-0" />
+            )}
+        </div>
     );
 }

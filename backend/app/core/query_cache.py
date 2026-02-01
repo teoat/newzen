@@ -38,7 +38,7 @@ class QueryCache:
     def get(self, key: str) -> Optional[Any]:
         """Get cached value"""
         try:
-            cached = redis_client.client.get(key)
+            cached = redis_client.get(key)
             if cached:
                 return json.loads(cached)
             return None
@@ -51,7 +51,7 @@ class QueryCache:
         try:
             ttl = ttl or self.default_ttl
             serialized = json.dumps(value, default=str)
-            redis_client.client.setex(key, ttl, serialized)
+            redis_client.setex(key, ttl, serialized)
             return True
         except Exception as e:
             print(f"Cache set error: {e}")
@@ -60,9 +60,9 @@ class QueryCache:
     def invalidate(self, pattern: str) -> int:
         """Invalidate all keys matching pattern"""
         try:
-            keys = redis_client.client.keys(f"{self.prefix}{pattern}*")
+            keys = redis_client.keys(f"{self.prefix}{pattern}*")
             if keys:
-                return redis_client.client.delete(*keys)
+                return redis_client.delete(*keys)
             return 0
         except Exception as e:
             print(f"Cache invalidate error: {e}")

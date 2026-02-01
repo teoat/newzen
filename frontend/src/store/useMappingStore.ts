@@ -1,20 +1,46 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+/**
+ * MappingKnowledge interface for column mapping storage
+ */
 interface MappingKnowledge {
-  // column_name -> system_field
-  learnedMappings: Record<string, string>;
-  // Counter to prioritize common mappings
-  frequency: Record<string, number>;
+    /** column_name -> system_field mappings */
+    learnedMappings: Record<string, string>;
+    /** Counter to prioritize common mappings */
+    frequency: Record<string, number>;
 }
 
+/**
+ * MappingStore interface for the mapping knowledge store
+ */
 interface MappingStore {
-  knowledge: MappingKnowledge;
-  learnMapping: (columnName: string, systemField: string) => void;
-  getSuggestedField: (columnName: string) => string | null;
-  clearKnowledge: () => void;
+    knowledge: MappingKnowledge;
+    /** Learn a new column to field mapping */
+    learnMapping: (columnName: string, systemField: string) => void;
+    /** Get suggested field for a column name */
+    getSuggestedField: (columnName: string) => string | null;
+    /** Clear all learned mappings */
+    clearKnowledge: () => void;
+    /** Forensic Purge */
+    purgeStore: () => void;
 }
 
+/**
+ * useMappingStore - Zustand store for managing column mapping suggestions
+ * Persists learned mappings for better user experience during data ingestion
+ * 
+ * @example
+ * ```tsx
+ * const { learnMapping, getSuggestedField } = useMappingStore()
+ * 
+ * // Learn a mapping
+ * learnMapping('uraian', 'description')
+ * 
+ * // Get suggestion
+ * const field = getSuggestedField('uraian') // 'description'
+ * ```
+ */
 export const useMappingStore = create<MappingStore>()(
   persist(
     (set, get) => ({
@@ -28,6 +54,11 @@ export const useMappingStore = create<MappingStore>()(
           'no rekening': 'account_number',
         },
         frequency: {}
+      },
+
+      purgeStore: () => {
+          set({ knowledge: { learnedMappings: {}, frequency: {} } });
+          localStorage.removeItem('zenith-mapping-knowledge');
       },
 
       learnMapping: (columnName, systemField) => {

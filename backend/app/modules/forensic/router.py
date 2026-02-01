@@ -4,23 +4,38 @@ from datetime import timedelta
 from app.modules.forensic.satellite_service import SatelliteVerificationService
 from app.modules.forensic.recovery_service import AssetRecoveryService
 from app.core.db import get_session
-from app.models import Transaction
+from app.models import Transaction, Project
+from app.core.auth_middleware import verify_project_access
 
 router = APIRouter(prefix="/forensic-tools", tags=["Forensic Tools"])
 
 
 @router.get("/satellite/verify/{project_id}")
-async def verify_satellite_delta(project_id: str, lat: float = -6.2088, lon: float = 106.8456):
+async def verify_satellite_delta(
+    project_id: str,
+    lat: float = -6.2088,
+    lon: float = 106.8456,
+    project: Project = Depends(verify_project_access),
+):
     return SatelliteVerificationService.analyze_delta(project_id, lat, lon)
 
 
 @router.get("/recovery/trace/{project_id}")
-async def trace_assets(project_id: str):
+async def trace_assets(
+    project_id: str,
+    project: Project = Depends(verify_project_access),
+):
     return AssetRecoveryService.trace_asset(project_id)
 
 
 @router.get("/velocity/scan/{project_id}")
-async def scan_transaction_velocity(project_id: str, db: Session = Depends(get_session)):
+async def scan_transaction_velocity(
+    project_id: str, 
+    limit: int = 1000,
+    offset: int = 0,
+    db: Session = Depends(get_session),
+    project: Project = Depends(verify_project_access),
+):
     """
     Forensic Velocity Scanner: Detects SMURFING attempts.
     Scans for transaction clusters within 24hr windows that total > threshold.
@@ -29,6 +44,8 @@ async def scan_transaction_velocity(project_id: str, db: Session = Depends(get_s
         select(Transaction)
         .where(Transaction.project_id == project_id)
         .order_by(Transaction.transaction_date)
+        .limit(limit)
+        .offset(offset)
     ).all()
     triggers = []
     # Simplified smurfing detection: multiple small transactions
@@ -68,7 +85,8 @@ async def scan_transaction_velocity(project_id: str, db: Session = Depends(get_s
 @router.get("/{project_id}/chronology")
 async def get_forensic_chronology(
     project_id: str,
-    db: Session = Depends(get_session)
+    db: Session = Depends(get_session),
+    project: Project = Depends(verify_project_access),
 ):
     """
     Generate forensic chronology timeline
@@ -81,7 +99,7 @@ async def get_forensic_chronology(
     Returns:
         List of chronological events with timestamps and risk levels
     """
-    from app.models import AuditLog, BankTransaction, Evidence
+    from app.models import AuditLog, Evidence
     from datetime import datetime
     
     events = []

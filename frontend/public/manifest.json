@@ -1,19 +1,20 @@
 {
-  "name": "Zenith Forensic",
+  "name": "Zenith Forensic Platform",
   "short_name": "Zenith",
-  "description": "Enterprise Forensic Accounting & Audit Suite",
+  "description": "Autonomous Forensic Intelligence and Investigative Protocol",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#4f46e5",
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

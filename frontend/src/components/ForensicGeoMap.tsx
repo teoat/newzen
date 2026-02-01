@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useInvestigation } from '@/store/useInvestigation';
-import { useForensicNotifications } from '@/components/ForensicNotificationProvider';
-import { MapPin, Info, ArrowUpRight, PlusCircle, AlertTriangle } from 'lucide-react';
+import { useInvestigation } from '../store/useInvestigation';
+import { useForensicNotifications } from './ForensicNotificationProvider';
+import { MapPin, ArrowUpRight, PlusCircle, AlertTriangle } from 'lucide-react';
+import { audioService } from '../lib/audioService';
 
 export interface LeakageHotspot {
   id: string;
@@ -34,12 +35,14 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
   const notifications = useForensicNotifications();
 
   const handleHotspotClick = (hotspot: LeakageHotspot) => {
+    void audioService.playClick();
     setSelectedHotspot(hotspot);
   };
 
   const handleInvestigate = (hotspot: LeakageHotspot) => {
     // If no active investigation, start one
     if (!activeInvestigation) {
+      void audioService.playSuccess();
       startInvestigation(`Leakage Probe: ${hotspot.location.name}`, {
         projectId: hotspot.id,
         hotspotId: hotspot.id,
@@ -48,6 +51,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
       notifications.info('Investigation Started', `New case opened for ${hotspot.location.name}`);
     } else {
         // Add to current
+        void audioService.playClick();
         addAction({
           action: `Analyzed leakage hotspot at ${hotspot.location.name}`,
           tool: 'ForensicGeoMap',
@@ -76,13 +80,29 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
           </filter>
         </defs>
         
-        {/* Abstract Landmasses */}
-        <path d="M100,200 Q250,150 400,250 T700,300" stroke="none" fill="#1e293b" />
-        <path d="M50,150 Q200,50 350,150 T650,200" stroke="none" fill="#334155" opacity="0.5" />
+        {/* Indonesia Tactical Landmasses */}
+        <g fill="#1e293b" stroke="#334155" strokeWidth="0.5" filter="url(#glow)">
+          {/* Sumatra */}
+          <path d="M50,150 L120,80 L180,150 L150,250 Z" />
+          {/* Java */}
+          <path d="M180,260 L350,260 L350,280 L180,280 Z" />
+          {/* Kalimantan */}
+          <path d="M220,100 L320,100 L320,180 L220,180 Z" />
+          {/* Sulawesi */}
+          <path d="M340,120 L380,120 L380,150 L410,150 L410,180 L380,180 L380,220 L340,220 Z" />
+          {/* Maluku */}
+          <g>
+            <circle cx="410" cy="140" r="4" />
+            <circle cx="430" cy="160" r="5" />
+            <circle cx="420" cy="180" r="3" />
+          </g>
+          {/* Papua */}
+          <path d="M450,180 L580,180 L580,240 L500,240 L450,210 Z" />
+        </g>
         
         {/* Grid Lines */}
         <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(99,102,241,0.05)" strokeWidth="1"/>
         </pattern>
         <rect width="100%" height="100%" fill="url(#grid)" />
       </svg>
@@ -119,6 +139,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
                     context: 'Geospatial Leakage Map'
                   }));
                   notifications.info("EVIDENCE LOCKED", "Drop into dossier to link.");
+                  void audioService.playClick();
                 }}
               >
               {/* Pulse Ring */}

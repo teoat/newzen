@@ -53,13 +53,18 @@ celery_app.conf.update(
         },
     },
 )
-# Define Queues
-celery_app.conf.task_queues = (
+# Dead Letter Queue for forensic failures
+task_queues = (
     Queue(
         "ingestion",
         Exchange("ingestion"),
         routing_key="ingestion",
-        queue_arguments={"x-max-priority": 10},
+        queue_arguments={"x-max-priority": 10, "x-dead-letter-exchange": "dlx"},
+    ),
+    Queue(
+        "dlq",
+        Exchange("dlx"),
+        routing_key="dlq",
     ),
     Queue(
         "analysis",

@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { API_URL } from '@/utils/constants';
+import { API_URL } from '../lib/constants';
 
 interface JobStatus {
   id: string;

@@ -1,0 +1,10 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Run lint-staged for targeted linting and formatting
+npx lint-staged
+
+# Run TypeScript type check to catch type errors before commit
+# Note: Using npx tsc directly as it may not be in the npm scripts
+echo "Running TypeScript type check..."
+npx tsc --noEmit || exit 1

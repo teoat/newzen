@@ -1,21 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Building2, Landmark, ArrowRightLeft, Settings2, 
   ShieldCheck, 
   Save, 
-  Activity, Clock, Percent, Zap
+  Activity, Clock, Percent, Zap, Search, X, AlertTriangle
 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Badge } from '../../ui/badge';
 
-import { useProject } from '@/store/useProject';
-import { useForensicNotifications } from '@/components/ForensicNotificationProvider';
-import { API_ROUTES } from '@/services/apiRoutes';
-import { API_URL } from '@/utils/constants';
-import AIExplainerModal from '@/app/components/AIExplainerModal';
+import { useProject } from '../../store/useProject';
+import { useForensicNotifications } from '../../components/ForensicNotificationProvider';
+import { API_ROUTES } from '../../services/apiRoutes';
+import { API_URL } from '../../lib/constants';
+import { authenticatedFetch } from '../../lib/api';
+import AIExplainerModal from '../../app/components/AIExplainerModal';
 
-import { BankRecord, ExpenseRecord, Match, ReconciliationSettings } from '@/types/domain';
+import { BankRecord, ExpenseRecord, Match, ReconciliationSettings } from '../../types/domain';
 
 // Enhanced interfaces for better type safety
 interface MapData {
@@ -35,323 +38,160 @@ interface AutoConfirmResponse {
   flagged_for_review: number;
   message?: string;
 }
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { RecordCard } from './components/RecordCard';
 import { ConfigSlider } from './components/ConfigSlider';
 import { TopMetric } from './components/TopMetric';
 
 export default function ReconciliationWorkspace() {
     const { activeProjectId } = useProject();
-    const notifications = useForensicNotifications();
     const [bankRecords, setBankRecords] = useState<BankRecord[]>([]);
     const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>([]);
     const [matches, setMatches] = useState<Match[]>([]);
-    const [settings, setSettings] = useState<ReconciliationSettings>({
-        clearing_window_days: 7,
-        amount_tolerance_percent: 0.5,
-        batch_window_days: 10,
-        auto_confirm_threshold: 0.98
-    });
-    const [showSettings, setShowSettings] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [hoveredMatch, setHoveredMatch] = useState<string | null>(null);
-    const [explainingId, setExplainingId] = useState<string | null>(null);
 
-    // Optimization: Memoize Set lookups for O(1) access
-    const matchedBankIds = React.useMemo(() => new Set(matches.map(m => m.bank_tx_id)), [matches]);
-    const matchedInternalIds = React.useMemo(() => new Set(matches.map(m => m.internal_tx_id)), [matches]);
+    const bankParentRef = useRef<HTMLDivElement>(null);
+    const expenseParentRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!activeProjectId) return;
-        const loadWorkspace = async () => {
-            setIsLoading(true);
-            try {
-                // Fetch settings
-                const settingsRes = await fetch(API_ROUTES.RECONCILIATION.SETTINGS(activeProjectId));
-                if (settingsRes.ok) setSettings(await settingsRes.json());
+    const bankVirtualizer = useVirtualizer({
+        count: bankRecords.length,
+        getScrollElement: () => bankParentRef.current,
+        estimateSize: () => 100,
+        overscan: 5,
+    });
 
-                // Fetch data
-                const [bankRes, expRes, matchRes] = await Promise.all([
-                    fetch(API_ROUTES.RECONCILIATION.BANK(activeProjectId)),
-                    fetch(API_ROUTES.RECONCILIATION.INTERNAL(activeProjectId)),
-                    fetch(API_ROUTES.RECONCILIATION.SUGGESTED_MATCHES(activeProjectId))
-                ]);
-
-                if (bankRes.ok) setBankRecords(await bankRes.json());
-                if (expRes.ok) setExpenseRecords(await expRes.json());
-                if (matchRes.ok) setMatches(await matchRes.json());
-            } catch (err) {
-                console.error("Failed to load workspace", err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadWorkspace();
-    }, [activeProjectId]);
-
-    const handleSaveSettings = async () => {
-        setIsLoading(true);
-        try {
-            const res = await fetch(API_ROUTES.RECONCILIATION.SETTINGS(), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...settings, project_id: activeProjectId })
-            });
-            if (res.ok) {
-                setShowSettings(false);
-                // Refresh matches with new settings
-                const matchRes = await fetch(API_ROUTES.RECONCILIATION.SUGGESTED_MATCHES(activeProjectId));
-                if (matchRes.ok) setMatches(await matchRes.json());
-            }
-        } catch (err) {
-            console.error("Save failed", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleConfirmMatch = async (matchId: string) => {
-        try {
-            const res = await fetch(API_ROUTES.RECONCILIATION.CONFIRM(activeProjectId, matchId), {
-                method: 'POST'
-            });
-            if (res.ok) {
-                notifications.success("MATCH CONFIRMED", "Transaction has been cryptographically linked to bank record.");
-                // Update local state
-                setMatches(prev => prev.map(m => m.id === matchId ? { ...m, confirmed: true } : m));
-            }
-        } catch (err) {
-            console.error(err);
-            notifications.error("CONFIRMATION FAILED", "Uplink to reconciliation engine failed.");
-        }
-    };
+    const expenseVirtualizer = useVirtualizer({
+        count: expenseRecords.length,
+        getScrollElement: () => expenseParentRef.current,
+        estimateSize: () => 100,
+        overscan: 5,
+    });
 
     return (
-        <div className="min-h-[80vh] depth-layer-0 text-depth-primary font-sans overflow-hidden flex flex-col rounded-3xl tactical-frame depth-border-medium shadow-3xl">
-            {/* Contextual Stats Bar instead of Full Nav */}
-            <div className="h-16 border-b depth-border-subtle depth-layer-1 backdrop-blur-xl flex items-center justify-between px-10 shrink-0 z-50">
-                <div className="flex items-center gap-8">
-                    <div className="p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
-                        <ArrowRightLeft className="w-6 h-6 text-indigo-500" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none">FORENSIC_CONSENSUS_HUB</h1>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 italic">Handshake Integrity: <span className="text-emerald-500">OPTIMAL</span></p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-10">
-                    <div className="flex gap-8">
-                        <TopMetric label="Direct Matches" val={matches.filter(m => m.match_type === 'direct').length} />
-                        <TopMetric label="Aggregated" val={matches.filter(m => m.match_type === 'aggregate').length} />
-                        <TopMetric label="Discrepancies" val={bankRecords.length - matchedBankIds.size} danger />
-                    </div>
-                    
-                    <div className="w-px h-10 bg-white/5" />
-
-                    {/* Auto-Confirm Button */}
-                    {matches.some(m => m.ai_reasoning?.includes('AUTO_OK')) && (
-                        <button 
-                            onClick={async () => {
-                                try {
-                                    const res = await fetch(API_ROUTES.RECONCILIATION.AUTO_CONFIRM(activeProjectId), { method: 'POST' });
-                                    const data: AutoConfirmResponse = await res.json();
-                                    
-                                    if (res.ok) {
-                                        notifications.success(
-                                            "AUTO-CONFIRMATION COMPLETE", 
-                                            `${data.auto_confirmed} matches confirmed. ${data.flagged_for_review} flagged for review.`
-                                        );
-                                        // Refresh matches
-                                        const matchRes = await fetch(API_ROUTES.RECONCILIATION.SUGGESTED_MATCHES(activeProjectId));
-                                        if (matchRes.ok) setMatches(await matchRes.json() as Match[]);
-                                    } else {
-                                        throw new Error(data.message || 'Auto-confirmation failed');
-                                    }
-                                } catch (err) {
-                                    notifications.error("EXECUTION FAILED", "Auto-confirmation sequence was interrupted.");
-                                    console.error(err);
-                                }
-                            }}
-                            className="flex items-center gap-3 bg-emerald-500/10 hover:bg-emerald-500/20 px-6 py-2.5 rounded-xl border border-emerald-500/20 transition-all group depth-elevate depth-shadow-sm hover:depth-shadow-glow"
-                        >
-                            <ShieldCheck className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform duration-300" />
-                            <span className="text-xs font-black uppercase tracking-widest text-emerald-400 italic">
-                                Auto-Confirm ({matches.filter(m => m.ai_reasoning?.includes('AUTO_OK')).length})
-                            </span>
-                        </button>
-                    )}
-
-                    <button 
-                        onClick={() => setShowSettings(true)}
-                        className="flex items-center gap-3 depth-layer-2 hover:depth-layer-3 px-6 py-2.5 rounded-xl depth-border-subtle transition-all group depth-elevate"
-                    >
-                        <Settings2 className="w-4 h-4 text-depth-secondary group-hover:rotate-90 transition-transform duration-500" />
-                        <span className="text-xs font-black uppercase tracking-widest text-depth-primary italic">Engine Config</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Integrity Line */}
-            <div className="integrity-line opacity-50" />
-
-            {/* Main Workspace: SIDE-BY-SIDE */}
-            <main className="flex-1 flex overflow-hidden relative">
-                {/* Background Grid Pattern */}
-                <div className="absolute inset-0 opacity-[0.02] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(79,70,229,0.05),transparent_50%)] pointer-events-none" />
-
-                {/* Left: BANK TRUTH */}
-                <section className="flex-1 border-r depth-border-subtle flex flex-col">
-                    <div className="p-6 depth-layer-1 border-b depth-border-subtle flex items-center justify-between">
+        <div className="h-full flex flex-col overflow-hidden bg-transparent">
+            {/* TACTICAL WORKSPACE: SIDE-BY-SIDE */}
+            <main className="flex-1 flex gap-10 overflow-hidden relative p-4">
+                {/* LEFT: BANK TRUTH */}
+                <section className="flex-1 flex flex-col glass-tactical rounded-[2.5rem] overflow-hidden border border-white/5 shadow-ao perspective-1000">
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-20">
                         <div className="flex items-center gap-3">
                             <Landmark className="w-5 h-5 text-indigo-400" />
-                            <h2 className="text-sm font-black text-depth-primary italic tracking-widest uppercase">BANK_STATEMENT_TRUTH</h2>
+                            <h2 className="text-sm font-black text-white italic tracking-widest uppercase">BANK_STATEMENT_TRUTH</h2>
                         </div>
-                        <span className="text-[9px] font-bold text-indigo-400 opacity-50 uppercase tracking-[0.3em]">Source: Digital Export</span>
+                        <Badge variant="outline" className="text-indigo-400 border-indigo-500/20 uppercase text-[8px]">Primary Source</Badge>
                     </div>
                     
-                    <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
-                        {bankRecords.map(record => (
-                            <RecordCard 
-                                key={record.id}
-                                id={record.id}
-                                date={record.booking_date || record.timestamp}
-                                desc={record.description}
-                                amount={record.amount}
-                                isMatched={matchedBankIds.has(record.id)}
-                                isTruth
-                                 matches={matches}
-                                 onHoverMatch={setHoveredMatch}
-                                 hoveredMatchId={hoveredMatch}
-                                 onConfirm={handleConfirmMatch}
-                                 onExplain={setExplainingId}
-                             />
-
-                        ))}
+                    <div 
+                        ref={bankParentRef}
+                        className="flex-1 overflow-y-auto custom-scrollbar p-6"
+                    >
+                        <div
+                            style={{
+                                height: `${bankVirtualizer.getTotalSize()}px`,
+                                width: '100%',
+                                position: 'relative',
+                            }}
+                        >
+                            {bankVirtualizer.getVirtualItems().map(virtualRow => {
+                                const record = bankRecords[virtualRow.index];
+                                return (
+                                    <div
+                                        key={record.id}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                            paddingBottom: '1rem'
+                                        }}
+                                        className="group hover:bg-white/5 transition-all cursor-pointer"
+                                    >
+                                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{new Date(record.transaction_date || record.timestamp).toLocaleDateString()}</p>
+                                                <p className="text-xs font-bold text-white uppercase truncate max-w-[200px]">{record.description}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-black text-white font-mono tracking-tighter">IDR {record.amount.toLocaleString()}</p>
+                                                <div className="flex justify-end gap-1 mt-1">
+                                                    <div className="w-1 h-1 bg-indigo-500 rounded-full" />
+                                                    <div className="w-1 h-1 bg-indigo-500 rounded-full opacity-30" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </section>
 
-                {/* Center: Connectors (Visual Only) */}
-                <div className="w-12 flex flex-col items-center justify-center opacity-20 pointer-events-none">
+                {/* THE SYNC FLOW (MIDDLE) */}
+                <div className="flex flex-col items-center justify-center opacity-30">
+                    <div className="w-px h-full bg-gradient-to-b from-indigo-500/0 via-indigo-500/50 to-indigo-500/0" />
+                    <ArrowRightLeft className="w-6 h-6 text-indigo-500 my-4" />
                     <div className="w-px h-full bg-gradient-to-b from-indigo-500/0 via-indigo-500/50 to-indigo-500/0" />
                 </div>
 
-                {/* Right: JOURNAL CLAIMS */}
-                <section className="flex-1 flex flex-col">
-                    <div className="p-6 depth-layer-1 border-b depth-border-subtle flex items-center justify-between">
+                {/* RIGHT: JOURNAL CLAIMS */}
+                <section className="flex-1 flex flex-col glass-tactical rounded-[2.5rem] overflow-hidden border border-white/5 shadow-ao perspective-1000">
+                    <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-20">
                         <div className="flex items-center gap-3">
                             <Building2 className="w-5 h-5 text-amber-400" />
-                            <h2 className="text-sm font-black text-depth-primary italic tracking-widest uppercase">EXPENSES_JOURNAL_CLAIM</h2>
+                            <h2 className="text-sm font-black text-white italic tracking-widest uppercase">INTERNAL_LEDGER_CLAIM</h2>
                         </div>
-                        <span className="text-[9px] font-bold text-amber-400 opacity-50 uppercase tracking-[0.3em]">Source: Internal Ledger</span>
+                        <Badge variant="outline" className="text-amber-400 border-amber-500/20 uppercase text-[8px]">Unverified</Badge>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-4">
-                        {expenseRecords.map(record => (
-                            <RecordCard 
-                                key={record.id}
-                                id={record.id}
-                                date={record.transaction_date}
-                                desc={record.description}
-                                amount={record.actual_amount}
-                                isMatched={matchedInternalIds.has(record.id)}
-                                matches={matches}
-                                 onHoverMatch={setHoveredMatch}
-                                 hoveredMatchId={hoveredMatch}
-                                 riskDescription={record.mens_rea_description}
-                                 onConfirm={handleConfirmMatch}
-                                 onExplain={setExplainingId}
-                             />
-
-                        ))}
+                    <div 
+                        ref={expenseParentRef}
+                        className="flex-1 overflow-y-auto custom-scrollbar p-6"
+                    >
+                        <div
+                            style={{
+                                height: `${expenseVirtualizer.getTotalSize()}px`,
+                                width: '100%',
+                                position: 'relative',
+                            }}
+                        >
+                            {expenseVirtualizer.getVirtualItems().map(virtualRow => {
+                                const record = expenseRecords[virtualRow.index];
+                                return (
+                                    <div
+                                        key={record.id}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            transform: `translateY(${virtualRow.start}px)`,
+                                            paddingBottom: '1rem'
+                                        }}
+                                        className="group hover:bg-indigo-600/10 hover:border-indigo-500/30 transition-all cursor-pointer shimmer-unverified"
+                                    >
+                                        <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl flex justify-between items-center">
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest leading-none">{new Date(record.transaction_date).toLocaleDateString()}</p>
+                                                    {record.potential_misappropriation && <AlertTriangle className="w-3 h-3 text-rose-500" />}
+                                                </div>
+                                                <p className="text-xs font-bold text-slate-300 uppercase truncate max-w-[200px] group-hover:text-white transition-colors">{record.description}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-black text-white font-mono tracking-tighter">IDR {record.actual_amount.toLocaleString()}</p>
+                                                <button className="mt-2 text-[8px] font-black text-indigo-400 uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 ml-auto">
+                                                    Manual Match <Zap size={10} className="text-amber-500" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                 </section>
             </main>
-
-            {/* Settings Overlay */}
-            <AnimatePresence>
-                {showSettings && (
-                    <>
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowSettings(false)}
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-                        />
-                        <motion.div 
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed right-0 top-0 bottom-0 w-[400px] depth-layer-3 border-l depth-border-strong p-10 z-[101] shadow-2xl flex flex-col"
-                        >
-                            <div className="mb-10 flex items-center justify-between">
-                                <h2 className="text-2xl font-black text-white italic flex items-center gap-3">
-                                    <Zap className="w-6 h-6 text-indigo-500" /> HUB_CONFIG
-                                </h2>
-                                <button 
-                                    onClick={() => setShowSettings(false)} 
-                                    className="text-slate-500 hover:text-white transition-colors"
-                                    title="Close Configuration"
-                                >
-                                    <Settings2 className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="space-y-10 flex-1 overflow-y-auto no-scrollbar pr-4">
-                                <ConfigSlider 
-                                    icon={<Clock className="w-4 h-4" />}
-                                    label="Clearing Window" 
-                                    sub="Max days for bank clearing lag"
-                                    val={settings.clearing_window_days} 
-                                    min={1} max={30} unit="Days"
-                                    onChange={(v: number) => setSettings(prev => ({ ...prev, clearing_window_days: v }))}
-                                />
-                                <ConfigSlider 
-                                    icon={<Percent className="w-4 h-4" />}
-                                    label="Amount Tolerance" 
-                                    sub="Allowed % variance for fees"
-                                    val={settings.amount_tolerance_percent} 
-                                    min={0} max={5} step={0.1} unit="%"
-                                    onChange={(v: number) => setSettings(prev => ({ ...prev, amount_tolerance_percent: v }))}
-                                />
-                                <ConfigSlider 
-                                    icon={<Activity className="w-4 h-4" />}
-                                    label="Batch Window" 
-                                    sub="Max lookback for aggregate groups"
-                                    val={settings.batch_window_days} 
-                                    min={1} max={60} unit="Days"
-                                    onChange={(v: number) => setSettings(prev => ({ ...prev, batch_window_days: v }))}
-                                />
-                                <ConfigSlider 
-                                    icon={<ShieldCheck className="w-4 h-4" />}
-                                    label="Auto-Confirm Score" 
-                                    sub="Confidence required for automation"
-                                    val={settings.auto_confirm_threshold * 100} 
-                                    min={80} max={100} unit="%"
-                                    onChange={(v: number) => setSettings(prev => ({ ...prev, auto_confirm_threshold: v / 100 }))}
-                                />
-                            </div>
-
-                            <button 
-                                onClick={handleSaveSettings}
-                                className="mt-10 w-full py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl text-white font-black italic uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-indigo-500/50"
-                            >
-                                <Save className="w-5 h-5" /> Calibrate Engine
-                            </button>
-                        </motion.div>
-                    </>
-                )}
-            </AnimatePresence>
-
-            {/* AI Explainer Modal */}
-            <AIExplainerModal 
-                isOpen={!!explainingId} 
-                onClose={() => setExplainingId(null)} 
-                transactionId={explainingId || ''} 
-            />
         </div>
     );
 }

@@ -3,8 +3,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, ArrowRight, PlusCircle, CheckCircle2 } from 'lucide-react';
-import { useHubStore } from '@/store/useHubStore';
-import { useInvestigation } from '@/store/useInvestigation';
+import { useHubStore } from '../../../../store/useHubStore';
+import { useInvestigation } from '../../../../store/useInvestigation';
 import { useState } from 'react';
 
 export function CrossToolInsights() {

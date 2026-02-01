@@ -8,7 +8,6 @@ import requests
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 from decimal import Decimal
-import json
 
 class CurrencyConverter:
     """
@@ -57,18 +56,11 @@ class CurrencyConverter:
         self, 
         from_currency: str, 
         to_currency: str, 
-        date: Optional[datetime] = None
+        date: Optional[datetime] = None,
+        project_id: Optional[str] = None
     ) -> float:
         """
         Get exchange rate from one currency to another
-        
-        Args:
-            from_currency: Source currency code (e.g., "USD")
-            to_currency: Target currency code (e.g., "IDR")
-            date: Optional date for historical rates
-        
-        Returns:
-            Exchange rate as float
         """
         # Same currency
         if from_currency == to_currency:
@@ -82,7 +74,11 @@ class CurrencyConverter:
         # Try API
         rate = self._fetch_from_api(from_currency, to_currency, date)
         
-        # Fallback to manual rates
+        # Fallback 1: Project Contract Rates
+        if rate is None and project_id:
+            rate = self._get_project_rate(project_id, from_currency, to_currency)
+            
+        # Fallback 2: Global Manual Rates
         if rate is None:
             rate = self._get_fallback_rate(from_currency, to_currency)
         
@@ -93,6 +89,25 @@ class CurrencyConverter:
         }
         
         return rate
+
+    def _get_project_rate(self, project_id: str, from_curr: str, to_curr: str) -> Optional[float]:
+        """Fetch hardcoded rate from project metadata"""
+        try:
+            from app.core.db import engine
+            from app.models import Project
+            from sqlmodel import Session
+            
+            with Session(engine) as session:
+                project = session.get(Project, project_id)
+                if project and project.contract_exchange_rate:
+                    rates = project.contract_exchange_rate
+                    if from_curr in rates and to_curr in rates:
+                        # Convert through project base (relative to each other in metadata)
+                        return rates[to_curr] / rates[from_curr]
+            return None
+        except Exception as e:
+            print(f"Project rate lookup failed: {e}")
+            return None
     
     def _fetch_from_api(
         self, 
@@ -136,21 +151,13 @@ class CurrencyConverter:
         amount: float, 
         from_currency: str, 
         to_currency: str, 
-        date: Optional[datetime] = None
+        date: Optional[datetime] = None,
+        project_id: Optional[str] = None
     ) -> Decimal:
         """
         Convert amount from one currency to another
-        
-        Args:
-            amount: Amount to convert
-            from_currency: Source currency
-            to_currency: Target currency
-            date: Optional date for historical rate
-        
-        Returns:
-            Converted amount as Decimal
         """
-        rate = self.get_exchange_rate(from_currency, to_currency, date)
+        rate = self.get_exchange_rate(from_currency, to_currency, date, project_id)
         converted = Decimal(str(amount)) * Decimal(str(rate))
         
         # Round to 2 decimal places
@@ -160,20 +167,13 @@ class CurrencyConverter:
         self, 
         amount: float, 
         currency: str, 
-        date: Optional[datetime] = None
+        date: Optional[datetime] = None,
+        project_id: Optional[str] = None
     ) -> Decimal:
         """
-        Normalize amount to base currency (USD by default)
-        
-        Args:
-            amount: Amount to normalize
-            currency: Source currency
-            date: Optional date
-        
-        Returns:
-            Amount in base currency
+        Normalize amount to base currency
         """
-        return self.convert(amount, currency, self.base_currency, date)
+        return self.convert(amount, currency, self.base_currency, date, project_id)
     
     def get_supported_currencies(self) -> list:
         """Get list of supported currencies"""

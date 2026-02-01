@@ -1,355 +1,386 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Network, Search, Zap, User, Building, Landmark, AlertTriangle, Shield } from 'lucide-react';
+import { Network, Search, Zap, User, Building, Landmark, AlertTriangle, Shield, Globe, MousePointer2, Activity } from 'lucide-react';
+import NextDynamic from 'next/dynamic';
+const ForceGraph2D = NextDynamic(() => import('react-force-graph-2d'), { ssr: false });
+import useSWR from 'swr';
 
-import { HOLOGRAPHIC_SOURCE } from '@/utils/holographicData';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
-
-import { useProject } from '@/store/useProject';
-import { useHubStore } from '@/store/useHubStore';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-
-type Node = {
-  id: string;
-  label: string;
-  type: 'person' | 'company' | 'bank' | 'unknown';
-  risk: number;
-  x: number;
-  y: number;
-};
-
-type Link = {
-  source: string;
-  target: string;
-  value: number;
-  type: string;
-};
-
-import React, { useState, useEffect, useCallback } from 'react';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import { authenticatedFetch, authFetcher } from '../../../lib/api';
+import { Card } from '../../../ui/card';
+import { Button } from '../../../ui/button';
+import { Badge } from '../../../ui/badge';
+import { SkeletonCard } from '../../../ui/skeleton';
 
 export default function NexusGraphPage() {
   const { activeProjectId } = useProject();
-  const hub = useHubStore();
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [links, setLinks] = useState<Link[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+  const fgRef = useRef<any>(null);
+  
+  // States for advanced features
+  const [selectedNode, setSelectedNode] = useState<any>(null);
+  const [hoverNode, setHoverNode] = useState<any>(null);
+  const [highlightNodes, setHighlightNodes] = useState(new Set());
+  const [highlightLinks, setHighlightLinks] = useState(new Set());
+  const [viewMode, setViewMode] = useState<'network' | 'communities' | 'paths'>('network');
+  
+  // Pathfinding state
+  const [sourceNode, setSourceNode] = useState<string | null>(null);
+  const [targetNode, setTargetNode] = useState<string | null>(null);
 
-  const isMock = nodes.length === 0 && !loading;
+  // Fetch real network data from V2 API
+  const { data, error, isLoading, mutate } = useSWR(
+    activeProjectId ? `/api/v2/graph/network/${activeProjectId}` : null,
+    authFetcher
+  );
 
-  const fetchGraph = useCallback(async () => {
-    if (!activeProjectId) return;
+  // Cycle Detection Fetch
+  const { data: cycles } = useSWR(
+    activeProjectId ? `/api/v2/graph/cycles/${activeProjectId}` : null,
+    authFetcher
+  );
 
-    setLoading(true);
-    try {
-      const res = await fetch(`${API_URL}/api/v1/forensic/nexus/${activeProjectId}`);
-      const data = res.ok ? await res.json() : null;
+  const graphData = useMemo(() => {
+    if (!data?.nodes) return { nodes: [], links: [] };
+    // Map backend data to ForceGraph format
+    return {
+      nodes: data.nodes.map((n: any) => ({
+        ...n,
+        id: n.id,
+        name: n.label,
+        val: Math.max(10, Math.log((n.total_volume || 1) + 1) * 5)
+      })),
+      links: data.links.map((l: any) => ({
+        ...l,
+        source: l.source,
+        target: l.target,
+        value: l.value
+      }))
+    };
+  }, [data]);
 
-      if (data && data.nodes && data.nodes.length > 0) {
-        setNodes(data.nodes);
-        setLinks(data.links);
-      } else {
-        setNodes(HOLOGRAPHIC_SOURCE.nexus.nodes);
-        setLinks(HOLOGRAPHIC_SOURCE.nexus.links);
-      }
-    } catch (err) {
-      console.error("Failed to fetch nexus graph:", err);
-      setNodes(HOLOGRAPHIC_SOURCE.nexus.nodes);
-      setLinks(HOLOGRAPHIC_SOURCE.nexus.links);
-    } finally {
-      setLoading(false);
-    }
-  }, [activeProjectId]);
-
-  useEffect(() => {
-    fetchGraph();
-  }, [fetchGraph]);
-
-  const getNodeIcon = (type: string) => {
-    switch (type) {
-      case 'person': return User;
-      case 'company': return Building;
-      case 'bank': return Landmark;
-      default: return AlertTriangle;
-    }
+  const updateHighlight = () => {
+    setHighlightNodes(highlightNodes);
+    setHighlightLinks(highlightLinks);
   };
 
-  const [isSweeping, setIsSweeping] = useState(false);
-  const [sweepProgress, setSweepProgress] = useState(0);
-
-  const runSanctionSweep = () => {
-    setIsSweeping(true);
-    setSweepProgress(0);
-    const interval = setInterval(() => {
-        setSweepProgress(prev => {
-            if (prev >= 100) {
-                clearInterval(interval);
-                setTimeout(() => setIsSweeping(false), 1000);
-                return 100;
-            }
-            return prev + 10;
-        });
-    }, 300);
-    
-    window.dispatchEvent(new CustomEvent('telemetry-sync', {
-        detail: { 
-            source: 'NexusExplorer', 
-            type: 'SANCTION_SWEEP', 
-            status: 'pending',
-            label: 'CROSS-CHECKING GLOBAL ENTITIES'
+  const handleNodeHover = (node: any) => {
+    highlightNodes.clear();
+    highlightLinks.clear();
+    if (node) {
+      highlightNodes.add(node);
+      graphData.links.forEach((link: any) => {
+        if (link.source.id === node.id || link.target.id === node.id) {
+          highlightLinks.add(link);
+          highlightNodes.add(link.source);
+          highlightNodes.add(link.target);
         }
-    }));
+      });
+    }
+    setHoverNode(node || null);
+    updateHighlight();
+  };
+
+  const handleLinkHover = (link: any) => {
+    highlightNodes.clear();
+    highlightLinks.clear();
+
+    if (link) {
+      highlightLinks.add(link);
+      highlightNodes.add(link.source);
+      highlightNodes.add(link.target);
+    }
+
+    updateHighlight();
+  };
+
+  const handleNodeClick = (node: any) => {
+    if (viewMode === 'paths') {
+      if (!sourceNode) {
+        setSourceNode(node.id);
+      } else if (!targetNode && node.id !== sourceNode) {
+        setTargetNode(node.id);
+      } else {
+        setSourceNode(node.id);
+        setTargetNode(null);
+      }
+    } else {
+      setSelectedNode(node);
+    }
+    
+    // Center at node
+    fgRef.current.centerAt(node.x, node.y, 1000);
+    fgRef.current.zoom(2.5, 1000);
+  };
+
+  const [integritySeal, setIntegritySeal] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateDossier = async () => {
+    if (!selectedNode || !activeProjectId) return;
+    setIsGenerating(true);
+    setIntegritySeal(null);
+
+    try {
+      // Step 1: Seal the verdict and generate metadata
+      const res = await authenticatedFetch(`/api/v2/judge/verdict/${selectedNode.id}`, {
+        method: 'POST'
+      });
+      
+      if (!res.ok) throw new Error("Sealing failed");
+      const result = await res.json();
+      setIntegritySeal(result.integrity_hash);
+
+      // Step 2: Trigger PDF Download
+      const downloadUrl = `/api/v2/forensic-v2/judge/download-dossier?case_id=${selectedNode.id}&user_id=analyst_primary`;
+      window.open(downloadUrl, '_blank');
+      
+    } catch (err) {
+      console.error("Dossier generation failed", err);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
     <ForensicPageLayout
-        title="Vendor Nexus"
-        subtitle="Project Alpha Relationship Topology & Leakage Propagation"
+        title="Sovereign Nexus"
+        subtitle="Holographic Entity Relationship Protocol"
         icon={Network}
-        isMockData={isMock}
         headerActions={
             <div className="flex gap-4">
+                 <div className="bg-slate-900 border border-white/10 rounded-2xl px-2 py-1 flex gap-1">
+                    <Button 
+                      variant={viewMode === 'network' ? 'default' : 'ghost'} 
+                      size="sm" 
+                      onClick={() => setViewMode('network')}
+                      className="text-[10px] uppercase font-black tracking-widest px-4"
+                    >
+                      Network
+                    </Button>
+                    <Button 
+                      variant={viewMode === 'paths' ? 'default' : 'ghost'} 
+                      size="sm" 
+                      onClick={() => setViewMode('paths')}
+                      className="text-[10px] uppercase font-black tracking-widest px-4"
+                    >
+                      Pathfinder
+                    </Button>
+                 </div>
                  <button 
-                    onClick={runSanctionSweep}
-                    disabled={isSweeping}
-                    className={`relative overflow-hidden transition-all border rounded-2xl px-6 py-3 flex items-center gap-3 shadow-xl ${isSweeping ? 'bg-indigo-600/20 border-indigo-500/50 cursor-wait' : 'bg-slate-900 border-white/10 hover:bg-white/5'}`}
-                 >
-                    {isSweeping ? (
-                        <>
-                            <div className="absolute inset-0 bg-indigo-600/10" style={{ width: `${sweepProgress}%` }} />
-                            <div className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin z-10" />
-                            <span className="text-xs font-black uppercase tracking-widest text-indigo-400 z-10">Cross-Checking ({sweepProgress}%)</span>
-                        </>
-                    ) : (
-                        <>
-                            <Shield className="w-4 h-4 text-emerald-500" />
-                            <span className="text-xs font-black uppercase tracking-widest text-emerald-400">Global Sanction Sweep</span>
-                        </>
-                    )}
-                 </button>
-                 <button 
-                    onClick={fetchGraph}
+                    onClick={() => mutate()}
                     className="bg-slate-900 border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3 hover:bg-white/5 transition-all shadow-xl"
                  >
-                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-on-ping" />
-                    <span className="text-xs font-black uppercase tracking-widest text-indigo-400">Update Network Logic</span>
+                    <div className="w-2.5 h-2.5 rounded-full bg-indigo-500" />
+                    <span className="text-xs font-black uppercase tracking-widest text-indigo-400">Sync Graph State</span>
                  </button>
             </div>
         }
     >
-      {/* Graph Area */}
-      <div className="relative w-full h-[650px] tactical-frame depth-layer-0 depth-border-medium rounded-[2.5rem] overflow-hidden group mb-8 depth-shadow-lg m-8 max-w-[calc(100%-4rem)]">
-         {/* Grid Background */}
-          <div className="absolute inset-0 opacity-[0.03] nexus-grid-bg" />
-         
-         <AnimatePresence>
-            {loading ? (
+      <div className="grid grid-cols-12 gap-8 h-[calc(100vh-200px)]">
+        {/* Graph Display */}
+        <div className="col-span-12 lg:col-span-9 relative tactical-frame rounded-[2.5rem] overflow-hidden bg-slate-950 border border-white/5 shadow-2xl">
+          <AnimatePresence>
+            {isLoading && (
+              <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-50 backdrop-blur-sm"
+              >
+                  <Activity className="w-12 h-12 text-indigo-500 animate-pulse mb-4" />
+                  <span className="text-indigo-400 font-mono text-xs uppercase tracking-[0.5em] animate-pulse">Reconstructing Topology...</span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <ForceGraph2D
+            ref={fgRef}
+            graphData={graphData}
+            nodeLabel="name"
+            nodeRelSize={6}
+            nodeColor={node => {
+              if (sourceNode === node.id) return '#10b981';
+              if (targetNode === node.id) return '#f43f5e';
+              if (highlightNodes.has(node)) return node === hoverNode ? '#fff' : '#818cf8';
+                const graphNode = node as { risk?: number };
+                return graphNode.risk && graphNode.risk > 0.7 ? '#f43f5e' : '#334155';
+            }}
+            linkColor={link => highlightLinks.has(link) ? '#818cf8' : '#1e293b'}
+            linkWidth={link => highlightLinks.has(link) ? 3 : 1}
+            linkDirectionalParticles={4}
+            linkDirectionalParticleWidth={link => highlightLinks.has(link) ? 4 : 0}
+            nodeCanvasObject={(node: any, ctx, globalScale) => {
+              const label = node.name;
+              const fontSize = 12/globalScale;
+              ctx.font = `${fontSize}px Inter`;
+              const textWidth = ctx.measureText(label).width;
+              const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2) as [number, number];
+
+              // Draw Node
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, 5, 0, 2 * Math.PI, false);
+              ctx.fillStyle = node.risk > 0.7 ? '#f43f5e' : (highlightNodes.has(node) ? '#818cf8' : '#334155');
+              ctx.fill();
+
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillStyle = '#94a3b8';
+              if (globalScale > 1.5) {
+                ctx.fillText(label, node.x, node.y + 10);
+              }
+            }}
+            onNodeHover={handleNodeHover}
+            onLinkHover={handleLinkHover}
+            onNodeClick={handleNodeClick}
+            backgroundColor="#020617"
+          />
+
+          {/* Quick Metrics Overlay */}
+          <div className="absolute top-8 left-8 flex gap-4 pointer-events-none">
+            <Card className="p-4 bg-slate-900/80 border-white/5 backdrop-blur-md">
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active Entities</div>
+              <div className="text-2xl font-black text-white">{graphData.nodes.length}</div>
+            </Card>
+            <Card className="p-4 bg-slate-900/80 border-white/5 backdrop-blur-md">
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Risk Connections</div>
+              <div className="text-2xl font-black text-rose-500">{graphData.links.filter((l: any) => l.risk_score > 0.7).length}</div>
+            </Card>
+          </div>
+
+          {/* Pathfinder Legend */}
+          {viewMode === 'paths' && (
             <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-50 backdrop-blur-sm"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/90 border border-white/10 p-4 rounded-2xl flex items-center gap-6 backdrop-blur-lg"
             >
-                <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-6" />
-                <span className="text-indigo-400 font-mono text-xs uppercase tracking-[0.5em] animate-pulse">Analyzing Network Propagation...</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                  {sourceNode ? 'Source Selected' : 'Select Source'}
+                </span>
+              </div>
+              <div className="w-1 h-3 bg-white/10 rounded-full" />
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-rose-500" />
+                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">
+                  {targetNode ? 'Target Selected' : 'Select Target'}
+                </span>
+              </div>
+              {sourceNode && targetNode && (
+                <Button variant="outline" className="h-8 text-[10px] font-black" onClick={() => { setSourceNode(null); setTargetNode(null); }}>Reset</Button>
+              )}
             </motion.div>
-            ) : null}
-         </AnimatePresence>
+          )}
+        </div>
 
-         <div className="absolute inset-0 p-10 cursor-grab active:cursor-grabbing">
-            <svg className="w-full h-full"> 
-               <defs>
-                  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-                    <polygon points="0 0, 10 3.5, 0 7" fill="#334155" />
-                  </marker>
-               </defs>
-                {(nodes.length > 0 ? links : HOLOGRAPHIC_SOURCE.nexus.links).map((link, i) => {
-                  const source = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.source);
-                  const target = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.target);
-                  if (!source || !target) return null;
-                  
-                  const x1 = source.x;
-                  const y1 = source.y;
-                  const x2 = target.x;
-                  const y2 = target.y;
-
-                  const midX = (x1 + x2) / 2;
-                  const midY = (y1 + y2) / 2;
-
-                  return (
-                    <g key={i} className="group/link">
-                      <motion.line 
-                         initial={{ pathLength: 0, opacity: 0 }}
-                         animate={{ pathLength: 1, opacity: 0.4 }}
-                         x1={x1 + '%'} y1={y1 + '%'} x2={x2 + '%'} y2={y2 + '%'} 
-                         stroke={link.type === 'Funneling' ? '#f43f5e' : '#6366f1'} 
-                         strokeWidth={link.type === 'Funneling' ? 4 : 2} 
-                         strokeDasharray={link.type === 'Funneling' ? "8,4" : "0"}
-                         markerEnd="url(#arrowhead)"
-                         className="transition-all group-hover/link:opacity-100 group-hover/link:stroke-white cursor-pointer"
-                      />
-                      {/* Interactive Edge Label */}
-                      <foreignObject 
-                        x={`${midX}%`} 
-                        y={`${midY}%`} 
-                        width="80" 
-                        height="30" 
-                        className="overflow-visible pointer-events-none opacity-0 group-hover/link:opacity-100 transition-opacity"
-                        style={{ transform: 'translate(-40px, -15px)' }}
-                      >
-                        <div className="bg-slate-900/90 border border-white/20 backdrop-blur-md px-2 py-1 rounded-lg text-[8px] font-black text-white text-center shadow-2xl">
-                          Rp {(link.value / 1000000).toFixed(1)}M
-                        </div>
-                      </foreignObject>
-                    </g>
-                  );
-                })}
-            </svg>
-            
-            {/* Nodes Layer */}
-            {(nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).map((node) => {
-               const Icon = getNodeIcon(node.type);
-               const isSelected = selectedNode?.id === node.id;
-               return (
-                 <motion.div
-                   key={node.id}
-                   initial={{ scale: 0, opacity: 0 }}
-                   animate={{ scale: 1, opacity: 1 }}
-                   whileHover={{ scale: 1.2, zIndex: 30 }}
-                   className={`absolute w-14 h-14 -ml-7 -mt-7 rounded-2xl border-2 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
-                      isSelected ? 'ring-4 ring-indigo-500/30 border-white bg-indigo-600 scale-110 shadow-indigo-500/50' :
-                      node.risk > 0.8 ? 'bg-rose-500/20 border-rose-500 shadow-[0_0_30px_rgba(244,63,94,0.4)] animate-pulse' : 
-                      node.id.startsWith('proj_') ? 'bg-indigo-600 border-indigo-400 shadow-indigo-900/50 w-20 h-20 -ml-10 -mt-10 rounded-[2rem]' :
-                      'bg-slate-900 border-white/10 shadow-black'
-                   }`}
-                   style={{ left: `${node.x}%`, top: `${node.y}%` }}
-                   onClick={() => {
-                     setSelectedNode(node);
-                     if (node.type === 'person' || node.type === 'company') {
-                        hub.setSelectedEntity(node.id);
-                     }
-                   }}
-                 >
-                    <Icon className={`w-6 h-6 ${node.risk > 0.8 ? 'text-rose-400' : 'text-white'}`} />
-                    
-                    {/* Node Label */}
-                    <div className={`absolute top-16 whitespace-nowrap bg-slate-900/90 border border-white/5 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSelected ? 'text-indigo-400 border-indigo-500/50' : 'text-slate-400 group-hover:text-white transition-colors'}`}>
-                      {node.label}
-                    </div>
-
-                    {node.risk > 0.8 && (
-                        <div className="absolute -top-2 -right-2 bg-rose-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-bounce">
-                            RISK
-                        </div>
-                    )}
-                 </motion.div>
-               );
-            })}
-         </div>
-
-         {/* Legend */}
-         <div className="absolute bottom-8 left-8 flex flex-col gap-2 tactical-card depth-layer-2 p-4 rounded-2xl depth-border-subtle shadow-lg">
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <div className="w-3 h-3 bg-indigo-600 rounded-lg" /> Project Root
-            </div>
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <div className="w-3 h-3 bg-rose-500/50 border border-rose-500 rounded-lg" /> High Risk Entity
-            </div>
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <div className="w-3 h-1 bg-rose-500 rounded-full" /> Kickback Funnel
-            </div>
-         </div>
-      </div>
-
-      {/* Details Panel */}
-      <AnimatePresence>
-        {selectedNode && (
-          <motion.div 
-            initial={{ x: 400, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 400, opacity: 0 }}
-            className="fixed top-32 right-8 w-[400px] tactical-card depth-layer-3 p-8 rounded-[2rem] depth-border-strong depth-shadow-lg z-50 backdrop-blur-xl"
-          >
-             <div className="flex justify-between items-start mb-8">
-                <div className="flex items-center gap-4">
-                   <div className={`p-4 rounded-2xl ${selectedNode.risk > 0.8 ? 'bg-rose-600 shadow-rose-900/40' : 'bg-indigo-600 shadow-indigo-900/40'}`}>
-                      {React.createElement(getNodeIcon(selectedNode.type), { className: 'w-6 h-6 text-white' })}
-                   </div>
-                   <div>
-                      <h3 className="font-black text-white text-xl uppercase tracking-tighter leading-none">{selectedNode.label}</h3>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-[0.2em] mt-1 font-bold">{selectedNode.type} Intelligence Data</p>
-                   </div>
+        {/* Sidebar Intelligence */}
+        <div className="col-span-12 lg:col-span-3 space-y-6 overflow-y-auto">
+          {selectedNode ? (
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={selectedNode.id}
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className="tactical-card p-6 bg-slate-900 border-white/5 rounded-3xl"
+              >
+                <div className="flex items-center gap-4 mb-6">
+                  <div className={`p-3 rounded-xl ${selectedNode.risk > 0.7 ? 'bg-rose-500/20 text-rose-500' : 'bg-indigo-500/20 text-indigo-500'}`}>
+                    <Building className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-white uppercase tracking-tighter">{selectedNode.name}</h3>
+                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{selectedNode.type}</p>
+                  </div>
                 </div>
-                <button 
-                  onClick={() => setSelectedNode(null)} 
-                  title="Close Intelligence Panel"
-                  aria-label="Close Intelligence Panel"
-                  className="p-2 hover:bg-white/10 rounded-xl text-slate-500 transition-colors"
-                >
-                  ✕
-                </button>
-             </div>
-             
-             <div className="space-y-6">
-                <div className="p-5 depth-layer-1 rounded-[1.5rem] depth-border-subtle">
-                   <div className="flex justify-between items-center mb-1">
-                      <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest">Forensic Risk Score</span>
-                      <span className={`text-2xl font-black font-mono ${selectedNode.risk > 0.8 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                         {(selectedNode.risk * 100).toFixed(0)}%
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-white/5">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Risk Affinity</span>
+                      <span className={`text-sm font-black ${selectedNode.risk > 0.7 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                        {(selectedNode.risk * 100).toFixed(1)}%
                       </span>
-                   </div>
-                   <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${selectedNode.risk * 100}%` }}
-                        className={`h-full ${selectedNode.risk > 0.8 ? 'bg-rose-500' : 'bg-emerald-500'}`}
+                    </div>
+                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${selectedNode.risk > 0.7 ? 'bg-rose-500' : 'bg-emerald-500'}`} 
+                        style={{ width: `${selectedNode.risk * 100}%` }}
                       />
-                   </div>
-                </div>
-                
-                <div>
-                   <h4 className="text-[10px] uppercase font-black text-slate-500 mb-4 tracking-widest px-2">Flow Intersections</h4>
-                   <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                      {(nodes.length > 0 ? links : HOLOGRAPHIC_SOURCE.nexus.links).filter(l => l.source === selectedNode.id || l.target === selectedNode.id).map((l, i) => (
-                        <div key={i} className="flex justify-between items-center p-4 rounded-2xl depth-layer-1 depth-border-subtle hover:depth-layer-2 hover:depth-border-accent transition-all group depth-shadow-sm">
-                           <div className="flex flex-col">
-                              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">
-                                {l.source === selectedNode.id ? 'Outbound Flow' : 'Inbound Flow'}
-                              </span>
-                              <span className="text-xs font-bold text-slate-200 mt-0.5">
-                                {l.source === selectedNode.id ? (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === l.target)?.label : (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === l.source)?.label}
-                              </span>
-                           </div>
-                           <div className="text-right">
-                              <div className="text-sm font-black text-white">Rp {(l.value / 1000000).toFixed(1)}M</div>
-                              <div className="text-[9px] uppercase font-bold text-slate-600">{l.type}</div>
-                           </div>
-                        </div>
-                      ))}
-                      {links.filter(l => l.source === selectedNode.id || l.target === selectedNode.id).length === 0 && (
-                          <div className="text-center py-6 text-slate-600 italic text-xs uppercase tracking-widest font-bold">No mapped flows found</div>
-                      )}
-                   </div>
-                </div>
+                    </div>
+                  </div>
 
-                <div className="flex gap-4">
-                    <button className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40 flex items-center justify-center gap-3">
-                    <Zap className="w-4 h-4" /> Trace Beneficial Ownership
-                    </button>
-                    <button 
-                      className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/5 transition-all"
-                      title="Search Asset Registry"
-                      aria-label="Search Asset Registry"
-                    >
-                        <Search className="w-4 h-4 text-slate-400" />
-                    </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-slate-950 rounded-2xl border border-white/5">
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Volume</div>
+                      <div className="text-sm font-black text-white">Rp {(selectedNode.total_volume / 1e6).toFixed(1)}M</div>
+                    </div>
+                    <div className="p-4 bg-slate-950 rounded-2xl border border-white/5">
+                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Centrality</div>
+                      <div className="text-sm font-black text-white">{(selectedNode.centrality * 10).toFixed(2)}</div>
+                    </div>
+                  </div>
+
+                  <Button 
+                    onClick={handleGenerateDossier}
+                    disabled={isGenerating}
+                    className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl"
+                  >
+                    {isGenerating ? 'Sealing & Sealing...' : 'Generate Intelligence Dossier'}
+                  </Button>
+
+                  {integritySeal && (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+                        <div className="flex items-center gap-2 mb-1">
+                            <Shield className="w-3 h-3 text-emerald-400" />
+                            <span className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">Integrity Seal Active</span>
+                        </div>
+                        <p className="text-[8px] font-mono text-slate-400 break-all">{integritySeal}</p>
+                    </div>
+                  )}
                 </div>
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="tactical-card p-8 border-dashed border-white/10 flex flex-col items-center justify-center text-center opacity-50">
+              <MousePointer2 className="w-8 h-8 text-slate-600 mb-4" />
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Select an entity to reveal relationship intelligence</p>
+            </div>
+          )}
+
+          {/* Global Pattern Detection */}
+          <div className="tactical-card p-6 bg-slate-900 border-white/5 rounded-3xl">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Circular Flow Alerts</h4>
+              <Shield className="w-4 h-4 text-emerald-500" />
+            </div>
+            
+            {isLoading ? (
+              <SkeletonCard variant="alert" count={2} />
+            ) : cycles && cycles.length > 0 ? (
+              <div className="space-y-3">
+                {cycles.slice(0, 3).map((cycle: any, i: number) => (
+                  <div key={i} className="p-3 bg-slate-950 rounded-xl border border-rose-500/30 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-3 h-3 text-rose-500" />
+                      <span className="text-[10px] font-bold text-white uppercase tracking-tighter">Cycle: {cycle.length} steps</span>
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-6 text-[8px] px-2 font-black text-rose-400 hover:text-rose-300">Highlight</Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center bg-slate-950 rounded-2xl border border-white/5 border-dashed">
+                <span className="text-[8px] font-black text-slate-600 uppercase tracking-widest">No circular patterns detected in current view</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </ForensicPageLayout>
   );
 }

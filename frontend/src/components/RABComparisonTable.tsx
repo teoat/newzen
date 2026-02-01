@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertTriangle, ArrowUpRight, TrendingUp } from 'lucide-react';
-import { BudgetVariance } from '@/types/domain';
+import { BudgetVariance } from '../types/domain';
 
 interface RABComparisonTableProps {
   items: BudgetVariance[];
@@ -56,22 +56,26 @@ const RABComparisonTable: React.FC<RABComparisonTableProps> = ({ items }) => {
                   <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{item.category}</p>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <span className="text-xs font-mono text-slate-400">Rp {item.unit_price_rab.toLocaleString()}</span>
+                  <span className="text-xs font-mono text-slate-400">
+                    Rp {item.unit_price_rab?.toLocaleString() || 'N/A'}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <span className="text-xs font-mono text-white font-bold">Rp {item.avg_unit_price_actual.toLocaleString()}</span>
+                  <span className="text-xs font-mono text-white font-bold">
+                    Rp {item.avg_unit_price_actual?.toLocaleString() || 'N/A'}
+                  </span>
                 </td>
                 <td className="px-6 py-4 text-right font-mono text-xs">
-                  <span className={item.volume_discrepancy > 0 ? "text-rose-400" : "text-emerald-400"}>
-                    {item.volume_discrepancy > 0 ? '+' : ''}{item.volume_discrepancy.toLocaleString()}
+                  <span className={(item.volume_discrepancy || 0) > 0 ? "text-rose-400" : "text-emerald-400"}>
+                    {(item.volume_discrepancy || 0) > 0 ? '+' : ''}{(item.volume_discrepancy || 0).toLocaleString()}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-right">
                    <div className="flex items-center justify-end gap-2">
-                      <span className={`text-xs font-black ${item.markup_percentage > 10 ? 'text-rose-500' : 'text-slate-400'}`}>
-                        {item.markup_percentage.toFixed(1)}%
+                      <span className={`text-xs font-black ${(item.markup_percentage || 0) > 10 ? 'text-rose-500' : 'text-slate-400'}`}>
+                        {(item.markup_percentage || 0).toFixed(1)}%
                       </span>
-                      {item.markup_percentage > 10 && (
+                      {(item.markup_percentage || 0) > 10 && (
                         <ArrowUpRight className="w-3 h-3 text-rose-500" />
                       )}
                    </div>

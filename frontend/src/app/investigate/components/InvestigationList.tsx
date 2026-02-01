@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useInvestigation, Investigation } from '@/store/useInvestigation';
+import { useInvestigation, Investigation } from '../../../store/useInvestigation';
 import { motion } from 'framer-motion';
 import { 
     Clock, Play, Pause, CheckCircle, 

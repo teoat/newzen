@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
-import { Match } from '@/types/domain';
+import { Match } from '../../../types/domain';
 
 interface RecordCardProps { 
     id: string;

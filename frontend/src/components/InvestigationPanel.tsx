@@ -6,8 +6,8 @@
 'use client';
 
 import React from 'react';
-import { useInvestigation } from '@/store/useInvestigation';
-import { DossierCompiler } from '@/lib/DossierCompiler';
+import { useInvestigation } from '../store/useInvestigation';
+import { DossierCompiler } from '../lib/DossierCompiler';
 import { 
     Target, Clock, Users, FileText, 
     ChevronDown, ChevronUp, TrendingUp,
@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { useForensicNotification } from '@/components/ForensicNotificationProvider';
+import { useForensicNotification } from '../components/ForensicNotificationProvider';
 
 export function InvestigationPanel() {
     const { activeInvestigation, endInvestigation, pauseInvestigation, addAction } = useInvestigation();

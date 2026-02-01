@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Zap, Activity, Clock, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
-import { useBatchProcessing } from '@/hooks/useBatchProcessing';
-import { BatchJob } from '@/types/batch';
+import { useBatchProcessing } from '../../../hooks/useBatchProcessing';
+import { BatchJob } from '../../../types/batch';
 
 export function BatchProcessingPanel({ projectId }: { projectId: string }) {
     const { 

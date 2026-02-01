@@ -1,6 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 
-export type UploadStatus = 'idle' | 'analyzing' | 'review' | 'success' | 'error';
+export type UploadStatus = 'idle' | 'analyzing' | 'review' | 'success' | 'error' | 'verified' | 'flagged';
 
 export interface MappingItem {
     systemField: string;
@@ -16,7 +16,7 @@ export interface FileEntry {
     file: File;
     status: UploadStatus;
     progress: number;
-    type: 'bank_statement' | 'expense' | 'chat_history' | 'photo' | 'video' | 'pdf' | 'other';
+    type: 'bank_statement' | 'expense' | 'chat_history' | 'photo' | 'video' | 'pdf' | 'rab' | 'other';
     metadata: {
         size: string;
         lastModified: string;

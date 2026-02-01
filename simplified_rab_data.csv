@@ -1,0 +1,63 @@
+item_code,description,unit,qty_rab,unit_price_rab,total_rab
+1.8.(1),Manajemen Keselamatan Lalu Lintas,,1.00,33500000.00,33500000.00
+1.8.(2),Jembatan Sementara,,1.00,115381277.64,115381277.64
+1.17 (1a),Pengujian Ph,,18.00,500000.00,9000000.00
+1.17 (1b),Pengujian Oksigen Terlarut (DO),,18.00,500000.00,9000000.00
+1.17 (1c),Pengujian Zat Padat Terlarut (TDS),,18.00,500000.00,9000000.00
+1.17 (1d),Pengujian Zat Tersuspensi (TSS),,18.00,500000.00,9000000.00
+1.17 (1e),Pengujian Biological Oxygen Demand (BOD),,18.00,500000.00,9000000.00
+1.17 (1f),Pengujian Chemical Oxygen Demand (COD),,18.00,500000.00,9000000.00
+1.17 (1g),Pengujian Coliform,,18.00,500000.00,9000000.00
+1.17 (1h),Pengujian E. Coli,,18.00,500000.00,9000000.00
+1.17 (1i),"Pengujian Destruksi Cu, Pb, Cd, Ni, Fe, Zn, Ag, Co, Mn",,18.00,500000.00,9000000.00
+1.17 (1j),Pengujian Temperatur (Suhu),,18.00,500000.00,9000000.00
+1.17 (1k),Pengujian Parameter Kualitas Air Lainnya:,,18.00,500000.00,9000000.00
+1.17 (2a),Pengujian Vibrasi Lingkungan untuk Kenyamanan dan Kesehatan,,18.00,500000.00,9000000.00
+1.17.(2b),Pengujian tingkat getaran kendaraan bermotor,,18.00,500000.00,9000000.00
+1.17 (3b),Pengujian Sulfurdioksida (SO2),,18.00,500000.00,9000000.00
+1.17 (3f),Pengujian Total Partikulat (TSP) - Debu,,18.00,500000.00,9000000.00
+1.17 (3h),Pengujian Parameter Udara Emisi dan Ambien lainnya ..,,18.00,500000.00,9000000.00
+"1,19",Keselamatan dan Kesehatan Kerja,,1.00,27824300.00,27824300.00
+1.20.(1),"Pengeboran, termasuk SPT dan Laporan",,120.00,1945625.00,233475000.00
+"1,21",Manajemen Mutu,,1.00,29000000.00,29000000.00
+2.1.(1),Galian untuk Selokan Drainase dan Saluran Air,,261.03,49785.48,12995503.84
+3.1 (1),Galian Biasa,,796.90,54170.56,43168519.26
+3.1 (4),Galian Struktur dengan kedalaman 0 - 2 meter,,306.72,85268.26,26153480.71
+3.2 (1a),Timbunan Biasa Dari Sumber Galian,,5382.82,145220.82,781696808.21
+3.2.(4),Penimbunan Kembali Berbutir (Granular Backfill),,650.05,398573.33,259092194.59
+3.4.(1),Pembersihan dan Pengupasan Lahan,,110.00,23194.20,2551362.00
+3.4.(2),Pemotongan Pohon Pilihan diameter 15 /30 cm,,40.00,243829.48,9753179.20
+5.1.(1),Lapis Pondasi Agregat Kelas A,,1540.08,570551.14,878694399.69
+6.1 (1)(a),Lapis Resap Pengikat - Aspal Cair /Emulsi,,2177.70,14766.89,32157856.35
+6.1 (2)(a),Lapis Perekat - Aspal Cair / Emulsi,,463.50,13971.56,6475818.06
+6.5.(1),Laston Lapis Aus Asbuton (AC-WC Asb),,299.00,1530454.50,457608344.23
+6.5.(2),Laston Lapis Antara Asbuton (AC-BC Asb),,356.63,1456503.31,519433358.05
+7.1.(5a),"Beton struktur, fc30 Mpa",,624.61,2148018.44,1341680374.18
+7.1 (5c),"Beton struktur memadat sendiri, fc30 MPa",,137.51,2029193.57,279043572.62
+7.1.(8),"Beton , fc15 Mpa",,127.78,1584666.60,202488698.15
+7.1.(10),"Beton, fc10 Mpa",,17.22,1191084.21,20513614.56
+7.2 (1b),Penyediaan Unit Pracetak Gelagar Tipe I Bentang 25 meter,,5.00,404088177.59,2020440887.95
+7.2 (2b),Pemasangan Unit Pracetak Gelagar Tipe I Bentang 25 meter,,5.00,80817635.52,404088177.60
+7.2.(10),Beton Pratekan untuk Diafragma fc 45 MPa termasuk Pekerjaan pasca-tarik (post-tension),,5.97,2967630.11,17716751.76
+7.2.(12a),Penyediaan Panel Full Depth slab,,100.00,750000.00,75000000.00
+7.2.(12b),Pemasangan Panel Full Depth slab,,100.00,187500.00,18750000.00
+7.3 (1),Baja Tulangan Polos-BjTP 280,,3685.36,17035.92,62783422.96
+7.3 (4),Baja Tulangan Sirip BjTS 420 B,,99394.48,17232.49,1712814364.40
+7.4 (3),Penyediaan Struktur Jembatan Rangka Baja Standar 40 m,,98522.00,29530.41,2909395054.02
+7.4 (4),Pemasangan Jembatan Rangka Baja Standar Panjang 40 M,,98522.00,2421.11,238532599.42
+7.6.(12b),Penyediaan Tiang Pancang Baja Diameter 600 mm tebal 12 mm,,1224.00,3113407.25,3810810474.00
+7.6.(18b),Pemancangan Tiang Pancang Baja Diameter 600 mm,,1224.00,426143.31,521599411.44
+7.6 (27b),Pengujian Pembebanan Dinamis Jenis PDLT (Pile Dynamic Load Testing) pada Tiang ukuran / diameter 600 mm,,12.00,12000000.00,144000000.00
+7.9.(1),Pasangan Batu,,2247.54,954695.19,2145711322.60
+7.10.(3a),Bronjong dengan kawat yang dilapisi Galvanis,,3271.53,885097.50,2895621727.66
+7.11.(1a),"Sambungan Siar Muai Tipe Asphaltic Plug, Fixed",,56866120.00,0.24,828.00
+7.12.(3),Landasan Elastomerik Karet Sintetis Berlapis Baja Ukuran 350 Mm x 500 Mm x 40 Mm,,9665250.00,0.04,828.00
+7.14.(1),Papan Nama Jembatan,,4.00,1620223.21,6480892.84
+7.16.(1),Deck drain,,28.00,750000.00,21000000.00
+7.16.(2a),Pipa Drainase Baja diameter 150 mm,,45.00,250000.00,11250000.00
+9.2.(1),Marka Jalan Termoplastik,,155.88,436714.54,68075062.50
+9.2.(3a),Rambu Jalan Tunggal dengan Permukaan Pemantul Engineering Grade,,8.00,1428315.79,11426526.32
+9.2.(5),Patok Pengarah,,156.00,202281.23,31555871.88
+9.2.(7),Rel Pengaman,,410.00,1077214.80,441658068.00
+9.2.(14),"Unit Lampu Penerangan Jalan Lengan Tunggal, Tipe LED",,8.00,32365954.79,258927638.32
+B,Pajak Pertambahan Nilai (PPN 10%xA),,1.00,337589474.62,2367749348.91

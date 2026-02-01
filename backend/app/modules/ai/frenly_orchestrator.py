@@ -5,16 +5,20 @@ Handles intent detection, SQL execution, and proactive monitoring.
 """
 
 from typing import Dict, List, Any, Optional, Literal
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from sqlmodel import Session, select, desc
 import json
+import re
+import math
 import google.generativeai as genai
 from app.core.config import settings
-from app.models import Transaction, FraudAlert
+from app.models import Transaction, FraudAlert, Project
 from app.modules.ai.sql_generator import GeminiSQLGenerator
 from app.modules.ai.narrative_service import NarrativeEngine
 from app.core.redis_client import get_history
 from app.core.global_memory import GlobalMemoryService
+from app.core.cache import cache_result
+# Imports moved to __init__ to avoid circular dependency
 
 # Configure Gemini with 2.5 Flash
 genai.configure(api_key=settings.GEMINI_API_KEY)
@@ -27,14 +31,99 @@ class FrenlyOrchestrator:
     """
 
     def __init__(self, db: Session):
+        from app.services.intelligence.judge_service import JudgeService
+        from app.services.intelligence.prophet_service import ProphetService
+        from app.services.intelligence.architect_service import ArchitectService
+
         self.db = db
-        self.model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
         self.sql_generator = GeminiSQLGenerator(db)
         self.narrative_engine = NarrativeEngine()
+        self.judge_service = JudgeService(db)
+        self.prophet_service = ProphetService(db)
+        self.architect_service = ArchitectService(db)
 
+    async def run_consensus_audit(self, transaction_id: str) -> Dict[str, Any]:
+        """
+        AI Consensus Mechanism: Parallel Dialectic (Auditor vs. Defense).
+        Incorporates Human-in-the-Loop Active Learning corrections.
+        """
+        tx = self.db.get(Transaction, transaction_id)
+        if not tx:
+            return {"error": "Transaction not found"}
+            
+        # --- Active Learning Hook ---
+        from app.modules.ai.correction_service import AICorrectionService
+        correction_service = AICorrectionService(self.db)
+        past_corrections = correction_service.get_relevant_corrections(
+            tx.project_id, 
+            f"{tx.description} {tx.verified_amount}"
+        )
+        
+        correction_context = ""
+        if past_corrections:
+            correction_context = "\nPAST INVESTIGATOR CORRECTIONS (Use as GROUND TRUTH):\n"
+            for c in past_corrections:
+                correction_context += f"- Context: {c.correction_reason} | Correct Verdict: {c.corrected_verdict}\n"
+
+        # 1. Auditor Persona (Prosecution)
+        auditor_prompt = f"""
+        {correction_context}
+        Analyze this transaction for FRAUD. Be aggressive. 
+        TX: {tx.description}, Amount: {tx.verified_amount}
+        """
+        # 2. Defense Persona (Explanation)
+        defense_prompt = f"""
+        {correction_context}
+        Provide a LEGITIMATE business explanation for this transaction. 
+        TX: {tx.description}, Amount: {tx.verified_amount}
+        """
+        
+        # Run in parallel (Simulated with sequential for simplicity in this lite version, 
+        # but conceptually distinct prompts)
+        auditor_res = self.model.generate_content(auditor_prompt).text
+        defense_res = self.model.generate_content(defense_prompt).text
+        
+        # 3. Judge Synthesis (Consensus)
+        judge_prompt = f"""
+        You are the Zenith Sovereign Judge. 
+        Evaluate the following debate:
+        
+        AUDITOR FINDING: {auditor_res}
+        DEFENSE ARGUMENT: {defense_res}
+        
+        Reach a final verdict. 
+        Respond ONLY in JSON format:
+        {{
+            "verdict": "FLAG" or "CLEAR",
+            "confidence": 0.0-1.0,
+            "reasoning": "Synthesis of the debate",
+            "critical_risk_found": true/false
+        }}
+        """
+        
+        judge_res = self.model.generate_content(judge_prompt).text
+        try:
+            decision = json.loads(re.search(r'\{.*\}', judge_res, re.DOTALL).group(0))
+            
+            # Apply consensus threshold
+            if decision["verdict"] == "FLAG" and decision["confidence"] > 0.85:
+                # High confidence flag
+                tx.status = "flagged"
+                tx.risk_score = decision["confidence"]
+                self.db.add(tx)
+                self.db.commit()
+            
+            return decision
+        except Exception:
+            return {"error": "Consensus synthesis failed"}
+
+    @cache_result(ttl=600, prefix="intent")
     def detect_intent(
         self, query: str, context: Dict[str, Any]
-    ) -> Literal["sql_query", "action", "explanation", "general_chat"]:
+    ) -> Literal[
+        "sql_query", "action", "explanation", "general_chat", "judge", "prophet", "architect"
+    ]:
         """
         Use Gemini 2.5 Flash to classify user intent with high accuracy.
         """
@@ -48,18 +137,65 @@ Classify the intent into ONE of these categories:
 2. action - User wants to perform an action (export, create case, etc.)
 3. explanation - User wants an explanation of a concept/result
 4. general_chat - General conversation or greeting
+5. judge - User wants a formal verdict, legal document, or prosecution package
+6. prophet - User wants budget forecasting or burn rate analysis
+7. architect - User wants 3D reconstruction or site reality matching
 Examples:
 - "Show me transactions above 100M" → sql_query
 - "Export this to PDF" → action
 - "Why is this flagged as high risk?" → explanation
 - "Hello, how are you?" → general_chat
-Respond with ONLY ONE WORD: sql_query, action, explanation, or general_chat
+Respond with ONLY ONE WORD: sql_query, action, explanation, general_chat, judge, prophet, or architect
 """
         response = self.model.generate_content(prompt)
         intent = response.text.strip().lower()
         # Validate response
-        valid_intents = ["sql_query", "action", "explanation", "general_chat"]
+        valid_intents = ["sql_query", "action", "explanation", "general_chat", "judge", "prophet", "architect"]
         return intent if intent in valid_intents else "general_chat"
+
+    async def handle_judge_intent(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle legal and adjudication requests."""
+        case_id = context.get("case_id")
+        if not case_id:
+            return {"answer": "I need an active Case ID to provide a formal verdict. Please select a case first."}
+        
+        if "verdict" in query.lower() or "package" in query.lower():
+            res = await self.judge_service.generate_verdict_package(case_id)
+            return {
+                "response_type": "judge",
+                "answer": f"Prosecution package for CID-{case_id[:8]} has been synthesized. Integrity Seal active.",
+                "data": res
+            }
+        
+        # Default to legal document help
+        return {"answer": "I can draft subpoenas or freezing orders based on findings. What document do you require?"}
+
+    async def handle_prophet_intent(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle predictive and forecasting requests."""
+        project_id = context.get("project_id")
+        if not project_id:
+            return {"answer": "Project ID required for predictive forecasting."}
+            
+        forecast = await self.prophet_service.forecast_budget_exhaustion(project_id)
+        days = forecast.get('predicted_days_remaining')
+        return {
+            "response_type": "prophet",
+            "answer": f"Budget analysis complete: Exhaustion predicted in {days} days.",
+            "data": forecast
+        }
+
+    async def handle_architect_intent(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """Handle structural and reconstruction requests."""
+        project_id = context.get("project_id")
+        if not project_id:
+            return {"answer": "Project ID required for site reconstruction."}
+            
+        res = await self.architect_service.compare_bim_reality(project_id)
+        return {
+            "response_type": "architect",
+            "answer": "Structural reality matching analysis complete. Cross-referencing BIM with recent 3D scans.",
+            "data": res
+        }
 
     async def handle_sql_query(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -169,6 +305,7 @@ Respond in JSON format:
                 ),
             }
 
+    @cache_result(ttl=900, prefix="explanation")
     async def handle_explanation(self, query: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
         Provide forensic explanations using Gemini's knowledge and global memory.
@@ -238,7 +375,7 @@ THEN, include a JSON block at the END of your response like this:
         # Extract JSON from response
         extracted = {}
         try:
-            import re
+            # Regex import moved to top-level
             json_match = re.search(r"```json\n(.*?)\n```", text, re.DOTALL)
             if json_match:
                 extracted = json.loads(json_match.group(1))
@@ -313,6 +450,87 @@ If appropriate, suggest what the user might want to do next.
             "answer": response.text,
         }
 
+    async def generate_hypotheses_from_transactions(
+        self, transaction_ids: List[str], project_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        V3.0 Neural Swarm: Multi-agent persona-based logic synthesis.
+        Auditor vs. Tracer Dialectic.
+        """
+        if not transaction_ids:
+            return {"hypotheses": [], "swarm_logs": []}
+
+        stmt = select(Transaction).where(Transaction.id.in_(transaction_ids))
+        transactions = self.db.exec(stmt).all()
+        
+        if not transactions:
+            return {"hypotheses": [], "swarm_logs": []}
+
+        tx_data = [
+            {
+                "id": tx.id,
+                "desc": tx.description,
+                "amount": tx.actual_amount,
+                "date": tx.timestamp.isoformat(),
+                "sender": tx.sender,
+                "receiver": tx.receiver,
+                "category": str(tx.category_code)
+            } 
+            for tx in transactions
+        ]
+
+        # Consolidate Swarm Analysis into a high-fidelity dialectic prompt
+        try:
+            swarm_prompt = f"""
+            SYSTEM: You are the Zenith Sovereign-X Dialectic Engine.
+            DATA: {json.dumps(tx_data)}
+            
+            TASK: 
+            Perform a parallel forensic debate using two distinct personas:
+            
+            1. THE AUDITOR:
+               - Goal: Find overpricing, volume gaps, and mathematical anomalies.
+               - focus: actual_amount vs. category norms.
+            
+            2. THE TRACER:
+               - Goal: Find hidden relationships, UBO masking, and circular flows.
+               - focus: sender/receiver repetition and timing.
+            
+            3. THE JUDGE (Synthesis):
+               - Goal: Resolve the findings into 2-3 final forensic hypotheses.
+               - Output: A unified verdict with shared confidence scores.
+            
+            RESPONSE FORMAT (JSON ONLY):
+            {{
+              "agent_debate": [
+                {{"agent": "Auditor", "finding": "...", "severity": "HIGH|MED|LOW"}},
+                {{"agent": "Tracer", "finding": "...", "severity": "HIGH|MED|LOW"}}
+              ],
+              "final_verdict": [
+                {{
+                  "id": "v3_id",
+                  "title": "Consensus Hypothesis",
+                  "confidence": 0.95,
+                  "mathematical_proof_logic": "Explain the math used",
+                  "reasoning": "Synthesized detail",
+                  "consensus": "HIGH"
+                }}
+              ]
+            }}
+            """
+            response = self.model.generate_content(swarm_prompt)
+            
+            # Extract JSON from response
+            json_match = re.search(r"\{.*\}", response.text, re.DOTALL)
+            if json_match:
+                result = json.loads(json_match.group(0))
+                return result
+            
+            return {"hypotheses": [], "swarm_logs": []}
+        except Exception as e:
+            print(f"Sovereign-X Swarm Inference Failed: {e}")
+            return {"hypotheses": [], "swarm_logs": []}
+
     async def _explain_sql_results(self, original_query: str, sql: str, data: List[Dict]) -> str:
         """
         Use Gemini to generate human-readable explanation of SQL results.
@@ -386,7 +604,7 @@ class ProactiveMonitor:
 
     def __init__(self, db: Session):
         self.db = db
-        self.model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        self.model = genai.GenerativeModel("gemini-2.0-flash")
 
     async def run_checks(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """
@@ -433,7 +651,7 @@ class ProactiveMonitor:
         self, project_id: Optional[str]
     ) -> List[Dict[str, Any]]:
         # Check for newly flagged high-risk transactions
-        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        one_hour_ago = datetime.now(UTC) - timedelta(hours=1)
         query = select(Transaction).where(Transaction.risk_score > 0.9)
         if project_id:
             query = query.where(Transaction.project_id == project_id)
@@ -472,10 +690,8 @@ class ProactiveMonitor:
 
     async def _check_gps_anomalies(self, project_id: Optional[str]) -> List[Dict[str, Any]]:
         """Detect transactions logged far from the project site."""
-        from app.models import Project
-        import math
-
-        if not project_id: return []
+        if not project_id:
+            return []
 
         project = self.db.get(Project, project_id)
         if not project or project.latitude is None or project.longitude is None:

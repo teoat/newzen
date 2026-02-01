@@ -6,18 +6,18 @@ Tests full flow from request to response, including pattern logging.
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, create_engine, SQLModel, select
+from sqlalchemy.pool import StaticPool
 from app.main import app
 from app.core.db import get_session
-from app.models import User, Project, UserQueryPattern
+from app.models import User, Project, UserQueryPattern, TransactionSource
 from datetime import datetime
 import json
 
 
 @pytest.fixture(name="engine")
 def engine_fixture():
-    """Create test database engine"""
-    engine = create_engine("sqlite:///:memory:")
-    SQLModel.metadata.create_all(engine)
+    """Get the shared test database engine"""
+    from app.core.db import engine
     return engine
 
 
@@ -43,10 +43,12 @@ def client_fixture(session):
 @pytest.fixture(name="test_user")
 def test_user_fixture(session):
     """Create test user"""
+    import uuid
+    uid = str(uuid.uuid4())[:8]
     user = User(
-        id="test_user_id",
-        username="analyst1",
-        email="analyst@zenith.com",
+        id=f"user_{uid}",
+        username=f"analyst_{uid}",
+        email=f"analyst_{uid}@zenith.com",
         full_name="Test Analyst",
         hashed_password="hashed_pw",
         role="analyst"
@@ -60,10 +62,12 @@ def test_user_fixture(session):
 @pytest.fixture(name="test_project")
 def test_project_fixture(session):
     """Create test project"""
+    import uuid
+    pid = str(uuid.uuid4())[:8]
     project = Project(
-        id="test_project_id",
+        id=f"project_{pid}",
         name="Integration Test Project",
-        code="ITP001",
+        code=f"ITP_{pid}",
         contract_value=5000000.0,
         start_date=datetime(2024, 1, 1),
         contractor_name="Test Contractor Ltd"

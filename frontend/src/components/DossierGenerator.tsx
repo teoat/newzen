@@ -7,7 +7,7 @@ interface DossierGeneratorProps {
   projectId?: string;
 }
 
-import { useDossier } from '@/hooks/useDossier';
+import { useDossier } from '../hooks/useDossier';
 
 interface DossierGeneratorProps {
   projectId?: string;

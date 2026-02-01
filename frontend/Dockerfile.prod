@@ -1,28 +1,75 @@
-# Build Stage
-FROM node:18.19.0-alpine AS builder
+# Production-optimized Dockerfile for Frontend
+# Multi-stage build for smaller production image
+FROM node:20.11-alpine as builder
+
+# Set build arguments
+ARG NEXT_PUBLIC_API_URL
+ARG NODE_ENV=development
+
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV HUSKY=0
+
+# Install build dependencies
+RUN apk add --no-cache libc6-compat
+
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+
+# Copy package files first for better caching
+COPY package*.json ./
+
+# Install dependencies
+RUN npm pkg delete scripts.prepare && npm install --legacy-peer-deps && npm cache clean --force
+
+# Copy source code
 COPY . .
-ENV NEXT_TELEMETRY_DISABLED 1
+
+# Generate build
 RUN npm run build
 
-# Production Stage
-FROM node:18.19.0-alpine AS runner
+# Production stage - minimal runtime
+FROM node:20.11-alpine as runtime
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    dumb-init \
+    curl \
+    && rm -rf /var/cache/apk/*
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Copy built application from builder
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nextjs:nodejs /app/next.config.mjs ./
 
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Set proper permissions
+RUN mkdir -p /app/.next/cache && \
+    chown -R nextjs:nodejs /app
 
+# Switch to non-root user
 USER nextjs
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000 || exit 1
+
+# Expose port
 EXPOSE 3000
 
-ENV PORT 3000
-CMD ["node", "server.js"]
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start the application
+CMD ["npm", "start"]

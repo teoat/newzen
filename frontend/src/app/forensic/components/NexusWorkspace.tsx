@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, User, Building, Landmark, AlertTriangle, Shield, Zap, RefreshCw } from 'lucide-react';
-import { HOLOGRAPHIC_SOURCE } from '@/utils/holographicData';
-import { useProject } from '@/store/useProject';
-import { useHubStore } from '@/store/useHubStore';
-import HolographicBadge from '@/app/components/HolographicBadge';
+import { HOLOGRAPHIC_SOURCE } from '../../../lib/holographicData';
+import { useProject } from '../../../store/useProject';
+import { useHubStore } from '../../../store/useHubStore';
+import HolographicBadge from '../../../app/components/HolographicBadge';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
 

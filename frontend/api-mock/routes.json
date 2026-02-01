@@ -1,0 +1,10 @@
+{
+  "/api/v1/*": "/$1",
+  "/api/v2/forensic-v2/analytics/dashboard/:projectId": "/analytics/dashboard",
+  "/api/v2/forensic-v2/analytics/s-curve/:projectId": "/analytics/s-curve",
+  "/api/v2/forensic-v2/rab/recalculate/:projectId": "/analytics/rab-recalculate",
+  "/api/v1/geo-link/map-data/:projectId": "/geo-map",
+  "/api/v1/analyst-comparison/analyze-raw": "/analyst-comparison/analyze-raw",
+  "/api/v1/analyst-comparison/compare": "/analyst-comparison/compare",
+  "/api/v2/forensic-v2/judge/download-dossier": "/analytics/download-dossier"
+}

@@ -28,7 +28,7 @@ from reportlab.platypus import (
     Image as RLImage,
 )
 from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import List, Optional
 from sqlmodel import Session, select
 import hashlib
@@ -51,7 +51,7 @@ class DossierCompiler:
     def __init__(self, db: Session, project_id: str = "ZENITH-001"):
         self.db = db
         self.project_id = project_id
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(UTC)
         self.styles = getSampleStyleSheet()
         self._setup_custom_styles()
         self.logo_path = "/Users/Arief/Newzen/zenith-lite/backend/app/static/zenith_logo.png"
@@ -152,41 +152,6 @@ class DossierCompiler:
         story.extend(self._build_methodology())
         story.append(PageBreak())
         story.extend(self._build_audit_trail())
-
-    def _draw_watermark(self, canvas, doc):
-        """Draw a diagonal watermark across the page"""
-        canvas.saveState()
-        canvas.setFont("Helvetica-Bold", 40)
-        canvas.setStrokeColor(colors.lightgrey)
-        canvas.setFillColor(colors.lightgrey, alpha=0.1)
-        # Draw watermark text
-        text = f"CONFIDENTIAL - {self.project_id}"
-        canvas.translate(doc.pagesize[0]/2, doc.pagesize[1]/2)
-        canvas.rotate(45)
-        canvas.drawCentredString(0, 0, text)
-        canvas.restoreState()
-
-    def _draw_seal_icon(self, canvas, doc):
-        """Draw a technical 'Digital Seal' icon in the corner"""
-        canvas.saveState()
-        # Draw small technical shield icon in bottom left
-        canvas.setStrokeColor(colors.HexColor("#3b82f6"))
-        canvas.setLineWidth(1)
-        canvas.rect(0.5 * inch, 0.5 * inch, 0.4 * inch, 0.4 * inch)
-        canvas.setFont("Helvetica-Bold", 6)
-        canvas.drawString(0.55 * inch, 0.7 * inch, "ZENITH")
-        canvas.drawString(0.55 * inch, 0.6 * inch, "SEALED")
-        canvas.restoreState()
-
-    async def generate(
-        self,
-        output_path: Optional[str] = None,
-        include_transactions: bool = True,
-        include_entities: bool = True,
-        include_forensic_analysis: bool = True,
-        user_id: str = "SYSTEM",
-    ) -> str:
-        # ... existing generate code ...
 
         # Generate PDF with dynamic page numbering, watermark, and seal
         def on_page(canvas, doc):

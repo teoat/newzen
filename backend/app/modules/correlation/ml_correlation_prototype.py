@@ -2,7 +2,7 @@ from typing import Dict
 from collections import deque
 from app.core.event_bus import get_event_bus, EventType, Event, publish_event
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class MLCorrelationPrototype:
     def _cleanup_old_events(self, project_id: str):
         """Removes events older than buffer_window_seconds from the deque."""
         buffer = self.project_event_buffers[project_id]
-        cutoff_time = datetime.utcnow() - timedelta(seconds=self.buffer_window_seconds)
+        cutoff_time = datetime.now(UTC) - timedelta(seconds=self.buffer_window_seconds)
         while buffer and buffer[0].timestamp < cutoff_time:
             buffer.popleft()
 
@@ -86,7 +86,7 @@ class MLCorrelationPrototype:
             # (simple debounce to avoid spamming alerts)
             last_alert_time = getattr(self, f"_last_ml_alert_time_{project_id}", None)
             if (
-                last_alert_time and (datetime.utcnow() - last_alert_time).total_seconds() < 3600
+                last_alert_time and (datetime.now(UTC) - last_alert_time).total_seconds() < 3600
             ):  # 1 hour debounce
                 return
 
@@ -113,7 +113,7 @@ class MLCorrelationPrototype:
                 },
             }
             publish_event(EventType.PROACTIVE_ALERT, data=alert_data, project_id=project_id)
-            setattr(self, f"_last_ml_alert_time_{project_id}", datetime.utcnow())
+            setattr(self, f"_last_ml_alert_time_{project_id}", datetime.now(UTC))
             logger.critical(
                 f"ML Prototype issued PROACTIVE_ALERT for project {project_id}: Anomaly Sequence Detected."
             )

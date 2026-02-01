@@ -1,16 +1,11 @@
-"""
-Celery tasks for batch processing of ingestion data.
-Provides rate-limited, resilient batch processing with progress tracking.
-"""
-
 from app.core.celery_config import celery_app
 from app.core.batch_optimizer import BatchOptimizer
 from app.core.event_bus import publish_event, EventType
+from sqlmodel import select
 from celery import chord, group
 from typing import List, Dict, Any
-import time
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 
 logger = logging.getLogger(__name__)
 
@@ -64,14 +59,14 @@ def process_transaction_batch(
             },
         )
         # Update job record
-        from app.database import get_db
+        from app.core.db import get_db
         from app.models import ProcessingJob, JobStatus
 
         with get_db() as db:
-            job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+            job = db.get(ProcessingJob, job_id)
             if job and job.status == JobStatus.PENDING:
                 job.status = JobStatus.PROCESSING
-                job.started_at = datetime.utcnow()
+                job.started_at = datetime.now(UTC)
                 db.commit()
                 # Publish event for first batch starting
                 if batch_num == 1:
@@ -105,12 +100,18 @@ def process_transaction_batch(
                     )
             except Exception as e:
                 logger.error(
-                    f"[Job {job_id}] Failed to process transaction " f"{transaction.get('id')}: {e}"
+                    f"[Job {job_id}] Failed to process transaction "
+                    f"{transaction.get('id')}: {e}"
                 )
                 failed_count += 1
         # Update job progress
+        # Update job progress with row-level locking to prevent race conditions
         with get_db() as db:
-            job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+            job = db.exec(
+                select(ProcessingJob)
+                .where(ProcessingJob.id == job_id)
+                .with_for_update()
+            ).first()
             if job:
                 job.batches_completed += 1
                 job.items_processed += processed_count
@@ -132,11 +133,11 @@ def process_transaction_batch(
         logger.error(f"[Job {job_id}] Batch {batch_num} failed: {exc}")
         # Publish failure event after all retries exhausted
         if self.request.retries >= self.max_retries:
-            from app.database import get_db
+            from app.core.db import get_db
             from app.models import ProcessingJob, JobStatus
 
             with get_db() as db:
-                job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+                job = db.get(ProcessingJob, job_id)
                 if job:
                     job.status = JobStatus.FAILED
                     job.error_message = str(exc)
@@ -157,29 +158,58 @@ def process_transaction_batch(
         raise self.retry(exc=exc)
 
 
-def _process_single_transaction(transaction: Dict[str, Any], project_id: str) -> Dict[str, Any]:
+def _process_single_transaction(
+    transaction: Dict[str, Any], project_id: str
+) -> Dict[str, Any]:
     """
     Process a single transaction record.
-    Integrates with existing ingestion logic.
+    Integrates with existing forensic and reconciliation logic.
     """
-    # Use existing ingestion logic
-    # This is a simplified version - actual implementation
-    # should call your existing process_ingestion_task
+    from app.core.db import get_db
+    from app.models import Transaction, TransactionSource
+    from app.modules.fraud.reconciliation_router import detect_forensic_triggers
+
     try:
-        # For now, return success
-        # TODO: Integrate with actual ingestion logic
-        return {
-            "id": transaction.get("id"),
-            "status": "processed",
-            "timestamp": time.time(),
-        }
+        with get_db() as db:
+            # 1. Map raw transaction data
+            new_tx = Transaction(
+                project_id=project_id,
+                amount=float(transaction.get("amount", 0) or 0),
+                actual_amount=float(transaction.get("amount", 0) or 0),
+                sender=str(transaction.get("sender", "Unknown")),
+                receiver=str(transaction.get("receiver", "Unknown")),
+                description=str(transaction.get("description", "")),
+                transaction_date=datetime.now(UTC),  # Simplified for batch
+                timestamp=datetime.now(UTC),
+                status="pending",
+                source_type=TransactionSource.INTERNAL_LEDGER,
+            )
+
+            # 2. Run Forensic Triggers
+            detect_forensic_triggers(new_tx, db)
+
+            # 3. Persist
+            db.add(new_tx)
+            db.commit()
+            db.refresh(new_tx)
+
+            return {
+                "id": new_tx.id,
+                "status": "processed",
+                "forensic_alerts": len(new_tx.forensic_triggers or []),
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
     except Exception as e:
         logger.error(f"Transaction processing error: {e}")
         raise
 
 
-@celery_app.task(name="zenith_forensic.tasks.ingestion.finalize_batch_job", bind=True)
-def finalize_batch_job(self, batch_results: List[Dict], job_id: str) -> Dict[str, Any]:
+@celery_app.task(
+    name="zenith_forensic.tasks.ingestion.finalize_batch_job", bind=True
+)
+def finalize_batch_job(
+    self, batch_results: List[Dict], job_id: str
+) -> Dict[str, Any]:
     """
     Finalize job after all batches complete.
     Args:
@@ -188,20 +218,26 @@ def finalize_batch_job(self, batch_results: List[Dict], job_id: str) -> Dict[str
     Returns:
         Final job summary
     """
-    from app.database import get_db
+    from app.core.db import get_db
     from app.models import ProcessingJob, JobStatus
 
     total_processed = sum(r.get("processed", 0) for r in batch_results)
     total_failed = sum(r.get("failed", 0) for r in batch_results)
     logger.info(
-        f"[Job {job_id}] Finalizing: " f"{total_processed} processed, {total_failed} failed"
+        f"[Job {job_id}] Finalizing: {total_processed} processed, "
+        f"{total_failed} failed"
     )
     # Update job status in database
+    # Update job status in database with row-level locking
     with get_db() as db:
-        job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+        job = db.exec(
+            select(ProcessingJob)
+            .where(ProcessingJob.id == job_id)
+            .with_for_update()
+        ).first()
         if job:
             job.status = JobStatus.COMPLETED
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(UTC)
             # Ensure final counts are accurate
             if job.items_processed != total_processed:
                 logger.warning(
@@ -213,7 +249,8 @@ def finalize_batch_job(self, batch_results: List[Dict], job_id: str) -> Dict[str
                 job.items_failed = total_failed
             db.commit()
             logger.info(
-                f"[Job {job_id}] Completed successfully. " f"Success rate: {job.success_rate:.1f}%"
+                f"[Job {job_id}] Completed successfully. "
+                f"Success rate: {job.success_rate:.1f}%"
             )
             # Publish completion event
             publish_event(
@@ -243,7 +280,9 @@ def finalize_batch_job(self, batch_results: List[Dict], job_id: str) -> Dict[str
 
 
 def submit_batch_processing_job(
-    items: List[Dict[str, Any]], project_id: str, data_type: str = "transaction"
+    items: List[Dict[str, Any]],
+    project_id: str,
+    data_type: str = "transaction"
 ) -> str:
     """
     Submit a large dataset for batch processing.
@@ -256,14 +295,17 @@ def submit_batch_processing_job(
     """
     import uuid
     from app.models import ProcessingJob, JobStatus
-    from app.database import get_db
+    from app.core.db import get_db
 
     job_id = str(uuid.uuid4())
     # Calculate optimal batching
     optimizer = BatchOptimizer()
     config = optimizer.calculate_batch_config(data_type, len(items))
     # Split into batches
-    batches = [items[i : i + config.size] for i in range(0, len(items), config.size)]
+    batches = [
+        items[i:i + config.size]
+        for i in range(0, len(items), config.size)
+    ]
     logger.info(
         f"Submitting job {job_id}: {len(items)} items "
         f"split into {len(batches)} batches of ~{config.size} items"
@@ -303,7 +345,7 @@ def submit_batch_processing_job(
     workflow = chord(batch_tasks)(finalize_batch_job.s(job_id=job_id))
     # Store Celery task ID for monitoring
     with get_db() as db:
-        job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+        job = db.get(ProcessingJob, job_id)
         if job:
             job.celery_task_ids = {"workflow": workflow.id}
             db.commit()

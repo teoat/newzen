@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import FlowWorkspace from '@/app/forensic/components/FlowWorkspace';
-import { useHubStore } from '@/store/useHubStore';
+import FlowWorkspace from '../../../../app/forensic/components/FlowWorkspace';
+import { useHubStore } from '../../../../store/useHubStore';
 
 export default function FlowTab() {
   const { selectedMilestone } = useHubStore();

@@ -9,8 +9,8 @@ import {
   AlertTriangle,
   TrendingUp,
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
-import { useProject } from '@/store/useProject';
+import { API_URL } from '../../lib/constants';
+import { useProject } from '../../store/useProject';
 
 interface OptimizationResult {
   strategy: string;

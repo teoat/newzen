@@ -1,13 +1,14 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { 
     BrainCircuit, Activity, TrendingUp, 
     Loader2, Zap
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+import { API_URL } from '../../../../lib/constants';
+import { useProject } from '../../../../store/useProject';
+import ForensicPageLayout from '../../../../app/components/ForensicPageLayout';
 
 interface ForecastResult {
     project_name: string;

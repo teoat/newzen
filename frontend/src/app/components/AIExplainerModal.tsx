@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, X, Loader2, Sparkles, AlertCircle } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
+import { API_URL } from '../../lib/constants';
 
 interface AIExplainerModalProps {
   isOpen: boolean;

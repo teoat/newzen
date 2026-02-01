@@ -31,7 +31,7 @@ def seed_access():
                     access = UserProjectAccess(
                         user_id=user.id,
                         project_id=project.id,
-                        role=ProjectRole.ADMIN,  # Grant Admin to all existing
+                        role=ProjectRole.ADMIN,
                     )
                     session.add(access)
                     count += 1

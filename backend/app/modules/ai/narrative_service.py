@@ -1,9 +1,12 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Dict, Any, List
 from sqlmodel import Session, select
 
 
 import google.generativeai as genai
+
+
+from app.core.config import settings
 
 
 class NarrativeEngine:
@@ -51,7 +54,7 @@ Paragraph 3: Conclusion on the integrity of the project financials and recommend
 
 Use a neutral but firm legal tone.
 """
-        model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        model = genai.GenerativeModel(settings.MODEL_FLASH)
         response = model.generate_content(prompt)
         return response.text
 
@@ -119,7 +122,7 @@ Use a neutral but firm legal tone.
         contradictions = NarrativeEngine.detect_contradictions(db, case_id)
         narrative = f"""# FORENSIC INVESTIGATION DOSSIER: {case.title}
 **CASE REFERENCE**: {case.id}
-**DATE**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
+**DATE**: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')} UTC
 **STATUS**: {case.status.upper()}
 ## 1. EXECUTIVE SUMMARY
 This dossier summarizes the forensic findings for {case.title}.

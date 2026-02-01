@@ -1,13 +1,22 @@
+import asyncio
+import os
 import time
+from contextlib import asynccontextmanager
+
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from dotenv import load_dotenv
+from pydantic import BaseModel
 
 from app.core.db import init_db
 from app.core.rate_limit import RateLimitMiddleware
 from app.core.csrf_protection import CSRFProtectionMiddleware
 from app.core.config import settings
 from app.modules.cases.router import router as cases_router
+from app.modules.agents.judge import JudgeAgent
 from app.modules.fraud.reconciliation_router import (
     router as reconciliation_router,
 )
@@ -37,17 +46,40 @@ from app.modules.ai.frenly_router import router as frenly_ai_router
 from app.modules.forensic.compliance_router import router as compliance_router
 from app.api.v2.endpoints.reasoning import router as reasoning_v2
 from app.api.v2.endpoints.graph import router as graph_v2
+from app.api.v2.endpoints.forensic_services import router as forensic_v2
 from app.modules.currency.router import router as currency_router
 from app.core.health import router as health_router
 
 load_dotenv()  # Load env vars before importing other modules
 
-app = FastAPI(title="Zenith Lite", version="1.0.0")
+# Initialize Sentry
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        integrations=[FastApiIntegration()],
+        traces_sample_rate=1.0,
+        profiles_sample_rate=1.0,
+        environment=os.getenv("ENVIRONMENT", "development"),
+    )
 
 
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
     init_db()
+    from app.core.metrics import refresh_business_metrics_loop
+    # Start Autonomous Agents (Background Workers)
+    asyncio.create_task(JudgeAgent().start())
+    asyncio.create_task(refresh_business_metrics_loop())
+    yield
+    # Shutdown logic (if any)
+
+
+app = FastAPI(title="Zenith Platform API", version="2.0.0", lifespan=lifespan)
+
+# Prometheus Instrumentation
+if settings.ENABLE_PROMETHEUS:
+    Instrumentator().instrument(app).expose(app)
 
 
 # CORS Middleware - Improving developer experience by allowing frontend access
@@ -90,6 +122,24 @@ async def health_check():
     return {"status": "healthy", "timestamp": time.time()}
 
 
+# Pact Provider States for Contract Testing
+
+
+class PactState(BaseModel):
+    state: str
+
+
+@app.post("/_pact/provider_states")
+async def provider_states(pact_state: PactState):
+    """
+    Setup provider states for Pact contract verification.
+    """
+    state = pact_state.state
+
+    # Simple dispatcher for test data setup
+    return {"status": "success", "state": state}
+
+
 # V1 Legacy Routers
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(ingestion_router, prefix="/api/v1")
@@ -118,6 +168,7 @@ app.include_router(currency_router, prefix="/api/v1")  # Multi-currency support
 # V2 Next-Gen Routers (Active Advancement)
 app.include_router(reasoning_v2, prefix="/api/v2/reasoning")
 app.include_router(graph_v2, prefix="/api/v2/graph")
+app.include_router(forensic_v2, prefix="/api/v2")
 app.include_router(sync_router)
 # Health & Metrics
 app.include_router(health_router)  # Enhanced health endpoints

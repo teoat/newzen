@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import AnalyticsWorkspace from '@/app/forensic/components/AnalyticsWorkspace';
-import { useHubStore } from '@/store/useHubStore';
+import AnalyticsWorkspace from '../../../../app/forensic/components/AnalyticsWorkspace';
+import { useHubStore } from '../../../../store/useHubStore';
 
 export default function AnalyticsTab() {
   const { selectedHotspot } = useHubStore();

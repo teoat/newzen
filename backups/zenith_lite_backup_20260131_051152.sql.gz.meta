@@ -1,0 +1,12 @@
+Backup Metadata
+===============
+Database: zenith_lite
+Host: localhost:5442
+User: zenith
+Created: Sat 31 Jan 2026 05:11:53 WIT
+Timestamp: 20260131_051152
+File: zenith_lite_backup_20260131_051152.sql.gz
+Size:  16K
+Compressed: true
+Encrypted: false
+PostgreSQL Version: 

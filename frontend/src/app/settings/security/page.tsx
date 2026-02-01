@@ -1,4 +1,5 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
@@ -29,6 +30,7 @@ interface MfaStatus {
 export default function SecuritySettingsPage() {
     const { data: session } = useSession();
     const [mfaStatus, setMfaStatus] = useState<MfaStatus | null>(null);
+    const [clockDrift, setClockDrift] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [setupStep, setSetupStep] = useState<'IDLE' | 'SETUP' | 'VERIFY' | 'SUCCESS'>('IDLE');
     const [setupData, setSetupData] = useState<{ otpauth_url: string, secret: string } | null>(null);
@@ -44,6 +46,13 @@ export default function SecuritySettingsPage() {
                 headers: { 'Authorization': `Bearer ${session?.accessToken}` }
             });
             const data = await response.json();
+            
+            if (data.server_time) {
+                const serverTime = new Date(data.server_time + "Z"); // Explicit UTC
+                const localTime = new Date();
+                setClockDrift(Math.abs(serverTime.getTime() - localTime.getTime()));
+            }
+
             // We'll also check if enabled by trying to fetch backup codes or from a user info endpoint
             // For now, we'll assume the status check is just a health check, 
             // and we'll fetch the user's specific MFA state from a profile-like request.
@@ -341,17 +350,24 @@ export default function SecuritySettingsPage() {
                             </div>
                             
                             <ul className="space-y-3">
-                                {[
-                                    { label: 'Clock Sync', value: '0.04ms drift', icon: RefreshCw },
+                                {                                [
+                                    { 
+                                        label: 'Clock Sync', 
+                                        value: clockDrift !== null 
+                                            ? (clockDrift < 1000 ? `${clockDrift}ms` : `${(clockDrift/1000).toFixed(1)}s drift`)
+                                            : 'Checking...', 
+                                        icon: RefreshCw,
+                                        warning: clockDrift !== null && clockDrift > 15000
+                                    },
                                     { label: 'Key Strength', value: '256-bit AES', icon: Lock },
                                     { label: 'Layering', value: mfaStatus?.enabled ? 'L2 Active' : 'L1 Basic', icon: Layers },
                                 ].map((item, i) => (
                                     <li key={i} className="flex items-center justify-between text-[10px] font-bold">
                                         <div className="flex items-center gap-2 text-slate-500 uppercase tracking-widest font-black">
-                                            <item.icon className="w-3 h-3" />
+                                            <item.icon className={`w-3 h-3 ${item.warning ? 'text-amber-500 animate-pulse' : ''}`} />
                                             {item.label}
                                         </div>
-                                        <span className="text-white font-mono">{item.value}</span>
+                                        <span className={`font-mono ${item.warning ? 'text-amber-500' : 'text-white'}`}>{item.value}</span>
                                     </li>
                                 ))}
                             </ul>

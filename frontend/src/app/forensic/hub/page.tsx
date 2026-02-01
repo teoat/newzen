@@ -1,17 +1,18 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers } from 'lucide-react';
 
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-import { useProject } from '@/store/useProject';
-import { HubTab, useHubStore } from '@/store/useHubStore';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import { HubTab, useHubStore } from '../../../store/useHubStore';
 import { HubTabs } from './components/HubTabs';
 import { CrossToolInsights } from './components/CrossToolInsights';
 import { TabContent } from './components/TabContent';
-import HolographicProjection from '@/app/components/HolographicProjection';
+import HolographicProjection from '../../../app/components/HolographicProjection';
 
 const ForensicHubContent = () => {
   const router = useRouter();

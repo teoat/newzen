@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { 
     Globe, MapPin, 
     Loader2, AlertTriangle, 
     ShieldCheck 
 } from 'lucide-react';
-import { useProject } from '@/store/useProject';
-import { useHubStore } from '@/store/useHubStore';
-import { API_URL } from '@/utils/constants';
-import HolographicProjection from '@/app/components/HolographicProjection';
+import { useProject } from '../../../store/useProject';
+import { useHubStore } from '../../../store/useHubStore';
+import { API_URL } from '../../../lib/constants';
+import HolographicProjection from '../../../app/components/HolographicProjection';
 
 interface SatelliteData {
     satellite_provider: string;
@@ -24,17 +25,19 @@ interface SatelliteData {
 
 export default function SatelliteWorkspace() {
     const { activeProjectId } = useProject();
-    const [targetId, setTargetId] = useState('');
+    const [targetId, setTargetId] = useState(activeProjectId || '');
     const [isScanning, setIsScanning] = useState(false);
     const [data, setData] = useState<SatelliteData | null>(null);
 
-    // Sync targetId with activeProjectId when it changes
+    // Sync targetId with activeProjectId when it changes (deferred to avoid setState-in-effect)
     useEffect(() => {
-        if (activeProjectId) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setTargetId(activeProjectId);
+        if (activeProjectId && targetId !== activeProjectId) {
+            const timeoutId = setTimeout(() => {
+                setTargetId(activeProjectId);
+            }, 0);
+            return () => clearTimeout(timeoutId);
         }
-    }, [activeProjectId]);
+    }, [activeProjectId, targetId]);
 
     const handleScan = async () => {
         const id = targetId || activeProjectId;
@@ -112,11 +115,13 @@ export default function SatelliteWorkspace() {
                                  <div className="absolute top-6 left-6 px-3 py-1 bg-black/60 backdrop-blur rounded font-mono text-[9px] text-indigo-500 border border-indigo-500/30 font-bold">
                                      LIVE FEED // {data.last_flyover}
                                  </div>
-                                 <img 
-                                     src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800" 
-                                     className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40"
-                                     alt="Satellite View"
-                                 />
+                                  <Image 
+                                      src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800" 
+                                      className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40"
+                                      alt="Satellite View"
+                                      fill
+                                      style={{ objectFit: 'cover' }}
+                                  />
                                  <div className="absolute inset-0 flex items-center justify-center">
                                     <div className="w-32 h-32 border border-indigo-500/20 rounded-full animate-ping" />
                                  </div>

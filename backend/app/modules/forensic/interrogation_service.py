@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from sqlmodel import Session, select
-from typing import List, Dict, Any, Optional
-from app.models import Case, CaseExhibit, Transaction, Entity, ExhibitStatus
+from typing import Dict, Any
+from app.models import Case, CaseExhibit, ExhibitStatus
 import google.generativeai as genai
 from app.core.config import settings
 
@@ -47,13 +47,13 @@ Structure the response as a formal document with:
 Tone: Professional, clinical, and high-pressure.
 """
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-2.0-flash-exp")
+        model = genai.GenerativeModel(settings.MODEL_FLASH)
         response = model.generate_content(prompt)
         
         return {
             "case_id": case_id,
             "title": f"Interrogation Strategy: {case.title}",
-            "generated_at": str(datetime.utcnow()),
+            "generated_at": str(datetime.now(UTC)),
             "guide_content": response.text,
             "evidence_count": len(exhibits)
         }

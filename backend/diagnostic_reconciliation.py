@@ -4,9 +4,9 @@ Checks the data flow from Ingestion → Transaction/BankTransaction → Reconcil
 """
 
 import sys
-from app.core.db import get_session
-from app.models import Transaction, BankTransaction, Ingestion
+from app.models import Transaction, Ingestion, TransactionSource
 from sqlmodel import select
+from app.core.db import get_session
 
 sys.path.append("/Users/Arief/Newzen/zenith-lite/backend")
 
@@ -22,7 +22,7 @@ def main():
     for ing in ingestions[:5]:
         print(f"   - {ing.file_name}: {ing.records_processed} records | Status: {ing.status}")
     # 2. Internal Transactions (Journals/Expenses)
-    internal_txs = db.exec(select(Transaction)).all()
+    internal_txs = db.exec(select(Transaction).where(Transaction.source_type == TransactionSource.INTERNAL_LEDGER)).all()
     print(f"\n💼 INTERNAL TRANSACTIONS (Journal Claims): {len(internal_txs)}")
     # Status breakdown
     status_counts = {}
@@ -32,7 +32,7 @@ def main():
     for status, count in status_counts.items():
         print(f"     • {status}: {count}")
     # 3. Bank Transactions (Truth)
-    bank_txs = db.exec(select(BankTransaction)).all()
+    bank_txs = db.exec(select(Transaction).where(Transaction.source_type == TransactionSource.BANK_STATEMENT)).all()
     print(f"\n🏦 BANK TRANSACTIONS (Statement Truth): {len(bank_txs)}")
     # 4. Expected vs Actual
     print("\n⚠️  DIAGNOSTIC RESULTS:")

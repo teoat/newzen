@@ -6,7 +6,7 @@ Advanced matching utilities for forensic transaction reconciliation
 import re
 from typing import Optional, Tuple, Dict, Any
 from thefuzz import fuzz
-from datetime import datetime, timedelta
+from datetime import datetime, UTC, timedelta
 from sqlmodel import Session, select
 from app.models import Transaction
 
@@ -150,19 +150,22 @@ class SemanticMatcher:
         Calculate concept-based similarity using Gemini.
         Returns: 0.0 to 1.0
         """
-        if not desc1 or not desc2: return 0.0
-        if desc1.lower() == desc2.lower(): return 1.0
+        if not desc1 or not desc2:
+            return 0.0
+        if desc1.lower() == desc2.lower():
+            return 1.0
         
         # Quick fallback to fuzzy if Gemini is not available/configured
         # or for minor string differences
         f_ratio = fuzz.token_sort_ratio(desc1.lower(), desc2.lower()) / 100.0
-        if f_ratio > 0.85: return f_ratio
+        if f_ratio > 0.85:
+            return f_ratio
 
         try:
             import google.generativeai as genai
             from app.core.config import settings
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash")
+            model = genai.GenerativeModel(settings.MODEL_FLASH)
             
             prompt = f"""
             Compare these two transaction descriptions and determine if they refer to the same event/purchase.
@@ -172,7 +175,7 @@ class SemanticMatcher:
             """
             response = model.generate_content(prompt)
             return float(response.text.strip())
-        except:
+        except Exception:
             return f_ratio
 
 
@@ -185,7 +188,8 @@ class CurrencyService:
         """
         Fetch current exchange rate. Defaults to IDR-USD baseline.
         """
-        if from_curr == to_curr: return 1.0
+        if from_curr == to_curr:
+            return 1.0
         # In a real system, call exchangerate-api.com
         # Baseline for Aldi case
         rates = {
@@ -276,7 +280,7 @@ class VelocityAnalyzer:
         """
         if not entity_name or entity_name == "Unknown":
             return {}
-        end_date = datetime.utcnow()
+        end_date = datetime.now(UTC)
         start_date = end_date - timedelta(days=lookback_days)
         # Fetch transactions for entity in lookback period
         txs = db.exec(

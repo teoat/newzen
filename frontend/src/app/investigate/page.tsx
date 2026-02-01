@@ -1,9 +1,10 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { Gavel, Play, Pause, CheckCircle, FileText, Activity } from 'lucide-react';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
-import { useInvestigation } from '@/store/useInvestigation';
+import ForensicPageLayout from '../../app/components/ForensicPageLayout';
+import { useInvestigation } from '../../store/useInvestigation';
 import InvestigationList from './components/InvestigationList';
 import AdjudicationBench from './components/AdjudicationBench';
 

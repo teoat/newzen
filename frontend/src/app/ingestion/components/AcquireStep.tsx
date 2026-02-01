@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Upload, Info, Table, MapPin, Landmark, Box, DatabaseZap, Download } from 'lucide-react';
+import { Upload, Info, Table, MapPin, Landmark, Box, DatabaseZap, Download, FileSpreadsheet } from 'lucide-react';
 import { FileEntry, IngestionHistoryItem } from '../types';
 import { BatchProcessingPanel } from './BatchProcessingPanel';
 
@@ -73,12 +73,12 @@ export function AcquireStep({
                     
                     <div className="mt-8 flex items-center gap-4 px-6 py-3 rounded-2xl bg-indigo-500/5 border border-indigo-500/20 text-[10px] font-bold text-indigo-300 uppercase tracking-widest backdrop-blur-sm">
                         <Info className="w-4 h-4 text-indigo-400" />
-                        <span>Supported: CSV, Excel (.xlsx), PDF bank statements</span>
+                        <span>Supported: CSV, Excel (.xlsx), RAB Budgets, PDF bank statements</span>
                     </div>
 
                     <div className="flex gap-12 mt-20 opacity-20 grayscale hover:grayscale-0 transition-all duration-700 hover:opacity-100">
                         <EntityIcon icon={Table} label="CSV / SYMBOLIC" />
-                        <EntityIcon icon={MapPin} label="SPATIAL DATA" />
+                        <EntityIcon icon={FileSpreadsheet} label="RAB_BUDGET" />
                         <EntityIcon icon={Landmark} label="BANK_LEDGER" />
                         <EntityIcon icon={Box} label="IMAGE_PACKS" />
                     </div>
@@ -103,6 +103,7 @@ export function AcquireStep({
                                     <th className="px-6 pb-2">Timestamp</th>
                                     <th className="px-6 pb-2 text-right">Records</th>
                                     <th className="px-6 pb-2 text-center">Status</th>
+                                    <th className="px-6 pb-2 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,12 +121,21 @@ export function AcquireStep({
                                         <td className="px-6 py-4 bg-slate-900/50 border-y border-white/5 text-right font-mono text-xs text-slate-400">
                                             {h.recordsProcessed.toLocaleString()}
                                         </td>
-                                        <td className="px-6 py-4 bg-slate-900/50 rounded-r-2xl border-y border-r border-white/5 text-center">
+                                        <td className="px-6 py-4 bg-slate-900/50 border-y border-white/5 text-center">
                                             <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                                 h.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                                             }`}>
                                                 {h.status}
                                             </span>
+                                        </td>
+                                        <td className="px-6 py-4 bg-slate-900/50 rounded-r-2xl border-y border-r border-white/5 text-right">
+                                            <button 
+                                                onClick={() => console.log(`Re-queueing job ${h.id}`)}
+                                                className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-indigo-500/20 hover:border-indigo-500"
+                                                title="Re-run Analysis Job"
+                                            >
+                                                Re-Run
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}

@@ -8,10 +8,10 @@ try:
     from app.core.db import engine
     from app.models import (
         Transaction,
-        BankTransaction,
+        TransactionSource,
         TransactionCategory,
     )
-    from datetime import datetime
+    from datetime import datetime, UTC
 
     def run():
         print("--- DROPPING TABLES ---")
@@ -57,11 +57,18 @@ try:
                 receiver="Restaurant",
             )
             # 4. Bank Entry
-            bank_tx = BankTransaction(
+            bank_tx = Transaction(
                 amount=5000000,
+                actual_amount=5000000,
+                proposed_amount=0,
                 bank_name="BCA 921",
                 description="WITHDRAWAL - FIELD OPS",
-                timestamp=datetime.utcnow(),
+                transaction_date=datetime.now(UTC),
+                timestamp=datetime.now(UTC),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             )
             session.add_all([tx1, tx2, tx3, bank_tx])
             session.commit()

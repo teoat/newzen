@@ -2,7 +2,7 @@ from sqlmodel import Session, delete
 from app.models import (
     Case,
     Transaction,
-    BankTransaction,
+    TransactionSource,
     FraudAlert,
     CaseStatus,
     CasePriority,
@@ -16,7 +16,6 @@ def seed():
         # Clear existing data using SQLModel delete
         session.exec(delete(FraudAlert))
         session.exec(delete(Transaction))
-        session.exec(delete(BankTransaction))
         session.exec(delete(Case))
         session.commit()
         # 1. Forensic Case
@@ -82,17 +81,31 @@ def seed():
             session.add(t)
         # 3. Bank Statement
         bank_txs = [
-            BankTransaction(
+            Transaction(
                 amount=250000000.0,
+                actual_amount=250000000.0,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TRF FRANTINES WIDHARTA",
+                transaction_date=base_time,
                 timestamp=base_time,
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
-            BankTransaction(
+            Transaction(
                 amount=150000.0,
+                actual_amount=150000.0,
+                proposed_amount=0,
                 bank_name="BCA",
                 description="TOKOPEDIA PMT",
+                transaction_date=base_time + timedelta(days=2),
                 timestamp=base_time + timedelta(days=2),
+                source_type=TransactionSource.BANK_STATEMENT,
+                sender="BANK_UNKNOWN",
+                receiver="BANK_UNKNOWN",
+                status="COMPLETED"
             ),
         ]
         for bt in bank_txs:

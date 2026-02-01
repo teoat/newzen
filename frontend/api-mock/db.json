@@ -1,0 +1,151 @@
+{
+  "projects": [
+    {
+      "id": "ZENITH-DEMO-001",
+      "name": "Jakarta-Bandung Toll Road Phase 2",
+      "code": "JBTL-2024-002",
+      "status": "ACTIVE"
+    }
+  ],
+  "analytics": {
+    "dashboard": {
+      "project": {
+        "name": "Jakarta-Bandung Toll Road Phase 2",
+        "code": "JBTL-2024-002",
+        "status": "ACTIVE"
+      },
+      "financials": {
+        "contract_value": 1250000000000,
+        "total_released": 450000000000,
+        "total_spent_onsite": 320000000000
+      },
+      "leakage": {
+        "total_leakage": 87500000000,
+        "markup_leakage": 42000000000
+      },
+      "budget_variance": [
+        {
+          "item_name": "Steel Rebar D-16",
+          "category": "Materials",
+          "unit_price_rab": 15000000,
+          "avg_unit_price_actual": 22800000,
+          "markup_percentage": 52,
+          "volume_discrepancy": 45
+        },
+        {
+          "item_name": "Portland Cement",
+          "category": "Materials",
+          "unit_price_rab": 850000,
+          "avg_unit_price_actual": 950000,
+          "markup_percentage": 12,
+          "volume_discrepancy": 120
+        }
+      ]
+    },
+    "s-curve": {
+      "curve_data": [
+        { "date": "2024-01-01", "pv": 50000000000, "ac": 45000000000 },
+        { "date": "2024-02-01", "pv": 120000000000, "ac": 98000000000 },
+        { "date": "2024-03-01", "pv": 200000000000, "ac": 185000000000 },
+        { "date": "2024-04-01", "pv": 280000000000, "ac": 275000000000 },
+        { "date": "2024-05-01", "pv": 380000000000, "ac": 320000000000 }
+      ]
+    }
+  },
+  "geo-map": {
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "hotspot-1",
+          "name": "Project Entry Point",
+          "severity": "high",
+          "value": 15000000000,
+          "root_cause": "Phantom Vendor"
+        },
+        "geometry": {
+          "coordinates": [106.82, -6.21]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "id": "hotspot-2",
+          "name": "Material Storage B",
+          "severity": "medium",
+          "value": 8500000000,
+          "root_cause": "Price Markup"
+        },
+        "geometry": {
+          "coordinates": [107.01, -6.95]
+        }
+      }
+    ]
+  },
+  "analyst-comparison": {
+    "analyze-raw": {
+      "total_analyzed": 152,
+      "verdicts": {
+        "PROJECT": 47,
+        "NON-PROJECT": 89,
+        "UNCERTAIN": 16
+      },
+      "discovered_patterns": {
+        "Round Amount": 23,
+        "Weekend Transaction": 12,
+        "Same Vendor Repeat": 31
+      },
+      "top_entities": {
+        "PT SUMBER MAJU": 4500000000,
+        "CV BERKAH": 3200000000,
+        "PT NUSANTARA": 2800000000
+      },
+      "flagged_count": 47,
+      "sample_findings": [
+        {
+          "row_no": 15,
+          "date": "2024-02-15",
+          "raw_description": "Pembayaran ke PT SUMBER MAJU",
+          "amount": 150000000,
+          "verdict": "PROJECT",
+          "confidence": 0.92,
+          "discovered_patterns": ["Round Amount", "Same Vendor Repeat"],
+          "reasoning": ["Amount is round number", "Vendor appears 5+ times"]
+        }
+      ]
+    },
+    "compare": {
+      "summary": {
+        "total_transactions": 152,
+        "agreed": 118,
+        "disagreed": 22,
+        "app_found_more": 8,
+        "user_found_more": 4,
+        "agreement_rate": 77.6
+      },
+      "comparisons": [
+        {
+          "row_no": 15,
+          "date": "2024-02-15",
+          "description": "Pembayaran ke PT SUMBER MAJU",
+          "amount": 150000000,
+          "app_verdict": "PROJECT",
+          "app_reasoning": ["Round Amount", "Same Vendor Repeat"],
+          "user_marked_as_project": true,
+          "user_comment": null,
+          "match_status": "agreed"
+        }
+      ],
+      "discovered_entities": {
+        "PT SUMBER MAJU": 8,
+        "CV BERKAH": 5,
+        "PT NUSANTARA": 4
+      },
+      "discovered_patterns": {
+        "Round Amount": 23,
+        "Weekend Transaction": 12
+      }
+    }
+  }
+}

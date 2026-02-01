@@ -1,31 +1,31 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import NextDynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 
 // Lazy load tab components for optimal performance
-const AnalyticsTab = dynamic(() => import('@/app/forensic/hub/tabs/AnalyticsTab'), {
+const AnalyticsTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/AnalyticsTab'), {
   loading: () => <TabLoading label="Analytics" />
 });
 
-const FlowTab = dynamic(() => import('@/app/forensic/hub/tabs/FlowTab'), {
+const FlowTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/FlowTab'), {
   loading: () => <TabLoading label="Flow Analysis" />
 });
 
-const LabTab = dynamic(() => import('@/app/forensic/hub/tabs/LabTab'), {
+const LabTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/LabTab'), {
   loading: () => <TabLoading label="Forensic Lab" />
 });
 
-const NexusTab = dynamic(() => import('@/app/forensic/hub/tabs/NexusTab'), {
+const NexusTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/NexusTab'), {
   loading: () => <TabLoading label="Nexus Graph" />
 });
 
-const SatelliteTab = dynamic(() => import('@/app/forensic/hub/tabs/SatelliteTab'), {
+const SatelliteTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/SatelliteTab'), {
   loading: () => <TabLoading label="Satellite Verification" />
 });
 
-import { useHubStore, HubTab } from '@/store/useHubStore';
+import { useHubStore, HubTab } from '../../../../store/useHubStore';
 import { Columns, ChevronDown } from 'lucide-react';
 
 function TabLoading({ label }: { label: string }) {

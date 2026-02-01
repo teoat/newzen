@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 from typing import List, Optional, Dict, Any
-from datetime import datetime
+from datetime import datetime, UTC
 import difflib
 from app.models import Entity, Transaction, Milestone
 from app.core.event_bus import publish_event, EventType
@@ -185,48 +185,41 @@ class SiteTruthValidator:
     """
 
     @staticmethod
-    def get_site_audit_data(project_id: str) -> Dict[str, Any]:
+    def get_site_audit_data(db: Session, project_id: str) -> Dict[str, Any]:
         """
-        Calculates discrepancies between Invoice Volumes and Site Realities.
+        Calculates discrepancies between Invoice Volumes and CCO Realities.
         """
-        # Mocking data for V3 Horizon Demo
-        # In a real system, CV results from EvidenceIngest pipeline would populate this.
+        from app.modules.forensic.rab_service import RABService
+
+        rab_service = RABService(db)
+        variance_data = rab_service.get_variance_analysis(project_id)
+        asset_data = rab_service.calculate_non_perishable_assets(project_id)
+
+        discrepancies = []
+        for item in variance_data.get("flagged_items", []):
+            discrepancies.append({
+                "id": str(len(discrepancies) + 1),
+                "item": item["item_name"],
+                "category": "Structural",
+                "invoice_qty": item.get("actual_total", 0),
+                "site_qty": item.get("cco_total", 0),
+                "unit": "IDR",
+                "risk": "CRITICAL" if item.get("markup_pct", 0) > 15 else "WARNING",
+                "delta_value": item.get("actual_total", 0) - item.get("cco_total", 0),
+            })
+
+        mat_forensics = variance_data.get("material_forensics", {})
+
         return {
-            "discrepancies": [
-                {
-                    "id": "1",
-                    "item": "Ready Mix Concrete",
-                    "category": "Structural",
-                    "invoice_qty": 450,  # m3
-                    "site_qty": 310,  # estimated from photos
-                    "unit": "m3",
-                    "risk": "CRITICAL",
-                    "delta_value": 140 * 1200000,
-                },
-                {
-                    "id": "2",
-                    "item": "Steel Rebar 10mm",
-                    "category": "Structural",
-                    "invoice_qty": 20000,  # kg
-                    "site_qty": 18500,  # log tracking
-                    "unit": "kg",
-                    "risk": "WARNING",
-                    "delta_value": 1500 * 15000,
-                },
-                {
-                    "id": "3",
-                    "item": "Foundation Excavation",
-                    "category": "Earthworks",
-                    "invoice_qty": 1200,
-                    "site_qty": 1180,
-                    "unit": "m3",
-                    "risk": "CLEAN",
-                    "delta_value": 20 * 85000,
-                },
-            ],
-            "photo_metadata_integrity": 68.5,
-            "site_progress_reported": 45.0,
-            "site_progress_verified": 32.5,
+            "discrepancies": discrepancies,
+            "cco_compliance_score": mat_forensics.get("global_integrity_score", 100.0),
+            "non_perishable_assets": {
+                "total_value": asset_data.get("total_asset_value", 0),
+                "items": asset_data.get("assets", []),
+                "count": asset_data.get("count", 0)
+            },
+            "site_progress_verified": mat_forensics.get("global_integrity_score", 100.0),
+            "source": "CONSTRUCTION_CHANGE_ORDER (CCO) + ASSET_REGISTRY"
         }
 
 
@@ -244,7 +237,7 @@ class CashFlowVelocity:
             select(Transaction)
             .where(Transaction.project_id == milestone.project_id)
             .where(Transaction.transaction_date >= milestone.start_date)
-            .where(Transaction.transaction_date <= (milestone.end_date or datetime.now()))
+            .where(Transaction.transaction_date <= (milestone.end_date or datetime.now(UTC)))
         ).all()
         return {"transaction_count": len(expenses), "milestone_id": milestone_id}
 

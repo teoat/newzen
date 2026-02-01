@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 
-import { API_URL } from '@/utils/constants';
+import { authenticatedFetch } from '../lib/api';
 
 export function useDossier() {
   const { data: session } = useSession();
@@ -43,13 +43,12 @@ export function useDossier() {
         include_forensic_analysis: options.includeForensicAnalysis.toString(),
       });
 
-      const response = await fetch(
-        `${API_URL}/api/v1/forensic/export/court-dossier?${params.toString()}`,
+      const response = await authenticatedFetch(
+        `/api/v1/forensic/export/court-dossier?${params.toString()}`,
         {
           method: 'GET',
           headers: {
             'Accept': 'application/pdf',
-            'Authorization': `Bearer ${session?.accessToken}`,
           },
         }
       );

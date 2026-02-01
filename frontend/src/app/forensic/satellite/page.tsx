@@ -1,15 +1,17 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
     Globe, MapPin, 
     Layers, Loader2, 
     AlertTriangle, 
     Maximize2, ShieldCheck 
 } from 'lucide-react';
-import { API_URL } from '@/utils/constants';
-import { useHubStore } from '@/store/useHubStore';
-import { useProject } from '@/store/useProject';
+import Image from 'next/image';
+import { API_URL } from '../../../lib/constants';
+import { useHubStore } from '../../../store/useHubStore';
+import { useProject } from '../../../store/useProject';
 
 interface SatelliteData {
     satellite_provider: string;
@@ -28,7 +30,7 @@ export default function SatelliteVerificationPage() {
     const [isScanning, setIsScanning] = useState(false);
     const [data, setData] = useState<SatelliteData | null>(null);
 
-    const handleScan = async () => {
+    const handleScan = useCallback(async () => {
         setIsScanning(true);
         setData(null);
         try {
@@ -38,7 +40,7 @@ export default function SatelliteVerificationPage() {
                 setTimeout(() => {
                     setData(result);
                     setIsScanning(false);
-                }, 1500); // Processing construction delta
+                }, 1500);
             } else {
                 setIsScanning(false);
             }
@@ -46,7 +48,7 @@ export default function SatelliteVerificationPage() {
             console.error(error);
             setIsScanning(false);
         }
-    };
+    }, [projectId]);
 
     // Sync local state with global selection
     React.useEffect(() => {
@@ -58,7 +60,7 @@ export default function SatelliteVerificationPage() {
         if (hub.selectedEntity) {
             handleScan();
         }
-    }, [hub.selectedEntity]);
+    }, [hub.selectedEntity, handleScan]);
 
 
     return (
@@ -141,11 +143,13 @@ export default function SatelliteVerificationPage() {
                                          CHRONO DATA // {data.last_flyover}
                                      </div>
 
-                                     <img 
-                                         src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800" 
-                                         className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
-                                         alt="Visual Evidence"
-                                     />
+                                      <Image 
+                                          src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=800" 
+                                          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30"
+                                          alt="Visual Evidence"
+                                          fill
+                                          style={{ objectFit: 'cover' }}
+                                      />
                                  </div>
 
                                  {/* Analysis Data */}

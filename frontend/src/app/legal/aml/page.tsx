@@ -1,11 +1,14 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { Gavel, Scale, ShieldAlert, BookOpen, ExternalLink, Loader2, Zap, Activity } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+import { useProject } from '../../../store/useProject';
+import { useInvestigation } from '../../../store/useInvestigation';
+import { authenticatedFetch } from '../../../lib/api';
+import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
 
 export default function LegalDossierPage() {
   const { activeProjectId } = useProject();
@@ -13,13 +16,13 @@ export default function LegalDossierPage() {
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [narrative, setNarrative] = useState<string | null>(null);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const { activeInvestigation } = useInvestigation();
 
   const handleSynthesize = async () => {
+    if (!activeProjectId) return;
     setIsSynthesizing(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'}/api/v1/ai/narrative/${activeProjectId || 'ZENITH-001'}`, {
-        method: 'POST'
-      });
+      const res = await authenticatedFetch(`/api/v1/ai/narrative/${activeProjectId}`);
       if (res.ok) {
         const data = await res.json();
         setNarrative(data.narrative);
@@ -38,15 +41,20 @@ export default function LegalDossierPage() {
   };
 
   const handleGenerate = async () => {
+    if (!activeInvestigation?.id) {
+        alert("Start an investigation in the Hub first to link this dossier.");
+        return;
+    }
     setIsGenerating(true);
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'}/api/v1/forensic/export/pdf`);
+        const userId = "USER-001";
+        const res = await authenticatedFetch(`/api/v2/forensic-v2/judge/download-dossier?case_id=${activeInvestigation.id}&user_id=${userId}`);
         if (res.ok) {
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Zenith_Forensic_Dossier_${new Date().toISOString().split('T')[0]}.pdf`;
+            a.download = `Zenith_Forensic_Dossier_${activeInvestigation.id}_${new Date().toISOString().split('T')[0]}.pdf`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);

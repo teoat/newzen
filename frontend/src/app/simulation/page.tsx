@@ -1,208 +1,183 @@
 'use client';
+export const dynamic = 'force-dynamic';
 
-import React, { useState, useMemo } from 'react';
-import { useProject } from '@/store/useProject';
-import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+import React, { useState, useEffect } from 'react';
+import { useProject } from '../../store/useProject';
+import ForensicPageLayout from '../../app/components/ForensicPageLayout';
 import { 
     AlertTriangle, Play, ChevronRight, 
-    CheckCircle, RefreshCw, Terminal as TerminalIcon
+    Zap, Terminal as TerminalIcon, ShieldAlert,
+    BrainCircuit, Activity, BarChart3, Lock
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useInvestigation } from '@/store/useInvestigation';
-import { forensicBus } from '@/lib/ForensicEventBus';
+import { motion, AnimatePresence } from 'framer-motion';
+import { authenticatedFetch } from '../../lib/api';
+import DualBeliefGauge from '../../components/Forensic/DualBeliefGauge';
+import { Button } from '../../ui/button';
+import { Badge } from '../../ui/badge';
 
-const SCENARIO_DATA = [
-    {
-        title: "Phase 1: Anomaly Detection",
-        desc: "System detects 45% budget burn with only 12% reported physical progress.",
-        action: "Analyze Risk Predictions",
-        target: "/forensic/analytics/predictive",
-        delay: 1000,
-        eventType: 'PROJECT_STALLED' as const,
-        eventPayload: { 
-            projectId: "ZENITH-001", 
-            projectName: "Project Zenith Foundation", 
-            stallReason: "Budget/Progress Mismatch", 
-            daysStalled: 14 
-        }
-    },
-    {
-        title: "Phase 2: Entity Identification",
-        desc: "High-risk vendor 'CV. BINTANG TIMUR' identified in ledger.",
-        action: "Run Sanction Screening",
-        target: "/legal/screening",
-        delay: 3000,
-        eventType: 'VENDOR_SUSPICIOUS' as const,
-        eventPayload: { 
-            vendorId: "V-992", 
-            vendorName: "CV. BINTANG TIMUR", 
-            flags: ["SANCTION_WATCHLIST", "OWNERSHIP_OBSCURITY"], 
-            riskLevel: 'CRITICAL' as const 
-        }
-    },
-    {
-        title: "Phase 3: Verification",
-        desc: "Vendor claims 'Foundation Complete'. Satellite data required.",
-        action: "Launch Satellite Verification",
-        target: "/forensic/satellite",
-        delay: 5000,
-        eventType: 'SATELLITE_DISCREPANCY' as const,
-        eventPayload: { 
-            location: { lat: -6.2088, lng: 106.8456 }, 
-            expectedValue: 100, 
-            actualValue: 15, 
-            discrepancyType: "Structural Absence" 
-        }
-    },
-    {
-        title: "Phase 4: Asset Recovery",
-        desc: "Funds diverted to shell company. Initiation of asset tracing.",
-        action: "Trace Assets",
-        target: "/forensic/recovery",
-        delay: 7000,
-        eventType: 'OFFSHORE_TRANSFER' as const,
-        eventPayload: { 
-            transferId: "TRX-8821", 
-            amount: 350000000, 
-            origin: "Primary Project Account", 
-            destination: "GLOBAL HOLDINGS LTD (BVI)", 
-            flagged: true 
-        }
-    }
-];
-
-export default function SimulationLabPage() {
+export default function PredictiveControlPage() {
     const { activeProjectId } = useProject();
-    void activeProjectId;
-    const router = useRouter();
-    const [step, setStep] = useState(0);
+    const [isSimulating, setIsSimulating] = useState(false);
+    const [simulationResult, setSimulationResult] = useState<any>(null);
+    const [stressTestResult, setStressTestResult] = useState<any>(null);
     const [logs, setLogs] = useState<string[]>([]);
-    const { startInvestigation, addAction } = useInvestigation();
 
-    const addLog = React.useCallback((msg: string) => {
+    const addLog = (msg: string) => {
         setLogs(prev => [`${new Date().toLocaleTimeString()} > ${msg}`, ...prev]);
-    }, []);
-
-    const SCENARIO_MEMO = useMemo(() => SCENARIO_DATA, []);
-
-    const runSimulation = () => {
-        setStep(1);
-        addLog("INITIALIZING SIMULATION 'OP-RED-SKY'...");
-        
-        // Log initial scenario
-        const current = SCENARIO_MEMO[0];
-        addLog(`[SYSTEM_EVENT] ${current.desc}`);
-        if (current.eventType) {
-            forensicBus.publish(current.eventType, current.eventPayload, 'SimulationLab');
-        }
-
-        // Start an investigation session
-        startInvestigation("Operation Red Sky - Training Simulation", {
-            projectId: "ZENITH-001"
-        });
-        addLog("[INVESTIGATION_STARTED] Session created");
     };
 
-    const handleAction = (target: string, nextStep: number, toolName: string) => {
-        // Log the action to the investigation
-        addAction({
-            action: `Navigated to ${toolName}`,
-            tool: toolName,
-            result: { simulated: true }
-        });
+    const runMonteCarlo = async () => {
+        if (!activeProjectId) return;
+        setIsSimulating(true);
+        addLog("INITIATING MONTE CARLO SIMULATION [ITERATIONS: 1000]...");
         
-        router.push(target);
+        try {
+            const res = await authenticatedFetch(`/api/v2/prophet/monte-carlo/${activeProjectId}`);
+            const data = await res.json();
+            setSimulationResult(data);
+            addLog(`SIMULATION COMPLETE. CONFIDENCE: ${(data.simulation_confidence * 100).toFixed(1)}%`);
+        } catch (e) {
+            addLog("SIMULATION ERROR: CORE_OFFLINE");
+        } finally {
+            setIsSimulating(false);
+        }
+    };
+
+    const runStressTest = async () => {
+        if (!activeProjectId) return;
+        addLog("ENGAGING ADVERSARIAL RED-TEAMING CORE...");
+        try {
+            const res = await authenticatedFetch(`/api/v2/prophet/adversarial-test/${activeProjectId}`);
+            const data = await res.json();
+            setStressTestResult(data);
+            addLog("ADVERSARIAL VULNERABILITIES IDENTIFIED.");
+        } catch (e) {
+            addLog("STRESS TEST FAILED: INSUFFICIENT_LOGIC_DEPTH");
+        }
     };
 
     return (
         <ForensicPageLayout
-            title="Simulation Lab"
-            subtitle="Operational Readiness & Scenario Testing"
-            icon={TerminalIcon}
-            headerActions={
-                <div className="flex items-center gap-4">
-                    <button 
-                        onClick={() => { setStep(0); setLogs([]); }}
-                        className="p-3 bg-slate-900 border border-white/5 rounded-2xl hover:bg-white/5 transition-all text-slate-500 hover:text-white"
-                        title="Reset Environment"
-                    >
-                        <RefreshCw className="w-5 h-5" />
-                    </button>
-                    <div className="px-6 py-2 rounded-2xl bg-rose-600/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest">
-                        Status: {step === 0 ? 'READY' : 'IN_PROGRESS'}
-                    </div>
-                </div>
-            }
+            title="Predictive Oracle"
+            subtitle="Bayesian Forecasting & Adversarial Red-Teaming"
+            icon={BrainCircuit}
         >
-            <div className="h-full flex overflow-hidden">
-                {/* Simulation Controller */}
-                <div className="w-1/3 border-r border-white/5 bg-slate-900/40 p-10 flex flex-col overflow-y-auto no-scrollbar">
-                    {step === 0 ? (
-                        <div className="flex-1 flex flex-col justify-center items-center text-center">
-                            <div className="w-24 h-24 bg-rose-500/10 rounded-full flex items-center justify-center animate-pulse mb-8 border border-rose-500/30">
-                                <AlertTriangle className="w-10 h-10 text-rose-500" />
-                            </div>
-                            <h2 className="text-xl font-bold text-white mb-4">Scenario: &quot;Ghost Foundation&quot;</h2>
-                            <p className="text-sm text-slate-400 mb-8 max-w-xs leading-relaxed">
-                                Simulate a full forensic loop: from initial budget anomaly to satellite verification and asset seizure.
-                            </p>
+            <div className="grid grid-cols-12 gap-8 p-10 h-[calc(100vh-100px)] overflow-hidden">
+                {/* LEFT: MISSION CONTROL (4 COL) */}
+                <aside className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-y-auto no-scrollbar pr-2">
+                    <div className="glass-tactical p-8 rounded-[3rem] space-y-8 relative overflow-hidden">
+                        <div className="scan-line-overlay" />
+                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic flex items-center gap-3 relative z-20">
+                            <Activity className="w-4 h-4 text-indigo-400" /> Control Parameters
+                        </h3>
+
+                        <div className="space-y-4 relative z-20">
                             <button 
-                                onClick={runSimulation}
-                                className="px-10 py-5 bg-white text-black font-black uppercase tracking-widest rounded-3xl hover:bg-slate-200 transition-all flex items-center gap-4 shadow-2xl active:scale-95"
+                                onClick={runMonteCarlo}
+                                disabled={isSimulating}
+                                className="w-full h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-95 disabled:opacity-50"
                             >
-                                <Play className="w-5 h-5 fill-current" /> Start Simulation
+                                {isSimulating ? <Activity className="animate-spin" /> : <BarChart3 size={18} />}
+                                Run Stochastic Forecast
+                            </button>
+
+                            <button 
+                                onClick={runStressTest}
+                                className="w-full h-16 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/30 text-rose-500 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-4 transition-all"
+                            >
+                                <ShieldAlert size={18} /> Engage Red-Teaming
                             </button>
                         </div>
-                    ) : (
-                        <div className="space-y-6">
-                            {SCENARIO_MEMO.map((phase, idx) => (
-                                <div 
-                                    key={idx} 
-                                    className={`p-8 rounded-3xl border transition-all duration-500 ${
-                                        step === idx + 1 
-                                            ? 'bg-rose-500/10 border-rose-500/50 scale-[1.02] shadow-2xl shadow-rose-900/20' 
-                                            : step > idx + 1 
-                                                ? 'bg-slate-900/50 border-white/5 opacity-50'
-                                                : 'bg-transparent border-transparent opacity-30 shadow-none'
-                                    }`}
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <h3 className={`text-[10px] font-black uppercase tracking-widest ${step === idx + 1 ? 'text-white' : 'text-slate-500'}`}>
-                                            {phase.title}
-                                        </h3>
-                                        {step > idx + 1 && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                    </div>
+
+                    {/* VULNERABILITY MATRIX */}
+                    <AnimatePresence>
+                        {stressTestResult && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="glass-holographic p-8 rounded-[3rem] border-rose-500/20"
+                            >
+                                <h4 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <AlertTriangle size={14} /> Shadow Scenarios Found
+                                </h4>
+                                <div className="space-y-4">
+                                    <p className="text-[11px] text-slate-300 leading-relaxed italic border-l-2 border-rose-500/40 pl-4">
+                                        {stressTestResult.red_team_findings}
+                                    </p>
+                                    <div className="pt-4 border-t border-white/5">
+                                        <Badge variant="outline" className="text-rose-500 border-rose-500/20">VULNERABILITY INDEX: {stressTestResult.vulnerability_index}</Badge>
                                     </div>
-                                    <p className="text-sm font-bold text-slate-300 mb-6 leading-relaxed">{phase.desc}</p>
-                                    
-                                    {step === idx + 1 && (
-                                        <button 
-                                            onClick={() => handleAction(phase.target, idx + 2, phase.action)}
-                                            className="w-full py-4 bg-rose-600 hover:bg-rose-500 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl flex items-center justify-center gap-3 animate-pulse shadow-lg shadow-rose-900/40 transition-all"
-                                        >
-                                            Execute Action <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </aside>
+
+                {/* CENTER: THE ORACLE VIEWPORT (8 COL) */}
+                <main className="col-span-12 lg:col-span-8 flex flex-col gap-8 overflow-hidden">
+                    {/* FORECAST HUD */}
+                    <div className="glass-tactical flex-1 p-10 rounded-[4rem] relative overflow-hidden flex flex-col justify-center items-center text-center">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(79,70,229,0.05)_0%,transparent_70%)]" />
+                        
+                        {!simulationResult ? (
+                            <div className="relative z-10 opacity-30">
+                                <BrainCircuit size={80} className="text-slate-600 mb-8 mx-auto" />
+                                <h2 className="text-2xl font-black text-white uppercase tracking-[0.4em]">Oracle Standby</h2>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase mt-4 tracking-widest">Awaiting stochastic data stream</p>
+                            </div>
+                        ) : (
+                            <motion.div 
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className="relative z-10 w-full max-w-2xl space-y-12"
+                            >
+                                <div className="space-y-4">
+                                    <h2 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
+                                        {simulationResult.avg_predicted_days_remaining} <span className="text-indigo-500">Days</span>
+                                    </h2>
+                                    <p className="text-sm font-black text-slate-500 uppercase tracking-[0.3em]">Estimated Mean Project Life</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-10">
+                                    <div className="p-8 bg-black/40 border border-white/5 rounded-[3rem] space-y-4">
+                                        <div className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Exhaustion Probability</div>
+                                        <div className="text-4xl font-black text-white">{(simulationResult.probability_exhaustion_90d * 100).toFixed(1)}%</div>
+                                        <p className="text-[9px] text-slate-600 uppercase font-bold tracking-tighter">Failure expected within 90 days</p>
+                                    </div>
+                                    <div className="p-8 bg-black/40 border border-white/5 rounded-[3rem] space-y-6">
+                                        <DualBeliefGauge 
+                                            positive={simulationResult.simulation_confidence} 
+                                            negative={0.05} 
+                                            uncertainty={1 - simulationResult.simulation_confidence - 0.05}
+                                            label="Simulation Integrity" 
+                                        />
+                                        <div className="flex justify-between items-center px-2">
+                                            <span className="text-[10px] font-black text-emerald-500">STABLE</span>
+                                            <span className="text-[10px] font-black text-slate-700">KERNEL_v3</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </div>
+
+                    {/* TERMINAL LOGS */}
+                    <div className="h-48 bg-black/60 backdrop-blur-3xl p-8 rounded-[2.5rem] border border-white/5 font-mono text-[10px] overflow-auto custom-scrollbar">
+                        <div className="flex items-center gap-3 mb-4 text-emerald-500/60">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="font-bold tracking-widest uppercase">Kernel Logs // Predictive Core</span>
+                        </div>
+                        <div className="space-y-2">
+                            {logs.map((log, i) => (
+                                <div key={i} className="text-emerald-500/80">
+                                    <span className="opacity-40">[{i}]</span> {log}
                                 </div>
                             ))}
+                            {logs.length === 0 && <span className="text-slate-800 italic">Waiting for mission start...</span>}
                         </div>
-                    )}
-                </div>
-
-                {/* Terminal / Log Output */}
-                <div className="flex-1 bg-black/40 backdrop-blur-3xl p-10 font-mono text-xs overflow-auto custom-scrollbar">
-                    <div className="mb-6 flex items-center gap-3 text-emerald-500/60">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]" />
-                        <span className="font-bold tracking-[0.2em] font-mono">ZENITH_KERNEL_LOG // STREAMING</span>
                     </div>
-                    <div className="space-y-3">
-                        {logs.map((log, i) => (
-                            <div key={i} className="text-emerald-500/90 border-l-2 border-emerald-500/20 pl-4 py-1">
-                                {log}
-                            </div>
-                        ))}
-                        {logs.length === 0 && <span className="text-slate-700 italic">SYSTEM_IDLE: Waiting for trigger...</span>}
-                    </div>
-                </div>
+                </main>
             </div>
         </ForensicPageLayout>
     );
