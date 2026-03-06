@@ -1,24 +1,23 @@
 import { render, RenderOptions } from '@testing-library/react';
 import { ReactElement } from 'react';
-import { Session } from 'next-auth';
 import { vi } from 'vitest';
 
 // Create a simple wrapper without query client
 interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  session?: Session | null;
+  // session?: Session | null; // Removed next-auth session
 }
 
-const AllTheProviders = ({ children, session }: { children: React.ReactNode; session?: Session | null }) => {
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="dark">{children}</div>
   );
 };
 
 export const renderWithProviders = (ui: ReactElement, options: CustomRenderOptions = {}) => {
-  const { session, ...renderOptions } = options;
+  const { ...renderOptions } = options;
 
   function Wrapper({ children }: { children: React.ReactNode }) {
-    return <AllTheProviders session={session}>{children}</AllTheProviders>;
+    return <AllTheProviders>{children}</AllTheProviders>;
   }
 
   return {
@@ -37,7 +36,7 @@ export const mockProject = (overrides = {}) => ({
   description: 'Test Description',
   contract_value: 1000000,
   realized_spend: 500000,
-  status: 'ACTIVE',
+  status: 'active',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   ...overrides,

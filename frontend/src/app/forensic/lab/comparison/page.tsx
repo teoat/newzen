@@ -67,14 +67,14 @@ export default function AnalystComparisonPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white uppercase tracking-tight">Data Ingress</h3>
-                  <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">Cross-matching human and machine findings</p>
+                  <p className="text-[11px] text-slate-500 font-mono uppercase tracking-widest">Cross-matching human and machine findings</p>
                 </div>
               </div>
 
               <div className="space-y-6">
                 {/* Bank Statement */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Raw Bank Statement (CSV)</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">Raw Bank Statement (CSV)</label>
                   <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-white/5 rounded-[2rem] hover:border-indigo-500/30 hover:bg-white/5 transition-all cursor-pointer group">
                     <input type="file" className="hidden" accept=".csv" onChange={e => setBankFile(e.target.files?.[0] || null)} />
                     <div className="flex flex-col items-center gap-2">
@@ -86,7 +86,7 @@ export default function AnalystComparisonPage() {
 
                 {/* User Analysis */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Human Audit Findings (CSV)</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest px-2">Human Audit Findings (CSV)</label>
                   <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-white/5 rounded-[2rem] hover:border-indigo-500/30 hover:bg-white/5 transition-all cursor-pointer group">
                     <input type="file" className="hidden" accept=".csv" onChange={e => setUserFile(e.target.files?.[0] || null)} />
                     <div className="flex flex-col items-center gap-2">
@@ -119,7 +119,7 @@ export default function AnalystComparisonPage() {
             {/* Protocol Panel */}
             <div className="space-y-6">
                <div className="tactical-frame p-8 rounded-[2.5rem] bg-indigo-500/5 border-indigo-500/10">
-                  <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                  <h4 className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                     <ShieldCheck className="w-3 h-3" /> Comparison Protocol
                   </h4>
                   <div className="space-y-6">
@@ -127,21 +127,21 @@ export default function AnalystComparisonPage() {
                       <div className="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center text-xs font-black text-indigo-500 border border-white/5">01</div>
                       <div className="flex-1">
                         <p className="text-white text-xs font-bold mb-1">Pattern Identification</p>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Zenith extracts high-velocity transfers, round-amount anomalies, and recidivist entity hits from the raw bank statement.</p>
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">Zenith extracts high-velocity transfers, round-amount anomalies, and recidivist entity hits from the raw bank statement.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center text-xs font-black text-indigo-500 border border-white/5">02</div>
                       <div className="flex-1">
                         <p className="text-white text-xs font-bold mb-1">Agreement Mapping</p>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Your manually marked &quot;Proyek&quot; or &quot;Personal&quot; flags are compared with Zenith&apos;s verdict for every transaction row.</p>
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">Your manually marked &quot;Proyek&quot; or &quot;Personal&quot; flags are compared with Zenith&apos;s verdict for every transaction row.</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center text-xs font-black text-indigo-500 border border-white/5">03</div>
                       <div className="flex-1">
                         <p className="text-white text-xs font-bold mb-1">Blind Spot Discovery</p>
-                        <p className="text-[10px] text-slate-500 leading-relaxed font-medium">Disagreements identify potential leakages you may have missed or legitimate flows Zenith over-flagged.</p>
+                        <p className="text-[11px] text-slate-500 leading-relaxed font-medium">Disagreements identify potential leakages you may have missed or legitimate flows Zenith over-flagged.</p>
                       </div>
                     </div>
                   </div>
@@ -153,7 +153,7 @@ export default function AnalystComparisonPage() {
             {/* Results Summary */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                <div className="tactical-card p-6 rounded-[2rem] border-white/5 bg-slate-900/40">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Agreement Rate</p>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Agreement Rate</p>
                   <p className="text-3xl font-black text-white italic tracking-tighter">{(analysisResult.summary.agreement_rate * 100).toFixed(1)}%</p>
                   <div className="mt-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                     <motion.div 
@@ -164,19 +164,19 @@ export default function AnalystComparisonPage() {
                   </div>
                </div>
                <div className="tactical-card p-6 rounded-[2rem] border-white/5 bg-slate-900/40">
-                  <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Human Findings</p>
+                  <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Human Findings</p>
                   <p className="text-3xl font-black text-emerald-400 italic tracking-tighter">{analysisResult.summary.total_transactions - analysisResult.summary.app_found_more}</p>
-                  <p className="text-[10px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Matched rows detected</p>
+                  <p className="text-[11px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Matched rows detected</p>
                </div>
                <div className="tactical-card p-6 rounded-[2rem] border-white/5 bg-slate-900/40 border-rose-500/20">
-                  <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">Blind Spots Identified</p>
+                  <p className="text-[11px] font-black text-rose-500 uppercase tracking-widest mb-1">Blind Spots Identified</p>
                   <p className="text-3xl font-black text-rose-500 italic tracking-tighter">{analysisResult.summary.disagreed}</p>
-                  <p className="text-[10px] text-rose-400/50 mt-2 font-bold uppercase tracking-widest">Critical Discrepancies</p>
+                  <p className="text-[11px] text-rose-400/50 mt-2 font-bold uppercase tracking-widest">Critical Discrepancies</p>
                </div>
                <div className="tactical-card p-6 rounded-[2rem] border-white/5 bg-slate-900/40">
-                  <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Discovered Entities</p>
+                  <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-1">Discovered Entities</p>
                   <p className="text-3xl font-black text-indigo-400 italic tracking-tighter">{Object.keys(analysisResult.discovered_entities).length}</p>
-                  <p className="text-[10px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Unique transaction nodes</p>
+                  <p className="text-[11px] text-slate-500 mt-2 font-bold uppercase tracking-widest">Unique transaction nodes</p>
                </div>
             </div>
 
@@ -184,11 +184,11 @@ export default function AnalystComparisonPage() {
                {/* Discovered Patterns */}
                <div className="lg:col-span-1 space-y-6">
                   <div className="tactical-frame p-8 rounded-[2.5rem] bg-indigo-500/5 border-indigo-500/10">
-                     <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6">Discovered Intelligence Patterns</h4>
+                     <h4 className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-6">Discovered Intelligence Patterns</h4>
                      <div className="space-y-3">
                         {Object.entries(analysisResult.discovered_patterns).map(([pattern, count]) => (
                           <div key={pattern} className="flex items-center justify-between p-4 rounded-xl bg-slate-950/50 border border-white/5">
-                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{pattern.replace(/_/g, ' ')}</span>
+                             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">{pattern.replace(/_/g, ' ')}</span>
                              <span className="text-xs font-black text-white">{count}x</span>
                           </div>
                         ))}
@@ -196,7 +196,7 @@ export default function AnalystComparisonPage() {
                   </div>
 
                   <div className="tactical-frame p-8 rounded-[2.5rem] bg-slate-900/40 border-white/5">
-                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Top Entities Found</h4>
+                     <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6">Top Entities Found</h4>
                      <div className="space-y-4">
                         {Object.entries(analysisResult.discovered_entities).slice(0, 8).map(([name, count]) => (
                           <div key={name} className="flex items-center justify-between">
@@ -204,7 +204,7 @@ export default function AnalystComparisonPage() {
                                 <Building2 className="w-3 h-3 text-indigo-500" />
                                 <span className="text-xs font-bold text-slate-200 truncate max-w-[150px]">{name}</span>
                              </div>
-                             <span className="text-[10px] font-mono text-slate-600">{count} tx</span>
+                             <span className="text-[11px] font-mono text-slate-600">{count} tx</span>
                           </div>
                         ))}
                      </div>
@@ -214,26 +214,26 @@ export default function AnalystComparisonPage() {
                {/* Comparison Table */}
                <div className="lg:col-span-2 tactical-frame rounded-[3rem] border-white/5 bg-slate-900/20 overflow-hidden flex flex-col">
                   <div className="p-8 border-b border-white/5 bg-slate-900/40 flex items-center justify-between">
-                     <h4 className="text-[10px] font-black text-white uppercase tracking-widest">The Disagreement Ledger</h4>
+                     <h4 className="text-[11px] font-black text-white uppercase tracking-widest">The Disagreement Ledger</h4>
                      <div className="flex gap-2">
-                        <span className="px-2 py-1 rounded bg-rose-500/10 text-rose-500 text-[9px] font-black uppercase tracking-widest">Blind Spots Only</span>
+                        <span className="px-2 py-1 rounded bg-rose-500/10 text-rose-500 text-[11px] font-black uppercase tracking-widest">Blind Spots Only</span>
                      </div>
                   </div>
                   <div className="flex-1 overflow-auto custom-scrollbar max-h-[600px]">
                      <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="border-b border-white/5">
-                            <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Row / Date</th>
-                            <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Transaction Intelligence</th>
-                            <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Human vs AI</th>
-                            <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Reasoning</th>
+                            <th className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">Row / Date</th>
+                            <th className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">Transaction Intelligence</th>
+                            <th className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">Human vs AI</th>
+                            <th className="px-8 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">Reasoning</th>
                           </tr>
                         </thead>
                         <tbody>
                           {analysisResult.comparisons.map((item, i) => (
                             <tr key={i} className={`border-b border-white/5 hover:bg-white/[0.02] transition-colors group ${item.match_status === 'disagree' ? 'bg-rose-500/5' : ''}`}>
                                <td className="px-8 py-6">
-                                  <div className="text-[10px] font-black text-slate-500 uppercase mb-1">#{item.row_no}</div>
+                                  <div className="text-[11px] font-black text-slate-500 uppercase mb-1">#{item.row_no}</div>
                                   <div className="text-xs font-bold text-white">{item.date}</div>
                                </td>
                                <td className="px-8 py-6">
@@ -244,18 +244,18 @@ export default function AnalystComparisonPage() {
                                   <div className="space-y-2">
                                      <div className="flex items-center gap-2">
                                         <div className={`w-2 h-2 rounded-full ${item.user_marked_as_project ? 'bg-emerald-500' : 'bg-slate-700'}`} />
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Human: {item.user_marked_as_project ? 'Project' : 'Personal'}</span>
+                                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Human: {item.user_marked_as_project ? 'Project' : 'Personal'}</span>
                                      </div>
                                      <div className="flex items-center gap-2">
                                         <div className={`w-2 h-2 rounded-full ${item.app_verdict === 'project' ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI: {item.app_verdict}</span>
+                                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">AI: {item.app_verdict}</span>
                                      </div>
                                   </div>
                                </td>
                                <td className="px-8 py-6 max-w-[300px]">
                                   <div className="space-y-1">
                                     {item.app_reasoning.map((reason, ri) => (
-                                      <div key={ri} className="text-[10px] font-medium text-slate-400 leading-snug flex items-start gap-2">
+                                      <div key={ri} className="text-[11px] font-medium text-slate-400 leading-snug flex items-start gap-2">
                                         <ArrowRight className="w-2.5 h-2.5 mt-0.5 text-indigo-500 shrink-0" />
                                         {reason}
                                       </div>
@@ -270,7 +270,7 @@ export default function AnalystComparisonPage() {
                   <div className="p-6 bg-slate-900/40 border-t border-white/5 flex justify-end">
                       <button 
                         onClick={() => setAnalysisResult(null)}
-                        className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 hover:text-indigo-300 transition-colors"
+                        className="text-[11px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2 hover:text-indigo-300 transition-colors"
                       >
                          Analyze New Batch <ArrowRight className="w-3 h-3" />
                       </button>

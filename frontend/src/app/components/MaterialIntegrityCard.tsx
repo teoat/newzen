@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { HardHat, Info, AlertTriangle, CheckCircle2, TrendingDown, Coins, Activity, Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import NeuralCard from './NeuralCard';
+import { useProject } from '../../store/useProject';
+import { useState, useEffect } from 'react';
 
 interface MaterialMetric {
   theoretical_kg: number;
@@ -28,8 +30,49 @@ interface Props {
   data: MaterialForensics;
 }
 
+
 export default function MaterialIntegrityCard({ data }: Props) {
   const router = useRouter();
+  const { preferredCurrency } = useProject();
+  const [rate, setRate] = useState(1);
+  useEffect(() => {
+    if (preferredCurrency === 'IDR') {
+        if (rate !== 1) {
+            // Defer update to avoid synchronous state update in effect
+            const timer = setTimeout(() => setRate(1), 0);
+            return () => clearTimeout(timer);
+        }
+        return;
+    }
+
+    // Fetch conversion rate
+    const fetchRate = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/currency/convert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: 1,
+            from_currency: 'IDR',
+            to_currency: preferredCurrency
+          })
+        });
+        if (res.ok) {
+           const result = await res.json();
+           setRate(result.rate);
+        }
+      } catch (e) {
+        console.error("Currency conversion failed", e);
+      }
+    };
+    fetchRate();
+  }, [preferredCurrency, rate]);
+
+
+  const formatAmount = (val: number) => {
+    return (val * rate).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  };
+
   const isCritical = data.status === 'CRITICAL_GHOST_SPEND';
   const isModerate = data.status === 'MODERATE_ANOMALY';
   
@@ -60,8 +103,8 @@ export default function MaterialIntegrityCard({ data }: Props) {
               <div>
                  <h4 className="text-2xl font-black text-white uppercase tracking-tighter italic">Global Material Synthesis</h4>
                  <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${statusColor}`}>{data.status}</span>
-                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">/ GMF ANALYSIS MODE</span>
+                    <span className={`text-[11px] font-black uppercase tracking-widest ${statusColor}`}>{data.status}</span>
+                    <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">/ GMF ANALYSIS MODE</span>
                  </div>
               </div>
            </div>
@@ -70,7 +113,7 @@ export default function MaterialIntegrityCard({ data }: Props) {
               <div className={`text-4xl font-black font-mono tracking-tighter ${statusColor}`}>
                  {data.gap_percentage.toFixed(1)}%
               </div>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Capital Leakage Gap</div>
+              <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Capital Leakage Gap</div>
            </div>
         </div>
 
@@ -81,12 +124,12 @@ export default function MaterialIntegrityCard({ data }: Props) {
                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <TrendingDown className="w-12 h-12" />
                  </div>
-                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Theoretical Liquidity Target</div>
+                 <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Theoretical Liquidity Target</div>
                  <div className="text-3xl font-black text-white font-mono uppercase italic">
-                    <span className="text-sm opacity-50 mr-2">IDR</span>
-                    {data.theoretical_material_fund.toLocaleString()}
+                    <span className="text-sm opacity-50 mr-2">{preferredCurrency}</span>
+                    {formatAmount(data.theoretical_material_fund)}
                  </div>
-                 <div className="text-[9px] text-indigo-400 font-bold mt-2 tracking-[0.2em] uppercase italic">
+                 <div className="text-[11px] text-indigo-400 font-bold mt-2 tracking-[0.2em] uppercase italic">
                     Calculated based on Engineering Intensity Matrix
                  </div>
               </div>
@@ -95,12 +138,12 @@ export default function MaterialIntegrityCard({ data }: Props) {
                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <Activity className="w-12 h-12" />
                  </div>
-                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Realized Fund Output</div>
+                 <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Realized Fund Output</div>
                  <div className="text-3xl font-black text-white font-mono uppercase italic">
-                    <span className="text-sm opacity-50 mr-2">IDR</span>
-                    {data.actual_material_fund.toLocaleString()}
+                    <span className="text-sm opacity-50 mr-2">{preferredCurrency}</span>
+                    {formatAmount(data.actual_material_fund)}
                  </div>
-                 <div className="text-[9px] text-slate-500 font-bold mt-2 tracking-[0.2em] uppercase italic">
+                 <div className="text-[11px] text-slate-500 font-bold mt-2 tracking-[0.2em] uppercase italic">
                     Hashed Ledger Reconciliation Result
                  </div>
               </div>
@@ -115,7 +158,7 @@ export default function MaterialIntegrityCard({ data }: Props) {
                     </p>
                     {isCritical && (
                       <div className="p-5 rounded-2xl bg-rose-500/10 border border-rose-500/20">
-                         <p className="text-[10px] font-black text-rose-400 uppercase tracking-widest animate-pulse leading-loose">
+                         <p className="text-[11px] font-black text-rose-400 uppercase tracking-widest animate-pulse leading-loose">
                             Alert: Structural integrity is compromised. The financial leakage indicates significant material substitution or &quot;Ghost Procurement&quot; schemes.
                          </p>
                       </div>
@@ -148,9 +191,9 @@ export default function MaterialIntegrityCard({ data }: Props) {
                   className={`p-5 rounded-3xl bg-white/[0.02] border ${isWarning ? 'border-rose-500/30' : 'border-white/5'} transition-all hover:bg-white/[0.05] cursor-pointer group/item`}
                >
                   <div className="flex justify-between items-start mb-4">
-                     <span className={`text-[10px] font-black ${c.color} uppercase tracking-widest`}>{c.icon}</span>
+                     <span className={`text-[11px] font-black ${c.color} uppercase tracking-widest`}>{c.icon}</span>
                      <div className="flex items-center gap-1">
-                        <span className={`text-[10px] font-mono font-black ${isWarning ? 'text-rose-500' : 'text-slate-500'}`}>
+                        <span className={`text-[11px] font-mono font-black ${isWarning ? 'text-rose-500' : 'text-slate-500'}`}>
                            {metric.gap_pct.toFixed(0)}% GAP
                         </span>
                         <Search className="w-2.5 h-2.5 text-slate-600 group-hover/item:text-white transition-colors" />
@@ -158,7 +201,7 @@ export default function MaterialIntegrityCard({ data }: Props) {
                   </div>
                   <div className="space-y-1">
                      <div className="text-xs font-black text-white uppercase italic">{c.label}</div>
-                     <div className="text-[10px] font-mono text-slate-500">
+                     <div className="text-[11px] font-mono text-slate-500">
                         {metric.actual_kg.toLocaleString()} / {metric.theoretical_kg.toLocaleString()} KG
                      </div>
                   </div>
@@ -177,13 +220,13 @@ export default function MaterialIntegrityCard({ data }: Props) {
         <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
            <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-              <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">FORENSIC ENGINE: GMF-NEXUS v4.0</span>
+              <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">FORENSIC ENGINE: GMF-NEXUS v4.0</span>
            </div>
            <div className="flex gap-4">
-              <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all">
+              <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
                  Download Audit Log
               </button>
-              <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40">
+              <button className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40">
                  Freeze Settlement
               </button>
            </div>

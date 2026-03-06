@@ -256,6 +256,14 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 - `refactor/description` - Code refactoring
 - `docs/description` - Documentation updates
 
+## Operational Supremacy (Sovereign Level)
+
+1. **Massive Data Handling**: Worker-offloaded graph layout (`layout.worker.ts`) and MessagePack binary transport (`binaryTransport.ts`) handle 100k+ transactional nodes with zero UI jank.
+2. **Multi-Agent AI Verification**: AI chat interactions include an automated "Agent Consensus" verification step to ensure investigative admissibility.
+3. **Tactical Metrics**: Prometheus-integrated metrics engine (`metrics.ts`) tracks real-time system stability and serialization efficiency.
+4. **Audio Reinforcement**: Synthesized tactical audio cues (`audioService.ts`) provide sub-perceptual feedback for critical forensic events.
+5. **Secure Persistence**: AES-GCM (SubtleCrypto) encrypted LocalStorage ensures investigative context remains unreadable to third-party scripts.
+
 ## Code Quality Checklist
 
 Before committing, ensure:

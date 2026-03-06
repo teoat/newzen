@@ -63,18 +63,11 @@ export function EntityGraph({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [layoutReady, setLayoutReady] = useState(false);
   const [workerGraphData, setWorkerGraphData] = useState<{ nodes: any[], links: any[] } | null>(null);
-  const [isDegradedMode, setIsDegradedMode] = useState(false);
+  const [isDegradedMode, setIsDegradedMode] = useState(nodes.length > 1000);
 
   // Use Web Worker for layout calculations
   useEffect(() => {
-    if (nodes.length === 0) return;
-
-    // CIRCUIT BREAKER: If nodes > 1000, force degraded mode (List View fallback)
-    if (nodes.length > 1000) {
-      console.warn('[ForensicGraph] Large dataset detected. Activating Degraded Mode.');
-      setIsDegradedMode(true);
-      return;
-    }
+    if (nodes.length === 0 || isDegradedMode) return;
 
     const worker = new Worker(new URL('../../workers/layout.worker.ts', import.meta.url));
     
@@ -91,7 +84,7 @@ export function EntityGraph({
     });
 
     return () => worker.terminate();
-  }, [nodes, edges]);
+  }, [nodes, edges, isDegradedMode]);
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -196,9 +189,7 @@ export function EntityGraph({
     });
   };
 
-  const containerStyle: React.CSSProperties = isFullscreen
-    ? { position: 'fixed', inset: 0, zIndex: 100, background: '#0f172a' }
-    : { width: '100%', height: '100%', minHeight: 400 };
+  const isFullscreenClass = isFullscreen ? 'fixed inset-0 z-[100] bg-slate-950' : 'w-full h-full min-h-[400px]';
 
   if (isDegradedMode) {
     return (
@@ -228,7 +219,7 @@ export function EntityGraph({
   }
 
   return (
-    <div ref={containerRef} style={containerStyle} className="relative bg-slate-900 rounded-xl overflow-hidden">
+    <div ref={containerRef} className={`${isFullscreenClass} relative bg-slate-900 rounded-xl overflow-hidden`}>
       <div className="absolute top-4 left-4 z-10 flex flex-wrap gap-2">
         {searchable && (
           <div className="relative">
@@ -243,6 +234,7 @@ export function EntityGraph({
           </div>
         )}
         <select
+          title="Filter by Entity Type"
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as EntityNode['type'] | 'all')}
           className="px-3 py-2 bg-slate-800/90 backdrop-blur-sm border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"
@@ -292,7 +284,10 @@ export function EntityGraph({
         <div className="flex gap-2 flex-wrap max-w-xs">
           {(Object.keys(nodeColors) as EntityNode['type'][]).map((type) => (
             <div key={type} className="flex items-center gap-1 px-2 py-1 bg-slate-800/90 backdrop-blur-sm rounded text-xs">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: nodeColors[type] }} />
+              <span 
+                className="w-2 h-2 rounded-full bg-[var(--node-color)]" 
+                style={{ '--node-color': nodeColors[type] } as React.CSSProperties} 
+              />
               <span className="text-slate-300">{type}</span>
             </div>
           ))}
@@ -337,6 +332,7 @@ export function EntityGraph({
       {isFullscreen && (
         <button
           onClick={() => setIsFullscreen(false)}
+          title="Exit Fullscreen"
           className="absolute top-4 right-16 p-2 bg-slate-800/90 backdrop-blur-sm border border-white/10 rounded-lg hover:bg-slate-700 transition-colors"
         >
           <X className="w-4 h-4 text-white" />

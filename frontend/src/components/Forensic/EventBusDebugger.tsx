@@ -49,7 +49,7 @@ export default function EventBusDebugger() {
       <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
         <div className="flex items-center gap-2 text-indigo-400">
           <Terminal size={14} />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Neural Pulse Debugger</span>
+          <span className="text-[11px] font-black uppercase tracking-[0.2em]">Neural Pulse Debugger</span>
         </div>
         <div className="flex items-center gap-2">
             <button 
@@ -74,12 +74,12 @@ export default function EventBusDebugger() {
             placeholder="FILTER EVENTS..." 
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            className="w-full bg-slate-950 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[10px] font-mono text-white placeholder-slate-700 outline-none focus:border-indigo-500/50"
+            className="w-full bg-slate-950 border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-[11px] font-mono text-white placeholder-slate-700 outline-none focus:border-indigo-500/50"
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-[9px] scrollbar-thin">
+      <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-[11px] scrollbar-thin">
         <AnimatePresence initial={false}>
           {filteredEvents.map((event, i) => (
             <motion.div 

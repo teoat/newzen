@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef } from 'react';
-import { Send, Image, Paperclip, X } from 'lucide-react';
+import { Send, Image as ImageIcon, Paperclip, X } from 'lucide-react';
 
 interface CommentInputProps {
   onSubmit: (content: string, mentions: string[]) => void;
@@ -109,7 +109,7 @@ export function CommentInput({
             className="p-2 text-slate-500 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
             title="Attach image"
           >
-            <Image className="w-4 h-4" />
+            <ImageIcon className="w-4 h-4" />
           </button>
           <button
             type="button"

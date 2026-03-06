@@ -1,6 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useProject } from '../useProject';
+
+vi.mock('../../services/ProjectService', () => ({
+  ProjectService: {
+    fetchProjects: vi.fn(),
+    getBudgetForecast: vi.fn().mockResolvedValue({ status: 'HEALTHY' }),
+  },
+}));
 
 describe('useProject Store', () => {
   beforeEach(() => {

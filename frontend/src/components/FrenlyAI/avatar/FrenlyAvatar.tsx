@@ -312,7 +312,7 @@ export default function FrenlyAvatar({
             }`
           }}
         />
-        <span className="text-[9px] font-mono uppercase text-slate-500">
+        <span className="text-[11px] font-mono uppercase text-slate-500">
           {state === 'thinking' ? 'Analyzing...' :
            state === 'success' ? 'Success!' :
            state === 'alert' ? 'Alert' :

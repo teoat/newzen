@@ -9,7 +9,7 @@ export default function AnalyticsTab() {
 
   useEffect(() => {
     if (selectedHotspot) {
-      console.log('Analytics: Focusing on hotspot', selectedHotspot);
+      // Focus logic here
     }
   }, [selectedHotspot]);
 

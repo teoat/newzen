@@ -1,65 +1,79 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import { useSession } from 'next-auth/react';
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { ShieldCheck, Pin, AlertTriangle, FileText, Activity, Zap, CheckCircle2, BrainCircuit } from 'lucide-react';
-import ForensicPageLayout from '../../../app/components/ForensicPageLayout';
-import { useProject } from '../../../store/useProject';
-import { authenticatedFetch } from '../../../lib/api';
-import { Button } from '../../../ui/button';
-import { Card } from '../../../ui/card';
-import { Badge } from '../../../ui/badge';
+import { useAuth, useUser } from '@clerk/nextjs';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ShieldCheck, 
+  Activity, 
+  Pin, 
+  FileText, 
+  BrainCircuit,
+  Gavel,
+  Search,
+  Monitor
+} from 'lucide-react';
+
+import { useProject } from '@/store/useProject';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import ForensicPageLayout from '@/app/components/ForensicPageLayout';
+
+const AGENTS = [
+    { id: 'judge', name: 'Judge', color: 'amber', icon: Gavel },
+    { id: 'tracer', name: 'Tracer', color: 'rose', icon: Search },
+    { id: 'auditor', name: 'Auditor', color: 'indigo', icon: Monitor },
+];
 
 export default function TheoryBoardPage() {
-  const { data: session } = useSession();
+  const { getToken, isLoaded } = useAuth();
+  const { user } = useUser();
   const { activeProjectId } = useProject();
+
   const [boardData, setBoardState] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const AGENTS = [
-    { id: 'auditor', name: 'The Auditor', role: 'Mathematical Proof', color: 'rose' },
-    { id: 'tracer', name: 'The Tracer', role: 'Relational Nexus', color: 'indigo' },
-    { id: 'judge', name: 'The Judge', role: 'Forensic Synthesis', color: 'emerald' },
-  ];
-
-  const [debate, setDebate] = useState([
-    { agent: 'auditor', message: "Detecting 45% variance in 'Cement' line item. Math suggests ghost-claim siphoning.", timestamp: '10:42 AM' },
-    { agent: 'tracer', message: "Confirmed. The vendor 'PT. Semen Jaya' is linked to a sister company of the Project Manager.", timestamp: '10:44 AM' },
-    { agent: 'judge', message: "Visual evidence scan complete. Site photos show 0 bags delivered. Verdict: Fraudulent Intent verified.", timestamp: '10:45 AM' }
-  ]);
+  const [debate, setDebate] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!activeProjectId || !session?.accessToken) return;
+    if (!activeProjectId || !isLoaded || !user) return;
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
-    const ws = new WebSocket(`${wsUrl}/ws/${activeProjectId}?token=${session.accessToken}`);
+    let ws: WebSocket;
 
-    ws.onmessage = (event) => {
-        try {
-            const payload = JSON.parse(event.data);
-            if (payload.type === 'AGENT_ACTIVITY') {
-                const newEntry = {
-                    agent: payload.agent?.toLowerCase().includes('judge') ? 'judge' : 'tracer',
-                    message: payload.reason || `Verdict reached: ${payload.status}`,
-                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                setDebate(prev => [...prev, newEntry]);
+    const connectWs = async () => {
+        const token = await getToken();
+        if (!token) return;
+
+        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000';
+        ws = new WebSocket(`${wsUrl}/ws/${activeProjectId}?token=${token}`);
+
+        ws.onmessage = (event) => {
+            try {
+                const payload = JSON.parse(event.data);
+                if (payload.type === 'AGENT_ACTIVITY') {
+                    const newEntry = {
+                        agent: payload.agent?.toLowerCase().includes('judge') ? 'judge' : 'tracer',
+                        message: payload.reason || `Verdict reached: ${payload.status}`,
+                        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    };
+                    setDebate(prev => [...prev, newEntry]);
+                }
+            } catch (e) {
+                console.error("Websocket Parse Error", e);
             }
-        } catch (e) {
-            console.error("Websocket Parse Error", e);
-        }
+        };
     };
+
+    connectWs();
 
     return () => {
-        ws.close();
+        if (ws) ws.close();
     };
-  }, [activeProjectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeProjectId, isLoaded, user, getToken]);
 
   return (
     <ForensicPageLayout
-        title="Forensic War Room"
+        title="Stage 3: Investigation Board"
         subtitle="Triangulation of Mathematical, Relational, and Visual Truth"
         icon={ShieldCheck}
     >
@@ -69,7 +83,7 @@ export default function TheoryBoardPage() {
             {/* CONFLICT MATRIX HUD */}
             <section className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
+                    <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center gap-3">
                         <Activity className="w-4 h-4 text-indigo-500" />
                         Triangulation Conflict Matrix
                     </h2>
@@ -104,10 +118,10 @@ export default function TheoryBoardPage() {
                             </div>
 
                             <div className="flex justify-between items-center">
-                                <div className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${row.conflict_status === 'CRITICAL_CONFLICT' ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                <div className={`px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest ${row.conflict_status === 'CRITICAL_CONFLICT' ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                                     {row.conflict_status === 'CRITICAL_CONFLICT' ? 'GHOST_CLAIM' : 'VERIFIED'}
                                 </div>
-                                <button className="text-[9px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">Inspect Trace</button>
+                                <button className="text-[11px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">Inspect Trace</button>
                             </div>
                         </motion.div>
                     ))}
@@ -117,7 +131,7 @@ export default function TheoryBoardPage() {
             {/* PINNED EVIDENCE WALL */}
             <div className="grid grid-cols-2 gap-6">
                 <Card className="bg-slate-900/40 border-white/5 p-8 rounded-[3rem]">
-                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Discovery Assets</h3>
+                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6">Discovery Assets</h3>
                     <div className="space-y-4">
                         {boardData?.pinned_transactions.map((tx: any) => (
                             <div key={tx.id} className="p-4 bg-black/40 border border-white/5 rounded-2xl flex justify-between items-center">
@@ -125,13 +139,13 @@ export default function TheoryBoardPage() {
                                     <div className="w-1.5 h-6 bg-rose-500 rounded-full" />
                                     <span className="text-xs font-bold text-slate-300 truncate max-w-[150px]">{tx.description}</span>
                                 </div>
-                                <span className="text-[9px] font-mono text-slate-600">IDR {tx.actual_amount.toLocaleString()}</span>
+                                <span className="text-[11px] font-mono text-slate-600">IDR {tx.actual_amount.toLocaleString()}</span>
                             </div>
                         ))}
                     </div>
                 </Card>
                 <Card className="bg-slate-900/40 border-white/5 p-8 rounded-[3rem]">
-                    <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Visual Artifacts</h3>
+                    <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6">Visual Artifacts</h3>
                     <div className="grid grid-cols-2 gap-3">
                         {boardData?.pinned_evidence.map((doc: any) => (
                             <div key={doc.id} className="aspect-video bg-black/40 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
@@ -154,7 +168,7 @@ export default function TheoryBoardPage() {
                     </div>
                     <div>
                         <h2 className="text-xl font-black text-white uppercase tracking-tighter italic">Agent Dialectic</h2>
-                        <p className="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">Consensus Engine Active</p>
+                        <p className="text-[11px] text-indigo-400 font-bold uppercase tracking-widest">Consensus Engine Active</p>
                     </div>
                 </div>
 
@@ -170,7 +184,7 @@ export default function TheoryBoardPage() {
                                 className="space-y-2"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] text-${agent?.color}-400`}>{agent?.name}</span>
+                                    <span className={`text-[11px] font-black uppercase tracking-[0.2em] text-${agent?.color}-400`}>{agent?.name}</span>
                                     <span className="text-[8px] font-mono text-slate-600 uppercase">{msg.timestamp}</span>
                                 </div>
                                 <div className={`p-5 bg-white/[0.03] border border-white/5 rounded-3xl rounded-tl-none backdrop-blur-md`}>
@@ -182,7 +196,7 @@ export default function TheoryBoardPage() {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-white/5 relative z-20">
-                    <Button className="w-full h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-[10px] shadow-[0_0_30px_rgba(79,70,229,0.3)]">
+                    <Button className="w-full h-16 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-[11px] shadow-[0_0_30px_rgba(79,70,229,0.3)]">
                         Seal Adjudication Verdict
                     </Button>
                 </div>

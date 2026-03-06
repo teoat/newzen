@@ -32,8 +32,8 @@ export function AlignmentUnit({
     };
 
     return (
-        <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-900/40 border border-white/5 hover:border-indigo-500/40 transition-all group relative overflow-hidden">
-            <div className="flex flex-col gap-0.5 shrink-0">
+        <div className="flex items-center gap-4 p-3 rounded-2xl bg-slate-900/40 border border-white/10 hover:border-indigo-500/40 transition-all group relative overflow-hidden">
+            <div className="flex flex-col gap-1 shrink-0">
                 <button 
                      onClick={() => onMove('up')} 
                      disabled={isFirst}
@@ -64,7 +64,7 @@ export function AlignmentUnit({
                             onChange={(e) => setTempLabel(e.target.value)}
                             title="Edit field label"
                             aria-label="Edit field label"
-                            className="bg-slate-950 border border-indigo-500/50 rounded px-2 py-0.5 text-[10px] font-black uppercase text-white w-full outline-none"
+                            className="bg-slate-950 border border-indigo-500/50 rounded px-2 py-0.5 text-[11px] font-black uppercase text-white w-full outline-none"
                             autoFocus
                             onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); }}
                         />
@@ -79,7 +79,7 @@ export function AlignmentUnit({
                     </div>
                 ) : (
                     <div className="flex items-center gap-2 group/label cursor-text" onClick={() => setIsEditing(true)}>
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate group-hover:text-white transition-colors">
+                        <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest truncate group-hover:text-white transition-colors">
                             {mapping.label}
                         </span>
                         {mapping.required && <span className="text-rose-500 text-[8px] font-bold">*</span>}
@@ -94,7 +94,7 @@ export function AlignmentUnit({
                     onChange={(e) => onUpdate(e.target.value)}
                     title={`Select matching column for ${mapping.label}`}
                     aria-label={`Select matching column for ${mapping.label}`}
-                    className={`w-full bg-slate-950 border rounded-xl pl-3 pr-8 py-2 text-[10px] font-black uppercase italic outline-none transition-all appearance-none cursor-pointer ${
+                    className={`w-full bg-slate-950 border rounded-xl pl-3 pr-8 py-2 text-[11px] font-black uppercase italic outline-none transition-all appearance-none cursor-pointer ${
                         mapping.fileColumn ? 'border-emerald-500/30 text-emerald-400' : 'border-white/5 text-slate-600 hover:border-white/10'
                     }`}
                 >
@@ -115,7 +115,7 @@ export function AlignmentUnit({
                         value={mapping.intent || 'GENERAL'}
                         onChange={(e) => onUpdateIntent(e.target.value as MappingItem['intent'])}
                         title={`Select forensic intent for ${mapping.label}`}
-                        className="w-full bg-slate-950 border border-white/5 rounded-xl pl-3 pr-8 py-2 text-[10px] font-black uppercase text-indigo-400 outline-none transition-all appearance-none cursor-pointer hover:border-indigo-500/30"
+                        className="w-full bg-slate-950 border border-white/5 rounded-xl pl-3 pr-8 py-2 text-[11px] font-black uppercase text-indigo-400 outline-none transition-all appearance-none cursor-pointer hover:border-indigo-500/30"
                     >
                         <option value="GENERAL">General</option>
                         <option value="LOCATION">Location</option>
@@ -134,10 +134,18 @@ export function AlignmentUnit({
                 <button 
                     onClick={onDelete} 
                     className="p-2 hover:bg-rose-500/10 hover:text-rose-500 text-slate-700 transition-all rounded-lg shrink-0"
-                    title="Remove Field"
+                    title="Remove this forensic field from the alignment manifest. Warning: Data will not be ingested for this sector."
                 >
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
+            )}
+
+            {/* Neural Confidence Indicator */}
+            {mapping.fileColumn && (
+                <div 
+                    className={`absolute right-0 top-0 bottom-0 w-1 ${mapping.confidence && mapping.confidence > 0.8 ? 'bg-emerald-500' : 'bg-amber-500'} opacity-30`} 
+                    title={`Neural Confidence: ${Math.round((mapping.confidence || 0.85) * 100)}%. Source: Forensic Pattern Matcher.`}
+                />
             )}
         </div>
     );

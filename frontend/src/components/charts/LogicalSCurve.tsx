@@ -90,7 +90,7 @@ export default function LogicalSCurve({ data = MOCK_DATA }: { data?: DataPoint[]
           </h3>
           <p className="text-xs text-slate-500 font-mono">PLANNED vs ACTUAL with PHASE VALIDATION</p>
         </div>
-        <div className="flex gap-4 text-[10px] font-mono uppercase text-slate-500">
+        <div className="flex gap-4 text-[11px] font-mono uppercase text-slate-500">
            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-emerald-500 rounded-full" /> Budget</span>
            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-indigo-500 rounded-full" /> Actual</span>
            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse" /> Anomaly</span>

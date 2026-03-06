@@ -1,0 +1,579 @@
+
+> frontend@0.1.0 test:coverage
+> vitest --coverage --run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend
+      Coverage enabled with v8
+
+ ✓ src/services/__tests__/ForensicService.test.ts (3 tests) 19ms
+stderr | src/hooks/__tests__/useProject.test.ts > useProject Store > setActiveProject > should set active project by ID
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/__tests__/useProject.test.ts > useProject Store > setActiveProject > should clear active project when null is passed
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/__tests__/useProject.test.ts > useProject Store > setActiveProject > should handle non-existent project ID gracefully
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/store/__tests__/useProject.test.ts > useProject Store > should set active project
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/store/__tests__/useProject.test.ts > useProject Store > should clear active project
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/FrenlyAI/__tests__/useFrenlyChat.test.ts (8 tests) 120ms
+ ✓ src/hooks/__tests__/useProject.test.ts (9 tests) 117ms
+ ✓ src/store/__tests__/useProject.test.ts (3 tests) 75ms
+ ✓ src/services/__tests__/ProjectService.test.ts (5 tests) 43ms
+ ✓ src/services/__tests__/ReasoningService.test.ts (2 tests) 13ms
+5:35:52 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@tanstack_query-devtools_build_aa3fa47e._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_aa3fa47e._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40tanstack_query-devtools_build_aa3fa47e._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:52 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@tanstack_query-devtools_build_3b79db4f._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_3b79db4f._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40tanstack_query-devtools_build_3b79db4f._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 1)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:52 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@sentry_core_build_esm_af1c53d6._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40sentry_core_build_esm_af1c53d6._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40sentry_core_build_esm_af1c53d6._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 2)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:52 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@clerk_shared_dist_runtime_20c36e71._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_shared_dist_runtime_20c36e71._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40clerk_shared_dist_runtime_20c36e71._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:53 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@tanstack_query-devtools_build_4069e1b1._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_4069e1b1._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40tanstack_query-devtools_build_4069e1b1._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:53 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_@clerk_clerk-react_dist_ad3495b2._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_clerk-react_dist_ad3495b2._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/node_modules_%40clerk_clerk-react_dist_ad3495b2._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 2)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:55 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_@sentry_core_build_esm_e2568336._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40sentry_core_build_esm_e2568336._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_%40sentry_core_build_esm_e2568336._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 2)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:55 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_@clerk_shared_dist_runtime_e8916251._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_shared_dist_runtime_e8916251._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_%40clerk_shared_dist_runtime_e8916251._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:55 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_@clerk_clerk-react_dist_b2058500._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_clerk-react_dist_b2058500._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/e2acb_%40clerk_clerk-react_dist_b2058500._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 2)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/4e2c9_@swc_helpers_cjs_0c5313ba._.js.
+Error: An error occurred while trying to read the map file at 4e2c9_%40swc_helpers_cjs_0c5313ba._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/4e2c9_%40swc_helpers_cjs_0c5313ba._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/533e8_@swc_helpers_cjs_57829f7c._.js.
+Error: An error occurred while trying to read the map file at 533e8_%40swc_helpers_cjs_57829f7c._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/static/chunks/533e8_%40swc_helpers_cjs_57829f7c._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_@opentelemetry_api_build_esm_5558035f._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40opentelemetry_api_build_esm_5558035f._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_%40opentelemetry_api_build_esm_5558035f._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_@clerk_shared_dist_runtime_f0e9d0fd._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_shared_dist_runtime_f0e9d0fd._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_%40clerk_shared_dist_runtime_f0e9d0fd._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_@clerk_nextjs_dist_esm_9750727e._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_nextjs_dist_esm_9750727e._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_%40clerk_nextjs_dist_esm_9750727e._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_@opentelemetry_api_build_esm_ae25704b._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40opentelemetry_api_build_esm_ae25704b._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_%40opentelemetry_api_build_esm_ae25704b._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_@clerk_shared_dist_runtime_207df820._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_shared_dist_runtime_207df820._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_%40clerk_shared_dist_runtime_207df820._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_@clerk_backend_dist_8dd428b7._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_backend_dist_8dd428b7._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/node_modules_%40clerk_backend_dist_8dd428b7._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_@clerk_nextjs_dist_esm_90d3ca70._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_nextjs_dist_esm_90d3ca70._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_%40clerk_nextjs_dist_esm_90d3ca70._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:56 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_@clerk_backend_dist_2170cb14._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_backend_dist_2170cb14._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/e2acb_%40clerk_backend_dist_2170cb14._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 1)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@tanstack_query-devtools_build_c7ba614f._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_c7ba614f._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40tanstack_query-devtools_build_c7ba614f._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@sentry_core_build_esm_e709a104._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40sentry_core_build_esm_e709a104._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40sentry_core_build_esm_e709a104._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@opentelemetry_api_build_esm_c2831320._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40opentelemetry_api_build_esm_c2831320._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40opentelemetry_api_build_esm_c2831320._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@clerk_shared_dist_runtime_fb63b946._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_shared_dist_runtime_fb63b946._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40clerk_shared_dist_runtime_fb63b946._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@tanstack_query-devtools_build_9460e7e4._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_9460e7e4._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40tanstack_query-devtools_build_9460e7e4._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 1)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@tanstack_query-devtools_build_451ee949._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40tanstack_query-devtools_build_451ee949._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40tanstack_query-devtools_build_451ee949._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 2)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@clerk_nextjs_dist_esm_server_keyless-log-cache_52006def.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_nextjs_dist_esm_server_keyless-log-cache_52006def.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40clerk_nextjs_dist_esm_server_keyless-log-cache_52006def.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:35:58 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_@clerk_clerk-react_dist_c0e80dcf._.js.
+Error: An error occurred while trying to read the map file at node_modules_%40clerk_clerk-react_dist_c0e80dcf._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/node_modules_%40clerk_clerk-react_dist_c0e80dcf._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:01 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@sentry_core_build_esm_f563ee28._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40sentry_core_build_esm_f563ee28._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40sentry_core_build_esm_f563ee28._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:01 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@opentelemetry_api_build_esm_8a7eca3b._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40opentelemetry_api_build_esm_8a7eca3b._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40opentelemetry_api_build_esm_8a7eca3b._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@clerk_nextjs_dist_esm_server_keyless-log-cache_0232155f.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_nextjs_dist_esm_server_keyless-log-cache_0232155f.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40clerk_nextjs_dist_esm_server_keyless-log-cache_0232155f.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 1)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@clerk_shared_dist_runtime_83129523._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_shared_dist_runtime_83129523._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40clerk_shared_dist_runtime_83129523._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 0)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_8df76df8.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_8df76df8.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_8df76df8.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_@clerk_clerk-react_dist_d94880ff._.js.
+Error: An error occurred while trying to read the map file at e2acb_%40clerk_clerk-react_dist_d94880ff._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/e2acb_%40clerk_clerk-react_dist_d94880ff._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/d4b1c_modules_@clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_f823d0f8.js.
+Error: An error occurred while trying to read the map file at d4b1c_modules_%40clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_f823d0f8.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/d4b1c_modules_%40clerk_nextjs_dist_esm_app-router_client_keyless-cookie-sync_f823d0f8.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 3)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/533e8_@swc_helpers_cjs__interop_require_wildcard_cjs_aba9c5ef._.js.
+Error: An error occurred while trying to read the map file at 533e8_%40swc_helpers_cjs__interop_require_wildcard_cjs_aba9c5ef._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/533e8_%40swc_helpers_cjs__interop_require_wildcard_cjs_aba9c5ef._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 4)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+5:36:02 am [vite] Failed to load source map for /Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/4e2c9_@swc_helpers_cjs__interop_require_wildcard_cjs_a73c7aca._.js.
+Error: An error occurred while trying to read the map file at 4e2c9_%40swc_helpers_cjs__interop_require_wildcard_cjs_a73c7aca._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/server/chunks/ssr/4e2c9_%40swc_helpers_cjs__interop_require_wildcard_cjs_a73c7aca._.js.map'
+    at async open (node:internal/fs/promises:636:25)
+    at async Object.readFile (node:internal/fs/promises:1273:14)
+    at async extractSourcemapFromFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:21002:53)
+    at async loadAndTransform (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51941:27)
+    at async ViteNodeServer._transformRequest (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vite-node/dist/server.mjs:542:16)
+    at async transformFile (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/vitest/dist/coverage.js:369:18)
+    at async V8CoverageProvider.getSources (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2697:25)
+    at async file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2655:38
+    at async Promise.all (index 5)
+    at async V8CoverageProvider.getUntestedFiles (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2653:25)
+
+⎯⎯⎯⎯⎯⎯ Unhandled Error ⎯⎯⎯⎯⎯⎯⎯
+Error: An error occurred while trying to read the map file at %5Broot-of-the-server%5D__3357a590._.js.map
+Error: ENOENT: no such file or directory, open '/Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/.next/dev/build/chunks/%5Broot-of-the-server%5D__3357a590._.js.map'
+    at readFileSync (node:fs:436:20)
+    at V8ToIstanbul._readFileFromDir (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2265:13)
+    at readFromFileMap (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:215:16)
+    at exports.fromMapFileComment (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:357:14)
+    at exports.fromMapFileSource (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:380:24)
+    at V8ToIstanbul.load (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2224:67)
+    at file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2784:27
+    at async Promise.all (index 1)
+    at async V8CoverageProvider.convertCoverage (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2768:7)
+    at async V8CoverageProvider.generateCoverage (file:///Users/Arief/Projects/Active/Newzen/zenith-lite/frontend/node_modules/@vitest/coverage-v8/dist/provider.js:2589:25)
+ ❯ readFileSync node:fs:436:20
+ ❯ V8ToIstanbul._readFileFromDir node_modules/@vitest/coverage-v8/dist/provider.js:2265:13
+ ❯ readFromFileMap node_modules/@vitest/coverage-v8/dist/provider.js:215:16
+ ❯ exports.fromMapFileComment node_modules/@vitest/coverage-v8/dist/provider.js:357:14
+ ❯ exports.fromMapFileSource node_modules/@vitest/coverage-v8/dist/provider.js:380:24
+ ❯ V8ToIstanbul.load node_modules/@vitest/coverage-v8/dist/provider.js:2224:67
+ ❯ node_modules/@vitest/coverage-v8/dist/provider.js:2784:27
+ ❯ V8CoverageProvider.convertCoverage node_modules/@vitest/coverage-v8/dist/provider.js:2768:7
+ ❯ V8CoverageProvider.generateCoverage node_modules/@vitest/coverage-v8/dist/provider.js:2589:25
+ ❯ throwError node_modules/@vitest/coverage-v8/dist/provider.js:226:13
+ ❯ readFromFileMap node_modules/@vitest/coverage-v8/dist/provider.js:222:7
+ ❯ exports.fromMapFileComment node_modules/@vitest/coverage-v8/dist/provider.js:357:14
+ ❯ exports.fromMapFileSource node_modules/@vitest/coverage-v8/dist/provider.js:380:24
+ ❯ V8ToIstanbul.load node_modules/@vitest/coverage-v8/dist/provider.js:2224:67
+ ❯ node_modules/@vitest/coverage-v8/dist/provider.js:2784:27
+ ❯ V8CoverageProvider.convertCoverage node_modules/@vitest/coverage-v8/dist/provider.js:2768:7
+ ❯ V8CoverageProvider.generateCoverage node_modules/@vitest/coverage-v8/dist/provider.js:2589:25
+ ❯ node_modules/vitest/dist/chunks/cli-api.DqsSTaIi.js:10831:24
+
+
+
+

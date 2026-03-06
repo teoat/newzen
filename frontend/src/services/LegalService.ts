@@ -1,3 +1,5 @@
+import { authenticatedFetch } from "../lib/api";
+
 export interface LegalComplianceResult {
   entity: string;
   sanctioned: boolean;
@@ -11,9 +13,7 @@ export const LegalService = {
     // Call the backend legal router
     // Route: /api/v1/forensic/{project_id}/legal/screen/{entity_name}
     // Updated to match backend params
-    const res = await fetch(`/api/v1/forensic/${projectId}/legal/screen/${encodeURIComponent(entityName)}`, {
-       headers: { 'Content-Type': 'application/json' } 
-    });
+    const res = await authenticatedFetch(`/api/v1/forensic/${projectId}/legal/screen/${encodeURIComponent(entityName)}`);
     if (!res.ok) throw new Error('Screening failed');
     return res.json();
   }

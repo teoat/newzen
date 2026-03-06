@@ -22,7 +22,7 @@ export function ConfigSlider({ icon, label, sub, val, min, max, step = 1, unit, 
                     </div>
                     <div>
                         <h4 className="text-xs font-black text-white italic uppercase tracking-widest">{label}</h4>
-                        <p className="text-[10px] text-slate-500 mt-1">{sub}</p>
+                        <p className="text-[11px] text-slate-500 mt-1">{sub}</p>
                     </div>
                 </div>
                 <span className="text-sm font-black text-indigo-400 italic bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/20">{val}{unit && ` ${unit}`}</span>

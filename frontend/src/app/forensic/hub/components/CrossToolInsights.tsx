@@ -129,7 +129,7 @@ export function CrossToolInsights() {
                     onClick={() => handleInject(activeSelection.type as 'entity' | 'milestone' | 'hotspot', activeSelection.id, activeSelection.label)}
                     disabled={justInjected === activeSelection.id}
                     className={`
-                        px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all
+                        px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all
                         ${justInjected === activeSelection.id 
                             ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50' 
                             : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-900/20'

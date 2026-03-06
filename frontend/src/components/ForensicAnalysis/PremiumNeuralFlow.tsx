@@ -48,12 +48,12 @@ const PremiumNeuralFlow: React.FC<PremiumNeuralFlowProps> = ({ nodes, links, tit
       <div className="relative z-10 flex justify-between items-start mb-12">
         <div>
           <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase">{title}</h3>
-          <p className="text-indigo-400 text-[10px] font-mono tracking-[0.5em] uppercase mt-2">Active Graph: {nodes.length} entities // {links.length} relationships</p>
+          <p className="text-indigo-400 text-[11px] font-mono tracking-[0.5em] uppercase mt-2">Active Graph: {nodes.length} entities // {links.length} relationships</p>
         </div>
         <div className="flex gap-4">
             <div className="px-5 py-2.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center gap-3">
                 <Activity className="w-4 h-4 text-rose-500 animate-pulse" />
-                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Anomaly Flux Detected</span>
+                <span className="text-[11px] font-black text-rose-400 uppercase tracking-widest">Anomaly Flux Detected</span>
             </div>
         </div>
       </div>
@@ -137,7 +137,7 @@ const PremiumNeuralFlow: React.FC<PremiumNeuralFlowProps> = ({ nodes, links, tit
                 height="40"
               >
                 <div className="text-center">
-                  <div className="text-[10px] font-black text-white uppercase truncate px-1">{node.label}</div>
+                  <div className="text-[11px] font-black text-white uppercase truncate px-1">{node.label}</div>
                   <div className={`text-[8px] font-mono font-bold ${node.risk > 0.7 ? "text-rose-500" : "text-slate-500"}`}>
                     RISK_{node.risk.toFixed(2)}
                   </div>
@@ -163,7 +163,7 @@ const PremiumNeuralFlow: React.FC<PremiumNeuralFlowProps> = ({ nodes, links, tit
         <div className="p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all">
           <div className="flex items-center gap-3 mb-4">
               <Zap className="w-5 h-5 text-indigo-400" />
-              <span className="text-[10px] font-black text-white uppercase tracking-widest italic">Velocity Pattern</span>
+              <span className="text-[11px] font-black text-white uppercase tracking-widest italic">Velocity Pattern</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-medium uppercase tracking-wide">
             Detecting high-frequency capital oscillation between cluster A and B. Potential UBO masking detected.
@@ -173,7 +173,7 @@ const PremiumNeuralFlow: React.FC<PremiumNeuralFlowProps> = ({ nodes, links, tit
         <div className="p-6 rounded-3xl bg-rose-500/5 border border-rose-500/10">
           <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-rose-500" />
-              <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest italic">Critical Sinkhole</span>
+              <span className="text-[11px] font-black text-rose-500 uppercase tracking-widest italic">Critical Sinkhole</span>
           </div>
           <p className="text-[11px] text-slate-400 leading-relaxed font-medium uppercase tracking-wide">
             Entity &quot;PT. Delta Global&quot; identified as a one-way financial sink. 82% of influx never exits.
@@ -182,7 +182,7 @@ const PremiumNeuralFlow: React.FC<PremiumNeuralFlowProps> = ({ nodes, links, tit
 
         <div className="p-6 rounded-3xl bg-indigo-500/5 border border-indigo-500/10 flex items-center justify-between group">
             <div className="space-y-1">
-                <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">PageRank Centrality</span>
+                <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">PageRank Centrality</span>
                 <div className="text-xl font-black text-white italic">0.94 Alpha</div>
             </div>
             <ArrowRight className="w-6 h-6 text-indigo-500 group-hover:translate-x-2 transition-transform" />

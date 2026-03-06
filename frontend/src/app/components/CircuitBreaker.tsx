@@ -18,12 +18,12 @@ function TacticalFallback({ error, resetErrorBoundary }: FallbackProps) {
           The forensic engine encountered an entropy spike. Visual render suspended for stability.
         </p>
       </div>
-      <pre className="text-[10px] text-rose-400 font-mono bg-black/40 p-4 rounded-xl border border-rose-500/10 max-w-md overflow-auto">
+      <pre className="text-[11px] text-rose-400 font-mono bg-black/40 p-4 rounded-xl border border-rose-500/10 max-w-md overflow-auto">
         {(error as Error).message}
       </pre>
       <button
         onClick={resetErrorBoundary}
-        className="px-8 py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-indigo-400 hover:text-white transition-all shadow-xl"
+        className="px-8 py-3 bg-white text-black rounded-xl text-[11px] font-black uppercase tracking-[0.2em] flex items-center gap-3 hover:bg-indigo-400 hover:text-white transition-all shadow-xl"
       >
         <RefreshCw className="w-4 h-4" /> Reset Logic Circuit
       </button>

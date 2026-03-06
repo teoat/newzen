@@ -16,15 +16,27 @@ export const PercentageSchema = z.number().min(0).max(100, 'Percentage must be b
 // PROJECT SCHEMAS
 // ========================================
 
+export const ProjectStatusSchema = z.union([
+  z.literal('draft'),
+  z.literal('active'),
+  z.literal('on_hold'),
+  z.literal('completed'),
+  z.literal('archived')
+]).catch('draft');
+
 export const ProjectSchema = z.object({
-  id: UUIDSchema,
-  name: z.string().min(1, 'Project name is required').max(200, 'Project name too long'),
-  description: z.string().max(1000, 'Description too long').optional(),
-  contract_value: MoneySchema,
-  realized_spend: MoneySchema,
-  status: z.enum(['ACTIVE', 'COMPLETED', 'SUSPENDED', 'CANCELLED']),
-  created_at: TimestampSchema,
-  updated_at: TimestampSchema,
+  id: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  description: z.string().max(1000).optional(),
+  code: z.string().regex(/^[A-Z]{3}-\d{4}$/).optional(),
+  contract_value: z.number().positive().optional(),
+  contractor_name: z.string().max(500).optional(),
+  status: ProjectStatusSchema.optional(),
+  created_at: z.string().datetime().optional(),
+  start_date: z.string().date().optional(),
+  end_date: z.string().date().nullable().optional(),
+  site_location: z.string().max(1000).nullable().optional(),
+  realized_spend: z.number().min(0).optional(),
 });
 
 export const CreateProjectSchema = z.object({
@@ -37,6 +49,10 @@ export const UpdateProjectSchema = CreateProjectSchema.partial();
 
 export const ProjectListResponseSchema = z.object({
   projects: z.array(ProjectSchema),
+  total: z.number().int().nonnegative().default(0),
+  limit: z.number().int().min(1).default(50),
+  offset: z.number().int().nonnegative().default(0),
+  has_more: z.boolean().default(false),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

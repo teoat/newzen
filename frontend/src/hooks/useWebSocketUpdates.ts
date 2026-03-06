@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { logger } from '../lib/logger';
+import AuthService from '../services/AuthService';
 
 // Local type definitions
 interface GlobalStats {
@@ -20,7 +21,7 @@ interface AlertItem {
 }
 
 // Constants
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8200/ws';
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
 const POLLING_INTERVAL = 5000; // 5 seconds (reduced from 30s)
 const MAX_RETRIES = 5;
 const RETRY_DELAY_BASE = 1000; // 1 second
@@ -33,12 +34,12 @@ interface WSMessage {
   type: WSMessageType;
   timestamp: number;
   version: number;
-  data: any;
+  data: GlobalStats | AlertItem[] | { message: string };
 }
 
 interface QueuedMessage {
   type: WSMessageType;
-  data: any;
+  data: unknown;
   timestamp: number;
 }
 
@@ -48,6 +49,7 @@ interface WebSocketUpdateResult {
   connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
   isConnected: boolean;
   error: string | null;
+  socket: WebSocket | null;
 }
 
 /**
@@ -142,7 +144,7 @@ export const useWebSocketUpdates = (
   /**
    * Queue message during disconnect
    */
-  const queueMessage = useCallback((type: WSMessageType, data: any) => {
+  const queueMessage = useCallback((type: WSMessageType, data: unknown) => {
     pendingMessagesRef.current.push({
       type,
       data,
@@ -166,11 +168,15 @@ export const useWebSocketUpdates = (
 
         switch (message.type) {
           case 'stats':
-            mergeStats(message.data, message.version);
+            if ('risk_index' in message.data) {
+              mergeStats(message.data as GlobalStats, message.version);
+            }
             break;
 
           case 'alerts':
-            mergeAlerts(message.data, message.version);
+            if (Array.isArray(message.data)) {
+              mergeAlerts(message.data as AlertItem[], message.version);
+            }
             break;
 
           case 'heartbeat':
@@ -184,7 +190,10 @@ export const useWebSocketUpdates = (
             break;
 
           case 'error':
-            setError(message.data.message || 'WebSocket error');
+            if ('message' in message.data) {
+              const errorData = message.data as { message: string };
+              setError(errorData.message || 'WebSocket error');
+            }
             break;
 
           default:
@@ -232,6 +241,8 @@ export const useWebSocketUpdates = (
     }
   }, []);
 
+  const [socketInstance, setSocketInstance] = useState<WebSocket | null>(null);
+
   /**
    * Connect to WebSocket
    */
@@ -241,11 +252,13 @@ export const useWebSocketUpdates = (
     setConnectionStatus('connecting');
     setError(null);
 
+    const token = AuthService.getToken();
     const ws = new WebSocket(
-      `${WS_URL}/stats/${projectIdRef.current}`,
+      `${WS_URL}/${projectIdRef.current}?token=${token}`,
     );
 
     wsRef.current = ws;
+    setSocketInstance(ws);
 
     ws.onopen = () => {
       logger.debug('WebSocket connected');
@@ -300,6 +313,7 @@ export const useWebSocketUpdates = (
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
+        setSocketInstance(null);
       }
 
       // Reset state
@@ -321,6 +335,7 @@ export const useWebSocketUpdates = (
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
+        setSocketInstance(null);
       }
     };
   }, [projectId, connect]);
@@ -346,5 +361,6 @@ export const useWebSocketUpdates = (
     connectionStatus,
     isConnected: connectionStatus === 'connected',
     error,
+    socket: socketInstance,
   };
 };

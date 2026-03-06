@@ -3,11 +3,21 @@
  * Provides easy interface to use the ingestion worker
  */
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
+
+export interface TransactionData {
+  id: string;
+  date: string;
+  description: string;
+  amount: number;
+  sender: string;
+  receiver: string;
+  source_type: string;
+}
 
 export interface IngestionResult {
   headers: string[];
-  transactions: any[];
+  transactions: TransactionData[];
   errors: Array<{ row: number; errors: string[] }>;
   stats: {
     totalRows: number;
@@ -114,7 +124,7 @@ export function useIngestionWorker(): UseIngestionWorkerReturn {
   }, []);
 
   // Cleanup on unmount
-  useState(() => {
+  useEffect(() => {
     return () => {
       if (workerRef.current) {
         workerRef.current.terminate();

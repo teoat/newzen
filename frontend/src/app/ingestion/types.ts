@@ -9,6 +9,7 @@ export interface MappingItem {
     required: boolean;
     isCustom?: boolean;
     intent?: 'GENERAL' | 'LOCATION' | 'QUANTITY' | 'SECONDARY_ID' | 'TIMESTAMP' | 'RISK_INDICATOR';
+    confidence?: number;
 }
 
 export interface FileEntry {

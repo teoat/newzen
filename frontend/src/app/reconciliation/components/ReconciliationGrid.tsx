@@ -3,6 +3,40 @@
  */
 
 import React from 'react';
+import { authenticatedFetch } from '@/lib/api';
+import { useProject } from '@/store/useProject';
+
+function HeuristicBalanceRow({ projectId }: { projectId: string }) {
+    const [data, setData] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(true);
+    
+    React.useEffect(() => {
+        if(!projectId) return;
+        authenticatedFetch(`/api/v1/forensic-tools/${projectId}/reconstruction/heuristic-balance`)
+            .then(res => res.json())
+            .then(d => {
+                setData(d);
+                setLoading(false);
+            })
+            .catch(e => {
+                console.error(e);
+                setLoading(false);
+            })
+    }, [projectId]);
+
+    if (loading) return <div className="mt-2 pt-2 border-t border-dashed border-white/10 text-[10px] text-slate-500 font-mono animate-pulse">Calculating Projection...</div>;
+    
+    return (
+        <div className="mt-2 pt-2 border-t border-dashed border-white/10 text-[10px] text-slate-500 font-mono flex justify-between">
+            <span className={data?.confidence > 0.8 ? "text-emerald-500" : "text-amber-500"}>
+                Projected Balance ({Math.round(data?.confidence * 100)}% Conf.):
+            </span>
+            <span className="text-slate-400">
+                {(data?.projected_balance || 0).toLocaleString()} IDR
+            </span>
+        </div>
+    );
+}
 
 interface ReconciliationGridProps {
   bankRecords: any[];
@@ -18,11 +52,15 @@ export function ReconciliationGrid({
   bankRecords,
   expenseRecords,
   unmatchedBankRecords,
-  unmatchedInternalRecords,
-  matches,
-  onConfirmMatch,
-  isLoading = false
+    unmatchedInternalRecords,
+    matches,
+    onConfirmMatch,
+    isLoading = false
+
 }: ReconciliationGridProps) {
+  const { activeProjectId } = useProject();
+  const [showHeuristic, setShowHeuristic] = React.useState(false);
+
   return (
     <main 
       className="flex-1 flex overflow-hidden relative"
@@ -49,13 +87,32 @@ export function ReconciliationGrid({
           role="region"
           aria-labelledby="bank-column-title"
         >
-          <div className="p-6">
-            <h2 
-              id="bank-column-title"
-              className="text-sm font-black text-depth-primary uppercase tracking-[0.15em] mb-4"
-            >
-              Bank Statements ({unmatchedBankRecords.length})
-            </h2>
+          <div className="p-6 bg-gradient-to-b from-emerald-500/5 to-transparent">
+            <div className="flex items-center justify-between mb-6">
+                <h2 
+                    id="bank-column-title"
+                    className="text-sm font-black text-emerald-400 uppercase tracking-[0.15em]"
+                >
+                    Bank Statements ({unmatchedBankRecords.length})
+                </h2>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setShowHeuristic(!showHeuristic)}
+                        className={`
+                            px-2 py-1 rounded text-[10px] font-mono border transition-all
+                            ${showHeuristic 
+                                ? 'bg-indigo-500/20 border-indigo-500 text-indigo-300' 
+                                : 'bg-slate-800/50 border-white/10 text-slate-500 hover:text-indigo-300'
+                            }
+                        `}
+                    >
+                        {showHeuristic ? 'HEURISTIC MODE: ON' : 'ENABLE RECONSTRUCTION'}
+                    </button>
+                    <div className="px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-mono text-emerald-400">
+                        TRUTH SOURCE
+                    </div>
+                </div>
+            </div>
             <div className="space-y-3">
               {unmatchedBankRecords.slice(0, 50).map((record, index) => (
                 <div
@@ -83,6 +140,9 @@ export function ReconciliationGrid({
                       {new Date(record.timestamp).toLocaleDateString()}
                     </div>
                   </div>
+                  {showHeuristic && activeProjectId && (
+                    <HeuristicBalanceRow projectId={activeProjectId} />
+                  )}
                 </div>
               ))}
             </div>
@@ -95,13 +155,18 @@ export function ReconciliationGrid({
           role="region"
           aria-labelledby="internal-column-title"
         >
-          <div className="p-6">
-            <h2 
-              id="internal-column-title"
-              className="text-sm font-black text-depth-primary uppercase tracking-[0.15em] mb-4"
-            >
-              Internal Ledger ({unmatchedInternalRecords.length})
-            </h2>
+          <div className="p-6 bg-gradient-to-b from-amber-500/5 to-transparent">
+            <div className="flex items-center justify-between mb-6">
+                <h2 
+                    id="internal-column-title"
+                    className="text-sm font-black text-amber-400 uppercase tracking-[0.15em]"
+                >
+                    Internal Ledger ({unmatchedInternalRecords.length})
+                </h2>
+                <div className="px-2 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono text-amber-400">
+                    SUBJECTIVE
+                </div>
+            </div>
             <div className="space-y-3">
               {unmatchedInternalRecords.slice(0, 50).map((record, index) => (
                 <div

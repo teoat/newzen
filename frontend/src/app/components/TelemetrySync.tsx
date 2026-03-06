@@ -21,7 +21,7 @@ export default function TelemetrySync() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 left-6 z-[100] pointer-events-none">
+    <div className="fixed bottom-6 left-6 z-modal pointer-events-none">
       <AnimatePresence>
         {isSyncing && (
           <motion.div
@@ -34,7 +34,7 @@ export default function TelemetrySync() {
                 <Radio className="w-4 h-4 text-indigo-400 animate-pulse" />
                 <div className="absolute inset-0 bg-indigo-500/20 blur-lg animate-ping rounded-full" />
             </div>
-            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest whitespace-nowrap">
+            <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest whitespace-nowrap">
                 Telemetry Syncing...
             </span>
           </motion.div>

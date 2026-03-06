@@ -36,7 +36,7 @@ export default function FrenlyWidget() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white">Frenly AI</h3>
-                  <p className="text-[10px] text-slate-400">Forensic Intelligence Assistant</p>
+                  <p className="text-[11px] text-slate-400">Forensic Intelligence Assistant</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

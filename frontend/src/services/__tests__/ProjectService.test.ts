@@ -19,20 +19,30 @@ describe('ProjectService', () => {
 
   describe('fetchProjects', () => {
     it('should fetch projects successfully', async () => {
-      const mockProjects = [
+      const mockProjectsInput = [
         mockProject({ id: '550e8400-e29b-41d4-a716-446655440001', name: 'Project 1' }),
         mockProject({ id: '550e8400-e29b-41d4-a716-446655440002', name: 'Project 2' }),
       ];
 
+      const expectedProjects = mockProjectsInput.map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        contract_value: p.contract_value,
+        realized_spend: p.realized_spend,
+        status: p.status,
+        created_at: p.created_at,
+      }));
+
       mockedFetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ projects: mockProjects }),
+        json: async () => ({ projects: mockProjectsInput, total: 2 }),
       } as Response);
 
       const result = await ProjectService.fetchProjects();
 
       expect(mockedFetch).toHaveBeenCalledWith('/api/v1/project', expect.anything());
-      expect(result).toEqual(mockProjects);
+      expect(result).toEqual(expectedProjects);
     });
 
     it('should handle API errors', async () => {
@@ -54,17 +64,26 @@ describe('ProjectService', () => {
   describe('getProjectById', () => {
     it('should fetch a single project by ID', async () => {
       const projectId = '550e8400-e29b-41d4-a716-446655440001';
-      const project = mockProject({ id: projectId, name: 'Test Project' });
+      const projectInput = mockProject({ id: projectId, name: 'Test Project' });
+      const expectedProject = {
+        id: projectInput.id,
+        name: projectInput.name,
+        description: projectInput.description,
+        contract_value: projectInput.contract_value,
+        realized_spend: projectInput.realized_spend,
+        status: projectInput.status,
+        created_at: projectInput.created_at,
+      };
 
       mockedFetch.mockResolvedValue({
         ok: true,
-        json: async () => project,
+        json: async () => projectInput,
       } as Response);
 
       const result = await ProjectService.getProjectById(projectId);
 
       expect(mockedFetch).toHaveBeenCalledWith(`/api/v1/project/${projectId}`, expect.anything());
-      expect(result).toEqual(project);
+      expect(result).toEqual(expectedProject);
     });
 
     it('should handle 404 errors', async () => {

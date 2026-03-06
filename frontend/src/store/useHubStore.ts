@@ -5,7 +5,7 @@ import { secureStorage } from '../lib/crypto';
 /**
  * Hub tab types for forensic analysis views
  */
-export type HubTab = 'analytics' | 'flow' | 'lab' | 'nexus' | 'satellite';
+export type HubTab = 'analytics' | 'flow' | 'lab' | 'nexus' | 'satellite' | 'architect';
 
 /**
  * HubState interface for the hub store

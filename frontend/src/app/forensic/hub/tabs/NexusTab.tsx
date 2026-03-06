@@ -9,7 +9,6 @@ export default function NexusTab() {
 
   useEffect(() => {
     if (selectedEntity) {
-      console.log('Nexus: Focusing on entity', selectedEntity);
       // The NexusGraphPage will handle highlighting this entity
     }
   }, [selectedEntity]);

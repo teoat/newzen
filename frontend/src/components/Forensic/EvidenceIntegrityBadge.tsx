@@ -20,7 +20,7 @@ export function EvidenceIntegrityBadge({ localHash, registryHash, filename }: Ha
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider transition-all ${
+      <div className={`flex items-center gap-1.5 px-2 py-1 rounded-md border text-[11px] font-bold uppercase tracking-wider transition-all ${
         isVerified 
           ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
           : 'bg-rose-500/10 border-rose-500/30 text-rose-400 animate-pulse'
@@ -37,27 +37,27 @@ export function EvidenceIntegrityBadge({ localHash, registryHash, filename }: Ha
         >
           <div className="flex items-center gap-2 mb-3 border-b border-white/5 pb-2">
             <Fingerprint size={14} className="text-indigo-400" />
-            <span className="text-[9px] font-black uppercase text-slate-400">Forensic Signature</span>
+            <span className="text-[11px] font-black uppercase text-slate-400">Forensic Signature</span>
           </div>
           
           <div className="space-y-3">
             <div>
               <p className="text-[8px] text-slate-500 uppercase font-bold mb-1">Local Registry</p>
-              <code className="text-[10px] font-mono text-white bg-black/40 px-1.5 py-0.5 rounded block truncate">
+              <code className="text-[11px] font-mono text-white bg-black/40 px-1.5 py-0.5 rounded block truncate">
                 {localHash}
               </code>
             </div>
             
             <div>
               <p className="text-[8px] text-slate-500 uppercase font-bold mb-1">Evidence Chain (Registry)</p>
-              <code className={`text-[10px] font-mono px-1.5 py-0.5 rounded block truncate ${isVerified ? 'text-emerald-400' : 'text-rose-400 bg-rose-500/10'}`}>
+              <code className={`text-[11px] font-mono px-1.5 py-0.5 rounded block truncate ${isVerified ? 'text-emerald-400' : 'text-rose-400 bg-rose-500/10'}`}>
                 {registryHash}
               </code>
             </div>
 
             {!isVerified && (
               <div className="bg-rose-500/20 border border-rose-500/30 p-2 rounded-lg mt-2">
-                <p className="text-[9px] text-rose-200 font-bold leading-tight">
+                <p className="text-[11px] text-rose-200 font-bold leading-tight">
                   WARNING: Document content has been modified after initial ingestion. Legal chain-of-custody broken.
                 </p>
               </div>

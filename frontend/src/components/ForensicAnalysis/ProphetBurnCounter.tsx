@@ -37,7 +37,7 @@ const ProphetBurnCounter: React.FC<ProphetBurnCounterProps> = ({
       <div className="flex justify-between items-start mb-8 relative z-10">
         <div>
           <h3 className="text-xl font-black text-white italic tracking-tighter uppercase">Prophet exhaustion forecast</h3>
-          <p className="text-slate-500 text-[10px] font-mono tracking-[0.3em] uppercase mt-1">Real-Time Burn Rate Analysis</p>
+          <p className="text-slate-500 text-[11px] font-mono tracking-[0.3em] uppercase mt-1">Real-Time Burn Rate Analysis</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1 bg-rose-500/10 border border-rose-500/20 rounded-full">
             <TrendingDown className="w-3 h-3 text-rose-500" />
@@ -48,7 +48,7 @@ const ProphetBurnCounter: React.FC<ProphetBurnCounterProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
         <div className="space-y-8">
             <div>
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Estimated Days to Depletion</div>
+                <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Estimated Days to Depletion</div>
                 <div className="text-6xl font-black text-white italic tracking-tighter tabular-nums">
                     {days.toFixed(4)}
                 </div>
@@ -56,7 +56,7 @@ const ProphetBurnCounter: React.FC<ProphetBurnCounterProps> = ({
 
             <div className="space-y-4">
                 <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Capital Reservoir</span>
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Capital Reservoir</span>
                     <span className="text-xs font-black text-white uppercase">{percentage.toFixed(1)}%</span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -91,7 +91,7 @@ const ProphetBurnCounter: React.FC<ProphetBurnCounterProps> = ({
                 </div>
             </div>
             
-            <p className="text-[9px] text-slate-500 leading-relaxed uppercase font-bold italic">
+            <p className="text-[11px] text-slate-500 leading-relaxed uppercase font-bold italic">
                 Zenith Prophet detected a 14% increase in non-BIM related expenses in the last 48 hours.
             </p>
         </div>

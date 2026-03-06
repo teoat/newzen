@@ -72,7 +72,7 @@ export default function AssetRecoveryPage() {
                     <div>
                         <h1 className="text-xl font-bold text-white tracking-tight">Flux Capital Tracer</h1>
                         <div className="flex items-center gap-3 mt-1">
-                            <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-bold uppercase tracking-wider">Multi-Ledger Recovery</span>
+                            <span className="text-[11px] bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded border border-cyan-500/20 font-bold uppercase tracking-wider">Multi-Ledger Recovery</span>
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@ export default function AssetRecoveryPage() {
                 {/* Control Panel */}
                 <div className="w-96 depth-border-strong depth-layer-1 p-8 flex flex-col gap-8 shrink-0">
                     <div className="space-y-4">
-                        <label htmlFor="project-id" className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <label htmlFor="project-id" className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                              <Target className="w-3 h-3" /> Target Project
                         </label>
                         <input 
@@ -103,10 +103,10 @@ export default function AssetRecoveryPage() {
                     </div>
 
                     <div className="p-6 rounded-2xl tactical-card depth-layer-2 depth-border-subtle">
-                        <h3 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-4">Coverage Map</h3>
+                        <h3 className="text-[11px] font-black text-cyan-400 uppercase tracking-widest mb-4">Coverage Map</h3>
                         <div className="grid grid-cols-2 gap-3">
                             {['SWIFT / SEPA', 'Ethereum (ERC20)', 'Tron (TRC20)', 'Bitcoin Omni', 'Offshore Leaks', 'Property Registries'].map(item => (
-                                <div key={item} className="flex items-center gap-2 text-[9px] font-bold text-slate-400">
+                                <div key={item} className="flex items-center gap-2 text-[11px] font-bold text-slate-400">
                                     <div className="w-1 h-1 rounded-full bg-cyan-500" /> {item}
                                 </div>
                             ))}
@@ -122,11 +122,11 @@ export default function AssetRecoveryPage() {
                         <div className="w-full max-w-5xl animate-in zoom-in duration-500">
                             <div className="flex justify-between items-end mb-10 pb-6 border-b border-white/5">
                                 <div>
-                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Trace Identification</p>
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Trace Identification</p>
                                     <h2 className="text-3xl font-black text-white font-mono">{result.trace_id}</h2>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-1">Estimated Recoverable Value</p>
+                                    <p className="text-[11px] font-bold text-cyan-500 uppercase tracking-widest mb-1">Estimated Recoverable Value</p>
                                     <h2 className="text-3xl font-black text-cyan-400 text-shadow-glow">{fmt(result.recoverable_amount_estimate)}</h2>
                                 </div>
                             </div>
@@ -153,7 +153,7 @@ export default function AssetRecoveryPage() {
                                                      <DollarSign className="w-5 h-5" />}
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{node.type}</p>
+                                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{node.type}</p>
                                                     <p className="text-sm font-bold text-white truncate">{node.label}</p>
                                                 </div>
                                             </div>
@@ -164,7 +164,7 @@ export default function AssetRecoveryPage() {
                                                     {outgoing.map((link, idx) => (
                                                         <div key={idx} className="flex items-center gap-2">
                                                             <div className="w-16 h-px bg-cyan-500/30" />
-                                                            <div className="px-3 py-1 rounded bg-cyan-950 border border-cyan-500/20 text-[10px] font-mono text-cyan-400 whitespace-nowrap">
+                                                            <div className="px-3 py-1 rounded bg-cyan-950 border border-cyan-500/20 text-[11px] font-mono text-cyan-400 whitespace-nowrap">
                                                                 {link.currency} {link.value.toLocaleString()} 
                                                                 <ArrowRight className="w-3 h-3 inline ml-2" /> 
                                                                 {/* Target Label would be nice here but we only have ID in link */}

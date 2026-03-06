@@ -111,7 +111,7 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-3xl font-black text-white">{(compareResults.summary.agreement_rate * 100).toFixed(0)}%</span>
-                <span className="text-[10px] uppercase font-bold text-slate-500">Match Rate</span>
+                <span className="text-[11px] uppercase font-bold text-slate-500">Match Rate</span>
               </div>
             </div>
           </div>
@@ -167,7 +167,7 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
             <div className="relative z-10 text-xs font-bold text-indigo-300 uppercase tracking-widest bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-500/30">
               Manual Effort Saved
             </div>
-            <div className="relative z-10 mt-4 text-[10px] font-mono text-slate-500">
+            <div className="relative z-10 mt-4 text-[11px] font-mono text-slate-500">
               AI Analysis Time: 0.42s
             </div>
           </div>
@@ -181,7 +181,7 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
               <Globe className="w-4 h-4 text-indigo-400" />
               Discrepancy Hotspots
             </h3>
-            <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Spatial distribution of consensus variance</p>
+            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest mt-1">Spatial distribution of consensus variance</p>
           </div>
           <ForensicGeoMap hotspots={hotspots} />
         </div>
@@ -193,17 +193,17 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
               {hotspots.map(h => (
                 <div key={h.id} className="p-4 bg-black/40 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-indigo-500/30 transition-all">
                   <div>
-                    <p className="text-[10px] font-black text-white uppercase tracking-tight">{h.location.name}</p>
+                    <p className="text-[11px] font-black text-white uppercase tracking-tight">{h.location.name}</p>
                     <p className="text-[8px] text-slate-600 font-black uppercase tracking-widest mt-1">{h.rootCause}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-mono font-bold text-indigo-400">Rp {(h.value / 1000000).toFixed(0)}M</p>
+                    <p className="text-[11px] font-mono font-bold text-indigo-400">Rp {(h.value / 1000000).toFixed(0)}M</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <button className="w-full py-4 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all">
+          <button className="w-full py-4 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
             Analyze Cluster Dispersion
           </button>
         </div>
@@ -245,8 +245,8 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
                 ${row.match_status === 'agree' ? 'bg-slate-900/40 border-slate-700' : 'bg-indigo-900/10 border-indigo-500/30'}
               `}>
                 <div className="mb-2 flex justify-between items-start">
-                  <span className="text-[10px] uppercase tracking-widest text-indigo-400 font-bold">AI Verdict</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono border ${getVerdictStyle(row.app_verdict)}`}>
+                  <span className="text-[11px] uppercase tracking-widest text-indigo-400 font-bold">AI Verdict</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-mono border ${getVerdictStyle(row.app_verdict)}`}>
                     {row.app_verdict}
                   </span>
                 </div>
@@ -255,10 +255,10 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
                   <p className="text-xs font-mono text-slate-400">IDR {row.amount.toLocaleString('id-ID')}</p>
                 </div>
                 <div className="mt-3 pt-3 border-t border-white/5">
-                  <p className="text-[10px] text-slate-500 mb-1">REASONING:</p>
+                  <p className="text-[11px] text-slate-500 mb-1">REASONING:</p>
                   <div className="flex flex-wrap gap-1">
                     {row.app_reasoning.slice(0, 3).map((r, i) => (
-                      <span key={i} className="text-[10px] px-1.5 py-0.5 bg-white/5 rounded text-indigo-200">
+                      <span key={i} className="text-[11px] px-1.5 py-0.5 bg-white/5 rounded text-indigo-200">
                         {r}
                       </span>
                     ))}
@@ -270,8 +270,8 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
                 ${row.match_status === 'agree' ? 'bg-slate-900/40 border-slate-700' : 'bg-fuchsia-900/10 border-fuchsia-500/30'}
               `}>
                 <div className="mb-2 flex justify-between items-start">
-                  <span className="text-[10px] uppercase tracking-widest text-fuchsia-400 font-bold">Analyst Input</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono
+                  <span className="text-[11px] uppercase tracking-widest text-fuchsia-400 font-bold">Analyst Input</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-mono
                     ${row.user_marked_as_project ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-slate-700 text-slate-400'}
                   `}>
                     {row.user_marked_as_project ? 'MARKED AS PROJECT' : 'IGNORED'}
@@ -283,7 +283,7 @@ export function ComparisonTable({ compareResults, hotspots, onReset }: Compariso
                 </div>
                 {row.user_comment && (
                   <div className="mt-3 pt-3 border-t border-white/5">
-                    <p className="text-[10px] text-slate-500 mb-1">COMMENT:</p>
+                    <p className="text-[11px] text-slate-500 mb-1">COMMENT:</p>
                     <p className="text-xs italic text-fuchsia-200">&quot;{row.user_comment}&quot;</p>
                   </div>
                 )}

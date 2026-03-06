@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { Gavel, Scale, ShieldAlert, BookOpen, ExternalLink, Loader2, Zap, Activity } from 'lucide-react';
@@ -93,7 +92,7 @@ export default function LegalDossierPage() {
             <button 
               onClick={handleGenerate}
               disabled={isGenerating}
-              className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-4 group border border-indigo-400/20"
+              className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-600/50 text-white px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-indigo-900/40 transition-all active:scale-95 flex items-center gap-4 group border border-indigo-400/20"
             >
               {isGenerating ? (
                 <>
@@ -123,12 +122,12 @@ export default function LegalDossierPage() {
                 <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
                     <Activity className="w-5 h-5 text-indigo-500" /> AI Narrative Synthesis
                 </h2>
-                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Generate executive context using Zenith Logic Engine v3</p>
+                <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest">Generate executive context using Zenith Logic Engine v3</p>
             </div>
             <button 
                 onClick={handleSynthesize}
                 disabled={isSynthesizing}
-                className="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-400 hover:text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
+                className="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/40 text-indigo-400 hover:text-white px-6 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all disabled:opacity-50 flex items-center gap-2"
             >
                 {isSynthesizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                 {isSynthesizing ? "Synthesizing..." : "Generate Narrative"}
@@ -146,7 +145,7 @@ export default function LegalDossierPage() {
             </motion.div>
         ) : (
             <div className="border border-dashed border-white/10 rounded-3xl p-12 text-center">
-                <p className="text-slate-600 text-[10px] font-bold uppercase tracking-widest">No narrative generated for ZENITH-001. Click generate to begin synthesis.</p>
+                <p className="text-slate-600 text-[11px] font-bold uppercase tracking-widest">No narrative generated for ZENITH-001. Click generate to begin synthesis.</p>
             </div>
         )}
       </section>
@@ -159,10 +158,10 @@ export default function LegalDossierPage() {
                    <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight">
                        <ShieldAlert className="w-5 h-5 text-orange-500" /> Fraud Triangle Analysis
                    </h2>
-                   <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Criminological Framework</p>
+                   <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mt-1">Criminological Framework</p>
                 </div>
                 {/* Mock Save Indicator */}
-                <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+                <div className="flex items-center gap-2 text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
                     <Activity className="w-3 h-3" /> LIVE SAVE
                 </div>
              </div>
@@ -176,7 +175,7 @@ export default function LegalDossierPage() {
                   <div key={item.id} className={`p-6 rounded-3xl border ${item.border} ${item.bg} relative group hover:bg-opacity-20 transition-all`}>
                       <item.icon className={`w-8 h-8 ${item.color} mb-4 opacity-50`} />
                       <h3 className={`text-sm font-black ${item.color} uppercase tracking-widest mb-1`}>{item.label}</h3>
-                      <p className="text-[10px] text-slate-500 font-bold uppercase mb-4">{item.sub}</p>
+                      <p className="text-[11px] text-slate-500 font-bold uppercase mb-4">{item.sub}</p>
                       <textarea 
                         aria-label={item.label}
                         className="w-full bg-black/20 border border-white/5 rounded-xl p-3 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-white/20 transition-colors h-24 resize-none font-mono"
@@ -192,7 +191,7 @@ export default function LegalDossierPage() {
             <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-tight mb-2">
                 <Zap className="w-5 h-5 text-purple-500" /> Mens Rea Matrix
             </h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6">Establishing Criminal Intent</p>
+            <p className="text-slate-500 text-[11px] font-bold uppercase tracking-widest mb-6">Establishing Criminal Intent</p>
             
             <div className="space-y-4">
                {['Purpose', 'Knowledge', 'Recklessness', 'Negligence'].map((level, i) => (
@@ -216,7 +215,7 @@ export default function LegalDossierPage() {
                   </div>
                ))}
                <div className="mt-6 p-4 rounded-2xl bg-black/40 border border-dashed border-slate-700 text-center">
-                   <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Drag evidence here to map intent</p>
+                   <p className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Drag evidence here to map intent</p>
                </div>
             </div>
         </div>
@@ -256,10 +255,10 @@ export default function LegalDossierPage() {
              <div key={law.title} className="glass-panel p-6 rounded-3xl border border-white/5 hover:border-white/10 transition-all">
                 <div className="flex justify-between items-start mb-2">
                    <h3 className="font-bold text-white">{law.title}</h3>
-                   <span className="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">{law.status}</span>
+                   <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-bold uppercase">{law.status}</span>
                 </div>
                 <p className="text-sm text-slate-400 leading-relaxed mb-4">{law.description}</p>
-                <button className="text-[10px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1 hover:underline">
+                <button className="text-[11px] font-black text-blue-400 uppercase tracking-widest flex items-center gap-1 hover:underline">
                   Full text archive <ExternalLink className="w-2.5 h-2.5" />
                 </button>
              </div>
@@ -297,7 +296,7 @@ export default function LegalDossierPage() {
                               <div className={`text-xs font-black uppercase tracking-tight ${isCompleted ? 'text-emerald-400' : 'text-white'}`}>
                                 {item.label}
                               </div>
-                              <div className="text-[10px] text-slate-500 mt-1 font-bold italic">{item.desc}</div>
+                              <div className="text-[11px] text-slate-500 mt-1 font-bold italic">{item.desc}</div>
                           </div>
                       </div>
                     );

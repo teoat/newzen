@@ -1,16 +1,17 @@
 import { API_ROUTES } from './apiRoutes';
 import { IngestionHistoryItem, DiagnosticMetrics } from '../app/ingestion/types';
+import { authenticatedFetch } from '../lib/api';
 
 export const IngestionService = {
     async fetchHistory(projectId: string): Promise<IngestionHistoryItem[]> {
-        const res = await fetch(API_ROUTES.INGESTION.HISTORY(projectId));
+        const res = await authenticatedFetch(API_ROUTES.INGESTION.HISTORY(projectId));
         if (!res.ok) throw new Error('Failed to fetch history');
         const data = await res.json();
         return data.ingestions;
     },
 
     async notarizeBatch(ingestionId: string): Promise<{ tx_hash: string }> {
-        const res = await fetch(API_ROUTES.INGESTION.NOTARIZE(ingestionId), {
+        const res = await authenticatedFetch(API_ROUTES.INGESTION.NOTARIZE(ingestionId), {
             method: 'POST'
         });
         if (!res.ok) throw new Error('Notarization failed');
@@ -18,9 +19,8 @@ export const IngestionService = {
     },
 
     async consolidate(payload: Record<string, unknown>): Promise<{ diagnostics: DiagnosticMetrics; recordsProcessed: number; balanceCheck?: unknown; ingestionId?: string }> {
-        const res = await fetch(API_ROUTES.INGESTION.CONSOLIDATE, {
+        const res = await authenticatedFetch(API_ROUTES.INGESTION.CONSOLIDATE, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
@@ -33,9 +33,8 @@ export const IngestionService = {
     },
 
     async validate(payload: Record<string, unknown>): Promise<{ insights: unknown[] }> {
-        const res = await fetch(API_ROUTES.INGESTION.VALIDATE, {
+        const res = await authenticatedFetch(API_ROUTES.INGESTION.VALIDATE, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (!res.ok) throw new Error('Validation failed');
@@ -43,7 +42,7 @@ export const IngestionService = {
     },
 
     async verifyIntegrity(hash: string): Promise<{ verified: boolean }> {
-        const res = await fetch(API_ROUTES.INGESTION.VERIFY(hash));
+        const res = await authenticatedFetch(API_ROUTES.INGESTION.VERIFY(hash));
         if (!res.ok) throw new Error('Integrity check failed');
         return res.json();
     },

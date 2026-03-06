@@ -150,7 +150,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
               
               {/* Tooltip Label (Always visible for Critical) */}
               {isCritical && (
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 bg-slate-900/90 border border-rose-500/30 rounded-md text-[10px] font-black text-rose-400 uppercase tracking-wider backdrop-blur-sm shadow-xl">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 bg-slate-900/90 border border-rose-500/30 rounded-md text-[11px] font-black text-rose-400 uppercase tracking-wider backdrop-blur-sm shadow-xl">
                   {hotspot.location.name}
                 </div>
               )}
@@ -175,7 +175,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
                        <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                        {selectedHotspot.location.name}
                    </h3>
-                   <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                   <div className="text-[11px] text-slate-400 font-mono mt-0.5">
                        {selectedHotspot.id} • {selectedHotspot.rootCause}
                    </div>
                 </div>
@@ -190,7 +190,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
             
             <div className="flex items-end justify-between">
                 <div>
-                    <div className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Leakage Value</div>
+                    <div className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Leakage Value</div>
                     <div className="text-xl font-black text-white">
                         Rp {(selectedHotspot.value / 1000000000).toFixed(2)} B
                     </div>
@@ -198,7 +198,7 @@ export default function ForensicGeoMap({ hotspots = [] }: ForensicGeoMapProps) {
                 
                 <button
                     onClick={() => handleInvestigate(selectedHotspot)}
-                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 transition-colors"
+                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-2 transition-colors"
                 >
                     {activeInvestigation ? (
                         <>

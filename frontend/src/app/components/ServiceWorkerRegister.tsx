@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '../../lib/logger';
 
 export default function ServiceWorkerRegister() {
   useEffect(() => {
@@ -8,10 +9,10 @@ export default function ServiceWorkerRegister() {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').then(
           (registration) => {
-            console.log('Zenith SW registered: ', registration.scope);
+            logger.info('Zenith SW registered: ' + registration.scope);
           },
           (err) => {
-            console.log('Zenith SW registration failed: ', err);
+            logger.errorWithInfo('Zenith SW registration failed', err);
           }
         );
       });

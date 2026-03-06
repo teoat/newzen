@@ -9,6 +9,8 @@ import EventBusDebugger from "./Forensic/EventBusDebugger";
 import { useProject } from '../store/useProject';
 import { forensicBus } from '../lib/ForensicEventBus';
 
+import { ForensicCopilot } from "./AI/ForensicCopilot";
+
 export default function GlobalTools() {
   const { activeProjectId } = useProject();
 
@@ -19,6 +21,7 @@ export default function GlobalTools() {
   return (
     <>
       <FrenlyPolicewomanWidget />
+      <ForensicCopilot />
       <TelemetrySync />
       <InvestigationPanel />
       <EventBusDebugger />

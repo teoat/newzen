@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { 
@@ -60,7 +59,7 @@ export default function SanctionScreeningPage() {
             icon={ShieldAlert}
             headerActions={
                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] bg-rose-500/10 text-rose-400 px-3 py-1.5 rounded-xl border border-rose-500/20 font-black uppercase tracking-widest">Active Intelligence Feed</span>
+                    <span className="text-[11px] bg-rose-500/10 text-rose-400 px-3 py-1.5 rounded-xl border border-rose-500/20 font-black uppercase tracking-widest">Active Intelligence Feed</span>
                 </div>
             }
         >
@@ -75,7 +74,7 @@ export default function SanctionScreeningPage() {
                         
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Entity Name / Tax ID</label>
+                                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Entity Name / Tax ID</label>
                                 <div className="relative">
                                     <input 
                                         type="text" 
@@ -92,7 +91,7 @@ export default function SanctionScreeningPage() {
                             <button
                                 onClick={handleScreen}
                                 disabled={isScreening || !entityName}
-                                className="w-full py-5 bg-white text-slate-950 hover:bg-rose-50 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
+                                className="w-full py-5 bg-white text-slate-950 hover:bg-rose-50 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-rose-900/10 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                             >
                                 {isScreening ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldAlert className="w-4 h-4 text-rose-600" />}
                                 {isScreening ? 'Scanning Databases...' : 'Run Compliance Check'}
@@ -101,10 +100,10 @@ export default function SanctionScreeningPage() {
                     </div>
 
                     <div className="p-8 rounded-[2.5rem] bg-rose-500/5 border border-rose-500/10">
-                         <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-4 ml-1">Active Watchlists</h3>
+                         <h3 className="text-[11px] font-black text-rose-400 uppercase tracking-widest mb-4 ml-1">Active Watchlists</h3>
                          <div className="grid grid-cols-2 gap-4">
                              {['OFAC SDN', 'UN Consolidated', 'Interpol Red', 'EU Financial Sanctions', 'UK HMT', 'AUSTRAC'].map(item => (
-                                 <div key={item} className="flex items-center gap-2 text-[10px] font-bold text-slate-400 bg-slate-900/50 px-3 py-2.5 rounded-xl border border-white/5">
+                                 <div key={item} className="flex items-center gap-2 text-[11px] font-bold text-slate-400 bg-slate-900/50 px-3 py-2.5 rounded-xl border border-white/5">
                                      <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" /> {item}
                                  </div>
                              ))}
@@ -129,12 +128,12 @@ export default function SanctionScreeningPage() {
                                     </div>
                                     <div>
                                         <h2 className="text-2xl font-black text-white uppercase tracking-tight">{result.entity}</h2>
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">
+                                        <p className="text-[11px] text-slate-500 font-black uppercase tracking-widest mt-1">
                                             Risk Score: <span className={result.risk_score > 50 ? 'text-rose-400' : 'text-emerald-400'}>{result.risk_score}/100</span>
                                         </p>
                                     </div>
                                 </div>
-                                <div className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border ${
+                                <div className={`px-6 py-2 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] border ${
                                     result.status === 'BLOCKED' ? 'bg-rose-500/10 border-rose-500/30 text-rose-500' :
                                     result.status === 'REVIEW_REQUIRED' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' :
                                     'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
@@ -152,17 +151,17 @@ export default function SanctionScreeningPage() {
                                         <div key={i} className="p-6 rounded-2xl bg-rose-500/5 border border-rose-500/20 hover:bg-rose-500/10 transition-colors">
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider">{match.list}</span>
-                                                    <span className="text-[10px] font-bold text-rose-300 uppercase tracking-widest">Similarity: {(match.similarity * 100).toFixed(0)}%</span>
+                                                    <span className="text-[11px] bg-rose-500 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider">{match.list}</span>
+                                                    <span className="text-[11px] font-bold text-rose-300 uppercase tracking-widest">Similarity: {(match.similarity * 100).toFixed(0)}%</span>
                                                 </div>
                                             </div>
                                             <div className="flex gap-10">
                                                 <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Matched Entry</p>
+                                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Matched Entry</p>
                                                     <p className="text-sm font-bold text-white font-mono">{match.entry}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mb-1">Sanction Program</p>
+                                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1">Sanction Program</p>
                                                     <p className="text-sm font-bold text-white">{match.program}</p>
                                                 </div>
                                             </div>
@@ -179,7 +178,7 @@ export default function SanctionScreeningPage() {
                                 </div>
                             )}
 
-                            <div className="mt-8 pt-8 border-t border-white/5 flex justify-between items-center text-[10px] font-mono text-slate-600 font-black uppercase tracking-widest">
+                            <div className="mt-8 pt-8 border-t border-white/5 flex justify-between items-center text-[11px] font-mono text-slate-600 font-black uppercase tracking-widest">
                                 <span>REF: {new Date().getTime().toString(16).toUpperCase()}</span>
                                 
                                 <button className="flex items-center gap-2 hover:text-white transition-colors">

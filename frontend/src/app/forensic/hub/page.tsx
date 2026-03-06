@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -84,7 +83,7 @@ const ForensicHubContent = () => {
       headerActions={
         <div className="flex items-center gap-4">
           <div className="px-4 py-2 rounded-xl bg-slate-900/50 border border-white/10">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Project</span>
+            <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Project</span>
             <p className="text-sm font-bold text-white">{activeProjectId}</p>
           </div>
         </div>
@@ -124,7 +123,7 @@ const ForensicHubContent = () => {
                         className="h-full overflow-hidden bg-slate-900/20 relative"
                      >
                          {/* Secondary Tab Label overlay */}
-                         <div className="absolute top-4 right-6 z-10 px-3 py-1 bg-black/60 backdrop-blur rounded-full border border-white/10 text-[10px] font-black uppercase text-slate-400 pointer-events-none">
+                         <div className="absolute top-4 right-6 z-10 px-3 py-1 bg-black/60 backdrop-blur rounded-full border border-white/10 text-[11px] font-black uppercase text-slate-400 pointer-events-none">
                              Comparison: {secondaryTab || 'Nexus'}
                          </div>
                          <TabContent activeTab={secondaryTab || 'nexus'} />

@@ -60,8 +60,8 @@ interface RawAnalysisResponse {
 type Step = 'upload' | 'analyzing' | 'raw-results' | 'compare-results';
 
 const API_URL = typeof window !== 'undefined' 
-  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200')
-  : 'http://localhost:8200';
+  ? (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000')
+  : 'http://localhost:8000';
 
 export default function AnalystComparisonPage() {
   const [mounted, setMounted] = useState(false);
@@ -154,7 +154,8 @@ export default function AnalystComparisonPage() {
   useEffect(() => {
     async function fetchHotspots() {
       try {
-        const res = await fetch('http://localhost:8200/api/v1/geo-link/map-data/ZENITH-DEMO-001');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        const res = await fetch(`${apiUrl}/api/v1/geo-link/map-data/ZENITH-DEMO-001`);
         if (!res.ok) throw new Error("Failed to fetch map data");
         const data = await res.json();
         
@@ -192,18 +193,21 @@ export default function AnalystComparisonPage() {
         subtitle="Automated Pattern Recognition vs Auditor Analysis"
         icon={Search}
     >
-      <div className="p-8 space-y-10 overflow-y-auto h-full custom-scrollbar">
+      <div className="relative h-full overflow-y-auto custom-scrollbar bg-indigo-950/10 p-10 space-y-10">
+        {/* Indigo Gradient Overlay */}
+        <div className="fixed inset-0 bg-gradient-to-br from-indigo-900/10 via-transparent to-slate-950 pointer-events-none" />
+        
         <div className="relative z-10">
           <div className="flex items-center gap-4 mb-2">
-            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase flex items-center gap-4">
+            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase flex items-center gap-4 drop-shadow-lg">
               Consensus Engine
             </h1>
           </div>
-          <p className="text-slate-500 font-bold text-sm uppercase tracking-widest leading-relaxed max-w-2xl">
+          <p className="text-indigo-200/60 font-bold text-sm uppercase tracking-widest leading-relaxed max-w-2xl">
               Cross-referencing independent AI pattern recognition against human-led manual audit protocol to identify variance hotspots.
           </p>
           
-          <div className="mt-8 p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center gap-4 max-w-2xl">
+          <div className="mt-8 p-4 bg-indigo-600/10 border border-indigo-500/20 rounded-2xl flex items-center gap-4 max-w-2xl backdrop-blur-sm shadow-xl shadow-indigo-900/20">
               <div className="p-2 bg-indigo-600/20 rounded-xl text-indigo-400 shrink-0">
                   <Sparkles className="w-5 h-5" />
               </div>
@@ -214,84 +218,96 @@ export default function AnalystComparisonPage() {
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300">
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-300 relative z-10">
             <strong>Error:</strong> {error}
           </div>
         )}
 
         {step === 'upload' && (
-          <UploadStep
-            bankFile={bankFile}
-            analysisFile={analysisFile}
-            onDropBank={onDropBank}
-            onDropAnalysis={onDropAnalysis}
-            onRunRawAnalysis={runRawAnalysis}
-            onRunComparison={runComparison}
-          />
+          <div className="relative z-10">
+            <UploadStep
+                bankFile={bankFile}
+                analysisFile={analysisFile}
+                onDropBank={onDropBank}
+                onDropAnalysis={onDropAnalysis}
+                onRunRawAnalysis={runRawAnalysis}
+                onRunComparison={runComparison}
+            />
+          </div>
         )}
 
         {step === 'analyzing' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mb-6" />
+          <div className="flex flex-col items-center justify-center py-20 relative z-10">
+            <div className="w-20 h-20 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-6 shadow-2xl shadow-indigo-500/50" />
             <h2 className="text-2xl font-semibold text-white mb-2">Discovering Patterns...</h2>
-            <p className="text-slate-400">Analyzing raw transaction data independently</p>
+            <p className="text-indigo-300/60">Analyzing raw transaction data independently</p>
           </div>
         )}
 
         {step === 'raw-results' && rawResults && (
-          <AnalysisResults
-            rawResults={rawResults}
-            onReset={reset}
-            setSelectedRow={setSelectedRow}
-          />
+           <div className="relative z-10">
+              <AnalysisResults
+                rawResults={rawResults}
+                onReset={reset}
+                setSelectedRow={setSelectedRow}
+              />
+           </div>
         )}
 
         {step === 'compare-results' && compareResults && (
-          <ComparisonTable
-            compareResults={compareResults}
-            hotspots={hotspots}
-            onReset={reset}
-          />
+           <div className="relative z-10">
+              <ComparisonTable
+                compareResults={compareResults}
+                hotspots={hotspots}
+                onReset={reset}
+              />
+           </div>
         )}
 
         {selectedRow && 'discovered_patterns' in selectedRow && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setSelectedRow(null)}>
-            <div className="bg-slate-900 rounded-2xl p-6 max-w-lg w-full border border-slate-700" onClick={e => e.stopPropagation()}>
-              <h3 className="text-xl font-bold text-white mb-4">Transaction #{selectedRow.row_no}</h3>
-              <div className="space-y-4">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4" onClick={() => setSelectedRow(null)}>
+            <div className="bg-slate-900 border border-indigo-500/30 rounded-2xl p-8 max-w-lg w-full shadow-2xl shadow-indigo-900/50 relative overflow-hidden" onClick={e => e.stopPropagation()}>
+               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500" />
+              <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight flex items-center gap-2">
+                <Search className="w-5 h-5 text-indigo-400" />
+                Transaction #{selectedRow.row_no}
+              </h3>
+              <div className="space-y-6">
                 <div>
-                  <label className="text-sm text-slate-400">Description</label>
-                  <p className="text-white">{selectedRow.raw_description}</p>
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">Description</label>
+                  <p className="text-white bg-white/5 p-3 rounded-lg border border-white/5">{selectedRow.raw_description}</p>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400">Amount</label>
-                  <p className="text-white font-mono">{selectedRow.amount.toLocaleString('id-ID')} IDR</p>
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">Amount</label>
+                  <p className="text-white font-mono text-lg">{selectedRow.amount.toLocaleString('id-ID')} IDR</p>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400">App Verdict</label>
-                  <span className="ml-2 px-3 py-1 rounded-full text-sm font-medium border bg-emerald-500/20 text-emerald-300 border-emerald-500/40">
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">App Verdict</label>
+                  <span className="inline-block px-3 py-1 rounded-full text-xs font-black border bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase tracking-widest">
                     {selectedRow.verdict}
                   </span>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400 block mb-2">Discovered Patterns</label>
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-2">Discovered Patterns</label>
                   <div className="flex flex-wrap gap-2">
                     {selectedRow.discovered_patterns.map(p => (
-                      <span key={p} className="px-2 py-1 rounded text-sm bg-slate-500/30 text-slate-200">{p}</span>
+                      <span key={p} className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">{p}</span>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-slate-400 block mb-2">Reasoning</label>
-                  <ul className="space-y-1">
+                  <label className="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-2">Reasoning</label>
+                  <ul className="space-y-2">
                     {selectedRow.reasoning.map((r, i) => (
-                      <li key={i} className="text-sm text-slate-300">• {r}</li>
+                      <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
+                        <span className="text-indigo-500 mt-1">▶</span> {r}
+                      </li>
                     ))}
                   </ul>
                 </div>
               </div>
-              <button onClick={() => setSelectedRow(null)} className="mt-6 w-full py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg">
-                Close
+              <button onClick={() => setSelectedRow(null)} className="mt-8 w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold uppercase tracking-widest transition-all">
+                Close Dossier
               </button>
             </div>
           </div>

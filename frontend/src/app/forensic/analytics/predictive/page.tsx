@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState } from 'react';
 import { 
@@ -58,7 +57,7 @@ export default function PredictiveAnalyticsPage() {
                         
                         <div className="space-y-4">
                             <div className="p-4 rounded-xl bg-slate-950 border border-white/5">
-                                <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Active Project</p>
+                                <p className="text-[11px] text-slate-500 font-bold uppercase mb-1">Active Project</p>
                                 <p className="text-sm font-black text-white">{activeProjectId || 'NONE_SELECTED'}</p>
                             </div>
 
@@ -99,18 +98,18 @@ export default function PredictiveAnalyticsPage() {
                                     <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <TrendingUp className="w-8 h-8 text-indigo-500 mb-4" />
                                     <h3 className="text-4xl font-black text-white mb-2">{result.leakage_rate_percent}%</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Leakage Factor</p>
+                                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Leakage Factor</p>
                                 </div>
                                 <div className="p-8 rounded-[2rem] bg-black/40 border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden group">
                                     <div className="absolute inset-0 bg-rose-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     <Activity className="w-8 h-8 text-rose-500 mb-4" />
                                     <h3 className="text-3xl font-black text-white mb-2">Rp {(result.predicted_total_leakage / 1000000000).toFixed(2)}B</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Predicted Total Leakage</p>
+                                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">Predicted Total Leakage</p>
                                 </div>
                             </div>
 
                             <div className="p-8 rounded-[2rem] bg-indigo-500/5 border border-indigo-500/10">
-                                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4">Forensic Inference</h4>
+                                <h4 className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-4">Forensic Inference</h4>
                                 <p className="text-lg font-bold text-slate-300 leading-relaxed italic">
                                     Based on current variance of <span className="text-white font-black">Rp {(result.current_leakage/1000000).toFixed(1)}M</span> detected in the first <span className="text-white font-black">Rp {(result.realized_spend/1000000).toFixed(1)}M</span> of realization, the model predicts a terminal leakage of <span className="text-rose-500 font-black">Rp {(result.predicted_total_leakage/1000000).toFixed(1)}M</span> if spending patterns persist.
                                 </p>

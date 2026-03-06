@@ -21,8 +21,12 @@ const NexusTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/Nex
   loading: () => <TabLoading label="Nexus Graph" />
 });
 
-const SatelliteTab = NextDynamic(() => import('../../../../app/forensic/hub/tabs/SatelliteTab'), {
+const SatelliteTab = NextDynamic(() => import('../tabs/SatelliteTab'), {
   loading: () => <TabLoading label="Satellite Verification" />
+});
+
+const ArchitectTab = NextDynamic(() => import('../tabs/ArchitectTab'), {
+  loading: () => <TabLoading label="Architect Spatial AI" />
 });
 
 import { useHubStore, HubTab } from '../../../../store/useHubStore';
@@ -53,6 +57,7 @@ export function TabContent({ activeTab }: TabContentProps) {
       case 'lab': return <LabTab />;
       case 'nexus': return <NexusTab />;
       case 'satellite': return <SatelliteTab />;
+      case 'architect': return <ArchitectTab />;
       default: return null;
     }
   };
@@ -63,6 +68,7 @@ export function TabContent({ activeTab }: TabContentProps) {
     { id: 'lab', label: 'Lab' },
     { id: 'nexus', label: 'Nexus' },
     { id: 'satellite', label: 'Satellite' },
+    { id: 'architect', label: 'Architect' },
   ];
 
   if (comparisonMode) {
@@ -71,7 +77,7 @@ export function TabContent({ activeTab }: TabContentProps) {
         {/* Left Pane (Primary) */}
         <div className="flex-1 border border-white/5 rounded-2xl overflow-hidden flex flex-col bg-[#020617]">
            <div className="h-8 bg-slate-900/50 border-b border-white/5 flex items-center px-4">
-              <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Primary View</span>
+              <span className="text-[11px] font-black uppercase tracking-widest text-indigo-400">Primary View</span>
            </div>
            <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
               <Suspense fallback={<TabLoading label={activeTab} />}>
@@ -83,7 +89,7 @@ export function TabContent({ activeTab }: TabContentProps) {
         {/* Right Pane (Secondary) */}
         <div className="flex-1 border border-white/5 rounded-2xl overflow-hidden flex flex-col bg-[#020617]">
           <div className="h-10 bg-slate-900/50 border-b border-white/5 flex items-center justify-between px-4">
-             <span className="text-[10px] font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
+             <span className="text-[11px] font-black uppercase tracking-widest text-blue-400 flex items-center gap-2">
                 <Columns className="w-3 h-3" />
                 Comparison
              </span>

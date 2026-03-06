@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -16,13 +16,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-ENV NEXT_TELEMETRY_DISABLED 1
-
+ENV NEXT_TELEMETRY_DISABLED=1
+# Set API_URL for Next.js rewrites at build time (Docker networking)
+ENV API_URL=http://backend:8000
 RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
+RUN apk add --no-cache curl
 WORKDIR /app
 
 ENV NODE_ENV production

@@ -22,6 +22,7 @@ interface Message {
   sql?: string;
   data?: Record<string, unknown>[];
   suggestedActions?: {label: string; action?: string; route?: string; format?: string}[];
+  integrity_hash?: string; // Phase 18: Hash-linked narratives
 }
 
 interface Alert {
@@ -111,7 +112,8 @@ export default function FrenlyPolicewomanWidget() {
       if (fileToUpload) {
         const uploadResult = await uploadFile(fileToUpload, '/api/v1/ai/upload');
         if (!uploadResult.success) throw new Error(uploadResult.error || 'Upload failed');
-        formData.append('file_url', uploadResult.data?.file_url);
+        const fileUrl = (uploadResult.data as Record<string, unknown>)?.file_url;
+        if (fileUrl) formData.append('file_url', String(fileUrl));
       }
 
       const response = await authenticatedFetch('/api/v1/ai/assist', {
@@ -189,14 +191,14 @@ export default function FrenlyPolicewomanWidget() {
               exit={{ opacity: 0, x: 20 }}
               className="absolute top-1/2 -left-32 -translate-y-1/2 bg-slate-900/80 backdrop-blur-md border border-indigo-500/30 px-3 py-1.5 rounded-xl hidden group-hover:block"
             >
-              <span className="text-[10px] font-black text-white uppercase tracking-widest">Officer Frenly</span>
+              <span className="text-[11px] font-black text-white uppercase tracking-widest">Officer Frenly</span>
             </motion.div>
           )}
         </AnimatePresence>
 
         {/* Alert Badge */}
         {localAlerts.length > 0 && (
-          <div className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 rounded-full border-2 border-slate-950 flex items-center justify-center text-[10px] font-black text-white animate-bounce">
+          <div className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 rounded-full border-2 border-slate-950 flex items-center justify-center text-[11px] font-black text-white animate-bounce">
             {localAlerts.length}
           </div>
         )}
@@ -227,7 +229,7 @@ export default function FrenlyPolicewomanWidget() {
                     <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">Zenith Precinct // AI-01</h3>
                     <div className="flex items-center gap-2">
                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse border border-emerald-400/50" />
-                       <span className="text-[9px] text-indigo-400/80 font-mono tracking-widest uppercase">Forensic Liaison Active</span>
+                       <span className="text-[11px] text-indigo-400/80 font-mono tracking-widest uppercase">Forensic Liaison Active</span>
                     </div>
                   </div>
                 </div>
@@ -252,7 +254,7 @@ export default function FrenlyPolicewomanWidget() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as TabType)}
                     className={`
-                      flex-1 flex items-center justify-center gap-2 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
+                      flex-1 flex items-center justify-center gap-2 py-2 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all
                       ${activeTab === tab.id 
                         ? 'bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]' 
                         : 'text-slate-500 hover:text-white hover:bg-white/5'}
@@ -277,16 +279,24 @@ export default function FrenlyPolicewomanWidget() {
                         className={`flex ${msg.role === 'ai' ? 'justify-start' : 'justify-end'}`}
                       >
                         <div className={`
-                          max-w-[90%] rounded-[24px] p-4 text-xs leading-relaxed
+                          max-w-[90%] rounded-[24px] p-4 text-xs leading-relaxed relative
                           ${msg.role === 'ai' 
                             ? 'bg-slate-900/50 text-slate-300 border border-white/5 rounded-tl-none' 
                             : 'bg-indigo-600 text-white rounded-tr-none shadow-xl shadow-indigo-900/30 font-medium'}
                         `}>
                           {msg.text}
                           
+                          {/* Phase 18: Integrity Hash Badge */}
+                          {msg.integrity_hash && (
+                              <div className="mt-2 flex items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                                  <BadgeCheck size={10} className="text-emerald-400" />
+                                  <span className="text-[7px] font-mono text-emerald-500 uppercase tracking-tighter">Chain Sealed: {msg.integrity_hash.slice(0, 12)}...</span>
+                              </div>
+                          )}
+                          
                           {/* Rich Data Components could go here */}
                           {msg.sql && (
-                            <div className="mt-4 p-3 bg-black/40 rounded-xl border border-indigo-500/20 font-mono text-[10px] text-indigo-300">
+                            <div className="mt-4 p-3 bg-black/40 rounded-xl border border-indigo-500/20 font-mono text-[11px] text-indigo-300">
                                <div className="flex items-center gap-2 mb-2 opacity-50">
                                   <Terminal size={10} /> <span>Querying Ledger...</span>
                                </div>
@@ -300,7 +310,7 @@ export default function FrenlyPolicewomanWidget() {
                       <div className="flex justify-start">
                         <div className="bg-slate-900/50 rounded-2xl p-4 flex gap-2">
                            <Loader2 className="w-4 h-4 text-indigo-500 animate-spin" />
-                           <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Processing Evidence...</span>
+                           <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">Processing Evidence...</span>
                         </div>
                       </div>
                     )}
@@ -317,8 +327,8 @@ export default function FrenlyPolicewomanWidget() {
                          className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all text-left"
                        >
                           <div>
-                            <div className="text-[10px] font-black text-white uppercase tracking-widest">{action.label}</div>
-                            <div className="text-[9px] text-slate-500 mt-1 uppercase">Standard Operating Procedure</div>
+                            <div className="text-[11px] font-black text-white uppercase tracking-widest">{action.label}</div>
+                            <div className="text-[11px] text-slate-500 mt-1 uppercase">Standard Operating Procedure</div>
                           </div>
                           <ChevronRight size={14} className="text-indigo-500" />
                        </button>

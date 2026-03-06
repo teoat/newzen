@@ -1,11 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Activity, Clock, AlertTriangle, FileText, CheckCircle2 } from 'lucide-react';
+import { Zap, Activity, Clock, AlertTriangle, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { useBatchProcessing } from '../../../hooks/useBatchProcessing';
 import { BatchJob } from '../../../types/batch';
 
-export function BatchProcessingPanel({ projectId }: { projectId: string }) {
+interface BatchProcessingPanelProps {
+    projectId: string;
+    title?: string;
+}
+
+export function BatchProcessingPanel({ projectId, title = "Reality Verification" }: BatchProcessingPanelProps) {
     const { 
         submitBatchJob, 
         cancelBatchJob, 
@@ -17,13 +22,13 @@ export function BatchProcessingPanel({ projectId }: { projectId: string }) {
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-amber-500/10 rounded-lg">
-                        <Zap className="w-5 h-5 text-amber-500" />
+                    <div className="p-2 bg-indigo-500/10 rounded-lg">
+                        <ShieldCheck className="w-5 h-5 text-indigo-500" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-black text-white uppercase tracking-wider">Batch Operations</h3>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wide">
-                            {activeJobs.length} Active / {completedJobs.length} Completed
+                        <h3 className="text-sm font-black text-white uppercase tracking-wider">{title}</h3>
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wide">
+                            {activeJobs.length} Active Consensus / {completedJobs.length} Verified
                         </p>
                     </div>
                 </div>
@@ -37,7 +42,7 @@ export function BatchProcessingPanel({ projectId }: { projectId: string }) {
                     {activeJobs.length === 0 && (
                         <div className="p-8 text-center border border-dashed border-white/5 rounded-2xl">
                             <Activity className="w-8 h-8 text-slate-700 mx-auto mb-3" />
-                            <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">No Active Jobs</p>
+                            <p className="text-[11px] text-slate-600 font-black uppercase tracking-widest">No Active Jobs</p>
                         </div>
                     )}
                 </AnimatePresence>
@@ -71,8 +76,8 @@ function BatchJobCard({ job, onCancel }: { job: BatchJob, onCancel: (id: string)
                     <div>
                         <h4 className="text-xs font-bold text-white">{job.name}</h4>
                         <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-[9px] font-mono text-slate-500">{job.id.slice(0, 8)}</span>
-                            <span className={`text-[9px] font-black uppercase tracking-wider ${
+                            <span className="text-[11px] font-mono text-slate-500">{job.id.slice(0, 8)}</span>
+                            <span className={`text-[11px] font-black uppercase tracking-wider ${
                                 isFailed ? 'text-rose-400' : isCompleted ? 'text-emerald-400' : 'text-amber-400'
                             }`}>
                                 {job.status}
@@ -84,7 +89,7 @@ function BatchJobCard({ job, onCancel }: { job: BatchJob, onCancel: (id: string)
                 {isProcessing && (
                     <button 
                         onClick={() => onCancel(job.id)} 
-                        className="text-[9px] font-bold text-rose-400 hover:text-rose-300 transition-colors uppercase tracking-wider"
+                        className="text-[11px] font-bold text-rose-400 hover:text-rose-300 transition-colors uppercase tracking-wider"
                     >
                         Cancel
                     </button>
@@ -102,14 +107,14 @@ function BatchJobCard({ job, onCancel }: { job: BatchJob, onCancel: (id: string)
                 />
             </div>
             
-            <div className="flex justify-between items-center text-[9px] font-mono text-slate-500">
+            <div className="flex justify-between items-center text-[11px] font-mono text-slate-500">
                 <span>{job.progress}% Processed</span>
                 {job.eta && <span>ETA: {job.eta}s</span>}
             </div>
 
             {/* Sub-tasks or Errors */}
             {job.error && (
-                <div className="mt-3 p-2 bg-rose-500/10 rounded-lg text-[10px] text-rose-300 font-medium">
+                <div className="mt-3 p-2 bg-rose-500/10 rounded-lg text-[11px] text-rose-300 font-medium">
                     {job.error}
                 </div>
             )}

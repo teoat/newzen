@@ -44,7 +44,7 @@ export interface AssetReport {
 }
 
 // API URL configuration
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200'; 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'; 
 
 interface AssetActionsState {
     isFreezing: boolean;

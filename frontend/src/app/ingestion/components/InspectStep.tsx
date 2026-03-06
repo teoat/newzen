@@ -6,10 +6,11 @@ import {
     ChevronLeft, ChevronRight, Layout, Pin, BrainCircuit, X
 } from 'lucide-react';
 import DualBeliefGauge from '../../../components/Forensic/DualBeliefGauge';
-import { Badge } from '../../../ui/badge';
+import { Badge } from '@/components/ui/badge';
 import { FileEntry, MappingItem } from '../types';
 import { SkeletonUploadProcessing } from '../../../components/skeletons/SkeletonComponents';
 import { AlignmentUnit } from './AlignmentUnit';
+import { logger } from '../../../lib/logger';
 
 interface InspectStepProps {
     files: FileEntry[];
@@ -52,7 +53,7 @@ export function InspectStep({
             <aside className={`${archiveCollapsed ? 'w-16' : 'w-80'} border-r border-white/5 flex flex-col bg-slate-950/40 overflow-hidden shrink-0 transition-all duration-300 relative`}>
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-900/20 overflow-hidden">
                     {!archiveCollapsed && (
-                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-3 whitespace-nowrap">
+                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-3 whitespace-nowrap">
                             <Box className="w-3.5 h-3.5" /> Payload Archive
                         </h3>
                     )}
@@ -84,12 +85,12 @@ export function InspectStep({
                                         {f.status === 'review' ? (
                                             <div className="flex items-center gap-1.5">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400/80">Aligned</span>
+                                                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400/80">Aligned</span>
                                             </div>
                                         ) : (
                                             <div className="flex items-center gap-1.5">
                                                 <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest opacity-50">Syncing</span>
+                                                <span className="text-[11px] font-black uppercase tracking-widest opacity-50">Syncing</span>
                                             </div>
                                         )}
                                     </div>
@@ -134,7 +135,7 @@ export function InspectStep({
                             <div className="flex items-center gap-4">
                                  <button 
                                       onClick={() => handleAutoMatch(selectedFile.id)}
-                                      className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/20 text-[9px] font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2 active:scale-95"
+                                      className="px-4 py-2 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/20 text-[11px] font-black uppercase tracking-[0.1em] transition-all flex items-center gap-2 active:scale-95"
                                  >
                                      <RefreshCw className="w-3.5 h-3.5" /> Auto-Match
                                  </button>
@@ -146,7 +147,7 @@ export function InspectStep({
                             <div className={`${blueprintCollapsed ? 'w-16' : 'w-[350px]'} border-r border-white/5 flex flex-col bg-black/20 overflow-hidden relative shadow-2xl transition-all duration-300`}>
                                 <div className="p-6 bg-slate-950/40 border-b border-white/5 flex items-center justify-between overflow-hidden">
                                     {!blueprintCollapsed && (
-                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
+                                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-3">
                                             <Columns className="w-4 h-4 text-indigo-500" /> Schema
                                         </h4>
                                     )}
@@ -180,14 +181,14 @@ export function InspectStep({
 
                             {/* TACTICAL SPLIT-PANE PREVIEW */}
                             <div className="flex-1 flex overflow-hidden bg-[#020617]">
-                                <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-500 ${selectedRow !== null ? 'hidden lg:flex lg:w-1/2' : 'w-full'}`}>
+                                <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-500 ${selectedRow !== null ? 'hidden lg:flex lg:w-2/3' : 'w-full'}`}>
                                     <div className="flex-1 border-r border-white/5 overflow-auto custom-scrollbar">
                                         <table className="w-full text-left border-collapse border-separate border-spacing-0">
                                             <thead className="sticky top-0 z-30 bg-slate-900/90 backdrop-blur-md">
                                                 <tr>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-indigo-500 uppercase tracking-widest border-b border-white/5 sticky left-0 bg-slate-950 z-40">#</th>
+                                                    <th className="px-6 py-4 text-[11px] font-black text-indigo-500 uppercase tracking-widest border-b border-white/5 sticky left-0 bg-slate-950 z-40">#</th>
                                                     {selectedFile.metadata.allColumns.map(col => (
-                                                        <th key={col} className="px-6 py-4 text-[10px] font-black text-white uppercase border-b border-white/5 tracking-tighter italic">
+                                                        <th key={col} className="px-6 py-4 text-[11px] font-black text-white uppercase border-b border-white/5 tracking-tighter italic">
                                                             {col.replace(/_/g, ' ')}
                                                         </th>
                                                     ))}
@@ -205,7 +206,7 @@ export function InspectStep({
                                                                 ${!isVerified ? 'shimmer-unverified' : ''}
                                                             `}
                                                         >
-                                                            <td className="px-6 py-4 text-[10px] font-mono font-black border-r border-white/[0.02] sticky left-0 bg-[#020617] group-hover:bg-slate-900">{i + 1}</td>
+                                                            <td className="px-6 py-4 text-[11px] font-mono font-black border-r border-white/[0.02] sticky left-0 bg-[#020617] group-hover:bg-slate-900">{i + 1}</td>
                                                             {selectedFile.metadata.allColumns.map(col => (
                                                                 <td key={col} className="px-6 py-4 text-[11px] font-bold truncate max-w-[150px]">
                                                                     {String(row[col] || "—")}
@@ -226,13 +227,13 @@ export function InspectStep({
                                             initial={{ x: 300, opacity: 0 }}
                                             animate={{ x: 0, opacity: 1 }}
                                             exit={{ x: 300, opacity: 0 }}
-                                            className="w-full lg:w-1/2 border-l border-white/10 bg-slate-950 flex flex-col overflow-hidden relative"
+                                            className="w-full lg:w-1/3 border-l border-white/10 bg-slate-950 flex flex-col overflow-hidden relative shadow-2xl z-30"
                                         >
                                             <div className="scan-line-overlay" />
                                             <div className="p-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-slate-900/20 relative z-20">
                                                 <div className="flex items-center gap-3">
                                                     <Landmark className="w-4 h-4 text-emerald-500" />
-                                                    <h4 className="text-[10px] font-black text-white uppercase tracking-widest italic">Reality Verification Pane</h4>
+                                                    <h4 className="text-[11px] font-black text-white uppercase tracking-widest italic">Reality Verification Pane</h4>
                                                 </div>
                                                 <button 
                                                     onClick={() => setSelectedRow(null)} 
@@ -248,13 +249,13 @@ export function InspectStep({
                                                 {/* Visual Evidence Section */}
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between">
-                                                        <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Site Physical Evidence</h5>
+                                                        <h5 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Site Physical Evidence</h5>
                                                         <Badge variant="outline" className="text-emerald-400 border-emerald-500/30">92% Match</Badge>
                                                     </div>
                                                     <div className="aspect-video bg-slate-900 border border-white/10 rounded-3xl flex items-center justify-center relative overflow-hidden group">
                                                         <Layout className="w-12 h-12 text-slate-800 group-hover:text-emerald-500 transition-all" />
                                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-60" />
-                                                        <p className="absolute bottom-4 left-6 text-[10px] font-bold text-white uppercase tracking-tighter">Site_Visit_Photo_042.jpg</p>
+                                                        <p className="absolute bottom-4 left-6 text-[11px] font-bold text-white uppercase tracking-tighter">Site_Visit_Photo_042.jpg</p>
                                                     </div>
                                                 </div>
 
@@ -264,7 +265,7 @@ export function InspectStep({
                                                         <div className="p-2 bg-indigo-500/20 rounded-lg">
                                                             <BrainCircuit className="w-4 h-4 text-indigo-400" />
                                                         </div>
-                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Frenly Reality Analysis</span>
+                                                        <span className="text-[11px] font-black text-white uppercase tracking-widest">Frenly Reality Analysis</span>
                                                     </div>
 
                                                     <DualBeliefGauge 
@@ -289,8 +290,9 @@ export function InspectStep({
                                                             setTimeout(() => flyElement.remove(), 1000);
                                                             
                                                             // Logic to actually pin the item would go here (dispatch to store)
+                                                            logger.info(`[USER_ACTION] Pinned evidence from row ${selectedRow} of file ${selectedFile.id} to Investigation Board.`);
                                                         }}
-                                                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all relative z-10 active:scale-95"
+                                                        className="w-full h-12 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all relative z-10 active:scale-95"
                                                     >
                                                         <Pin className="w-3.5 h-3.5" /> Pin Finding to Theory Board
                                                     </button>
@@ -323,7 +325,7 @@ export function InspectStep({
 function FlowMetric({ label, val, success }: { label: string, val: string, success?: boolean }) {
     return (
         <div className="flex flex-col items-center gap-2">
-            <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest leading-none">{label}</span>
+            <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest leading-none">{label}</span>
             <span className={`text-xs font-black italic tracking-tighter leading-none ${success ? 'text-emerald-500 shadow-[0_0_10px_#10b981]' : 'text-white'}`}>{val}</span>
         </div>
     );

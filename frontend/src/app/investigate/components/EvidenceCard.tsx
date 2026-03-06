@@ -53,25 +53,25 @@ export function EvidenceCard({ item, investigationId, onRefreshNarrative }: Evid
               </span>
             )}
           </div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-black/20 px-2 py-1 rounded">
+          <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 bg-black/20 px-2 py-1 rounded">
             {item.type}
           </span>
         </div>
         <div className="flex items-center gap-4 mt-1 mb-3">
-          <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Source: {item.sourceTool}</p>
-          <p className="text-[10px] font-mono text-slate-700">{item.id}</p>
+          <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Source: {item.sourceTool}</p>
+          <p className="text-[11px] font-mono text-slate-700">{item.id}</p>
         </div>
         
         <div className="flex gap-2">
           <button 
             onClick={onRefreshNarrative}
-            className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-indigo-600 hover:text-white transition-all"
+            className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-indigo-600 hover:text-white transition-all"
           >
             <RefreshCw className="w-3 h-3" /> Refresh AI Synthesis
           </button>
           <button 
             onClick={() => updateEvidenceStatus(investigationId, item.id, 'ADMITTED')}
-            className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
+            className={`px-3 py-1.5 rounded text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
               item.verdict === 'ADMITTED' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-emerald-600/20 hover:text-emerald-400'
             }`}
           >
@@ -79,7 +79,7 @@ export function EvidenceCard({ item, investigationId, onRefreshNarrative }: Evid
           </button>
           <button 
             onClick={() => updateEvidenceStatus(investigationId, item.id, 'REJECTED')}
-            className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
+            className={`px-3 py-1.5 rounded text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
               item.verdict === 'REJECTED' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-rose-600/20 hover:text-rose-400'
             }`}
           >

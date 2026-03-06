@@ -36,7 +36,11 @@ describe('ForensicService', () => {
   });
 
   it('exportCourtDossier should call ApiClient.request with correct headers', async () => {
-    const mockResponse = { status: 200 };
+    const mockBlob = new Blob(['test'], { type: 'application/pdf' });
+    const mockResponse = { 
+      status: 200,
+      blob: vi.fn().mockResolvedValue(mockBlob)
+    };
     (ApiClient.request as any).mockResolvedValue(mockResponse);
 
     await ForensicService.exportCourtDossier('proj-123');

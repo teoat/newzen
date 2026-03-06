@@ -8,12 +8,14 @@
 import React from 'react';
 import { useInvestigation } from '../store/useInvestigation';
 import { DossierCompiler } from '../lib/DossierCompiler';
+import { CursorTracker } from './Collaboration/CursorTracker';
 import { 
     Target, Clock, Users, FileText, 
     ChevronDown, ChevronUp, TrendingUp,
-    AlertCircle, CheckCircle
+    AlertCircle, CheckCircle, Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ReportDownload } from './ReportDownload';
 
 import { useForensicNotification } from '../components/ForensicNotificationProvider';
 
@@ -92,8 +94,10 @@ export function InvestigationPanel() {
     if (!activeInvestigation) return null;
 
     return (
-        <motion.div
-            initial={{ y: 100, opacity: 0 }}
+        <>
+            <CursorTracker projectId={activeInvestigation.id} />
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
             animate={{ 
                 y: isMinimized ? 'calc(100% - 80px)' : 0, 
                 opacity: 1 
@@ -122,7 +126,7 @@ export function InvestigationPanel() {
                             <h3 className="text-sm font-black text-white uppercase tracking-tight">
                                 {activeInvestigation.title}
                             </h3>
-                            <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                            <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
                                 activeInvestigation.status === 'active' 
                                     ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
                                     : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
@@ -130,7 +134,7 @@ export function InvestigationPanel() {
                                 {activeInvestigation.status}
                             </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 font-mono uppercase tracking-wider mt-1">
+                        <p className="text-[11px] text-slate-500 font-mono uppercase tracking-wider mt-1">
                             ID: {activeInvestigation.id} • Started {timeElapsed}m ago
                         </p>
                     </div>
@@ -144,14 +148,25 @@ export function InvestigationPanel() {
                             <span className="text-sm font-bold text-white">
                                 {activeInvestigation.timeline.length}
                             </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Actions</span>
+                            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Actions</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-slate-500" />
                             <span className="text-sm font-bold text-white">
                                 {activeInvestigation.context.suspects.length}
                             </span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">Suspects</span>
+                            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Suspects</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="relative">
+                                <Radio className="w-4 h-4 text-emerald-500" />
+                                <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            </div>
+                            <span className="text-sm font-bold text-white">3</span>
+                            <span className="text-[11px] text-slate-500 uppercase tracking-wider">Online</span>
                         </div>
                         {activeInvestigation.riskScore && (
                             <div className="flex items-center gap-2">
@@ -159,7 +174,7 @@ export function InvestigationPanel() {
                                 <span className="text-sm font-bold text-rose-400">
                                     {activeInvestigation.riskScore}%
                                 </span>
-                                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Risk</span>
+                                <span className="text-[11px] text-slate-500 uppercase tracking-wider">Risk</span>
                             </div>
                         )}
                     </div>
@@ -192,7 +207,7 @@ export function InvestigationPanel() {
                         <div className="grid grid-cols-3 h-full">
                             {/* Timeline */}
                             <div className="border-r border-white/5 p-6 overflow-auto custom-scrollbar">
-                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Clock className="w-3 h-3" /> Recent Actions
                                 </h4>
                                 <div className="space-y-3">
@@ -201,7 +216,7 @@ export function InvestigationPanel() {
                                             <p className="text-xs font-bold text-white mb-1">
                                                 {action.action}
                                             </p>
-                                            <p className="text-[10px] text-slate-500 font-mono">
+                                            <p className="text-[11px] text-slate-500 font-mono">
                                                 {new Date(action.timestamp).toLocaleTimeString()} • {action.tool}
                                             </p>
                                         </div>
@@ -214,13 +229,13 @@ export function InvestigationPanel() {
 
                             {/* Context */}
                             <div className="border-r border-white/5 p-6 overflow-auto custom-scrollbar">
-                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <Users className="w-3 h-3" /> Investigation Context
                                 </h4>
                                 <div className="space-y-4">
                                     {activeInvestigation.context.suspects.length > 0 && (
                                         <div>
-                                            <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-2">Suspects</p>
+                                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-2">Suspects</p>
                                             {activeInvestigation.context.suspects.map((suspect, i) => (
                                                 <div key={i} className="text-xs font-bold text-rose-400 mb-1">
                                                     • {suspect}
@@ -230,7 +245,7 @@ export function InvestigationPanel() {
                                     )}
                                     {activeInvestigation.context.transactionIds.length > 0 && (
                                         <div>
-                                            <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-2">Transactions</p>
+                                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-2">Transactions</p>
                                             <p className="text-xs font-mono text-slate-400">
                                                 {activeInvestigation.context.transactionIds.length} flagged
                                             </p>
@@ -238,10 +253,10 @@ export function InvestigationPanel() {
                                     )}
                                     {activeInvestigation.context.toolsUsed.length > 0 && (
                                         <div>
-                                            <p className="text-[9px] text-slate-600 uppercase tracking-wider mb-2">Tools Used</p>
+                                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-2">Tools Used</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {activeInvestigation.context.toolsUsed.map((tool, i) => (
-                                                    <span key={i} className="px-2 py-1 bg-indigo-600/10 text-indigo-400 text-[10px] font-bold rounded border border-indigo-500/20">
+                                                    <span key={i} className="px-2 py-1 bg-indigo-600/10 text-indigo-400 text-[11px] font-bold rounded border border-indigo-500/20">
                                                         {tool}
                                                     </span>
                                                 ))}
@@ -253,7 +268,7 @@ export function InvestigationPanel() {
 
                             {/* Findings & Actions */}
                             <div className="p-6 overflow-auto custom-scrollbar">
-                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <AlertCircle className="w-3 h-3" /> Key Findings
                                 </h4>
                                 <div className="space-y-3 mb-6">
@@ -272,14 +287,15 @@ export function InvestigationPanel() {
                                     {activeInvestigation.status === 'active' && (
                                         <button
                                             onClick={pauseInvestigation}
-                                            className="w-full py-2 bg-amber-600/10 hover:bg-amber-600/20 text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-colors"
+                                            className="w-full py-2 bg-amber-600/10 hover:bg-amber-600/20 text-amber-400 border border-amber-500/20 rounded-lg font-bold text-[11px] uppercase tracking-widest transition-colors"
                                         >
                                             Pause Investigation
                                         </button>
                                     )}
+                                    <ReportDownload investigation={activeInvestigation} variant="button" />
                                     <button
                                         onClick={handleGenerateDossier}
-                                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[10px] uppercase tracking-widest transition-colors"
+                                        className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-[11px] uppercase tracking-widest transition-colors"
                                     >
                                         Complete & Generate Dossier
                                     </button>
@@ -290,5 +306,6 @@ export function InvestigationPanel() {
                 )}
             </AnimatePresence>
         </motion.div>
+        </>
     );
 }

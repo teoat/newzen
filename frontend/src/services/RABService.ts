@@ -1,4 +1,5 @@
 import { authenticatedFetch } from '../lib/api';
+import { API_ROUTES } from './apiRoutes';
 
 export interface RABBudgetLine {
   id: string;
@@ -46,8 +47,16 @@ export interface RABVarianceAnalysis {
     actual_total: number;
     cco_total: number;
   }[];
-  top_savings: any[];
-  material_forensics: any;
+  top_savings: {
+    item_code: string;
+    item_name: string;
+    savings: number;
+  }[];
+  material_forensics: {
+    total_variance: number;
+    variance_items: number;
+    high_risk_items: number;
+  };
 }
 
 export class RABService {
@@ -56,7 +65,7 @@ export class RABService {
     formData.append('file', file);
     formData.append('project_id', projectId);
 
-    const response = await authenticatedFetch(`/api/v2/forensic-v2/rab/upload`, {
+    const response = await authenticatedFetch(API_ROUTES.V2.RAB.UPLOAD, {
       method: 'POST',
       body: formData,
     });
@@ -70,7 +79,7 @@ export class RABService {
   }
 
   static async getProjectRAB(projectId: string, category?: string): Promise<{ budget_lines: RABBudgetLine[] }> {
-    let endpoint = `/api/v2/forensic-v2/rab/project/${projectId}`;
+    let endpoint = API_ROUTES.V2.RAB.PROJECT(projectId);
     if (category) {
       endpoint += `?category=${encodeURIComponent(category)}`;
     }
@@ -84,7 +93,7 @@ export class RABService {
   }
 
   static async getVarianceAnalysis(projectId: string): Promise<RABVarianceAnalysis> {
-    const response = await authenticatedFetch(`/api/v2/forensic-v2/rab/variance/${projectId}`);
+    const response = await authenticatedFetch(API_ROUTES.V2.RAB.VARIANCE(projectId));
     if (!response.ok) {
       throw new Error('Failed to fetch variance analysis');
     }
@@ -93,7 +102,7 @@ export class RABService {
   }
 
   static async recalculateVariance(projectId: string): Promise<void> {
-    const response = await authenticatedFetch(`/api/v2/forensic-v2/rab/recalculate/${projectId}`, {
+    const response = await authenticatedFetch(API_ROUTES.V2.RAB.RECALCULATE(projectId), {
       method: 'POST',
     });
     if (!response.ok) {

@@ -74,13 +74,16 @@ function StatsCard({ label, value, icon: Icon, color, highlight = false }: Stats
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`p-6 rounded-2xl border ${highlight ? 'bg-rose-500/10 border-rose-500/20' : 'bg-slate-900/50 border-white/5'} flex flex-col justify-between h-32`}
+      className={`p-6 rounded-2xl border relative overflow-hidden ${highlight ? 'bg-rose-500/10 border-rose-500/20 shadow-[0_0_30px_rgba(244,63,94,0.1)]' : 'bg-slate-900/50 border-white/5'} flex flex-col justify-between h-32 group`}
     >
-      <div className="flex justify-between items-start">
+      {highlight && (
+        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 rounded-full -translate-y-1/2 translate-x-1/2 animate-pulse" />
+      )}
+      <div className="flex justify-between items-start relative z-10">
         <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">{label}</span>
-        <Icon className={`w-5 h-5 ${color}`} />
+        <Icon className={`w-5 h-5 ${color} ${highlight ? 'animate-bounce' : ''}`} />
       </div>
-      <div className={`text-2xl font-black font-mono ${color}`}>{value}</div>
+      <div className={`text-2xl font-black font-mono relative z-10 ${color}`}>{value}</div>
     </motion.div>
   );
 }
@@ -130,7 +133,7 @@ export function ProjectDashboard({ projectData, sCurveData, projectId }: Project
             <h2 className="text-lg font-black text-white flex items-center gap-3 uppercase tracking-tight">
               <BarChart3 className="w-5 h-5 text-indigo-500" /> S-Curve Replay Engine
             </h2>
-            <div className="flex gap-6 text-[10px] font-black uppercase tracking-widest">
+            <div className="flex gap-6 text-[11px] font-black uppercase tracking-widest">
               <span className="flex items-center gap-2 text-rose-400"><div className="w-2 h-2 rounded-full bg-rose-500" /> Actual Cost (AC)</span>
               <span className="flex items-center gap-2 text-slate-500"><div className="w-2 h-2 rounded-full bg-slate-500" /> Planned Value (PV)</span>
             </div>
@@ -150,7 +153,7 @@ export function ProjectDashboard({ projectData, sCurveData, projectId }: Project
                 <div className="absolute top-0 right-0 p-2 opacity-10">
                   <AlertCircle className="w-12 h-12 text-rose-500" />
                 </div>
-                <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <h3 className="text-[11px] font-black text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" /> Leakage Signature
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed font-medium">
@@ -161,7 +164,7 @@ export function ProjectDashboard({ projectData, sCurveData, projectId }: Project
           </div>
           <button
             onClick={handleExportDossier}
-            className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/40 active:scale-95 flex items-center justify-center gap-3"
+            className="w-full py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[11px] hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/40 active:scale-95 flex items-center justify-center gap-3"
           >
             <Download className="w-4 h-4" /> Export High-Fidelity Dossier
           </button>

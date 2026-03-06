@@ -44,7 +44,7 @@ export default function SystemHealthIndicator() {
   return (
     <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/50 border border-white/5 backdrop-blur-md ${config.color} transition-colors duration-500`}>
       <Icon size={12} className={config.animate} />
-      <span className="text-[9px] font-black uppercase tracking-[0.2em]">
+      <span className="text-[11px] font-black uppercase tracking-[0.2em]">
         {config.label}
       </span>
       {connectionStatus === 'disconnected' && (

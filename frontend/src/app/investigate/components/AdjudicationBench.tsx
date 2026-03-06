@@ -1,12 +1,19 @@
+'use client';
+
 import { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { 
     Search, CheckCircle, XCircle, 
     Filter, Shield, FileText, Database, Layers, Download, Clock, Fingerprint, AlertTriangle, Lock,
-    ShieldCheck, RefreshCw
+    ShieldCheck, RefreshCw, FlaskConical, Scale, BrainCircuit, Loader2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { API_URL } from '../../../lib/constants';
 import { useInvestigation } from '../../../store/useInvestigation';
 import { format } from 'date-fns';
+import StatutoryLogicBoard from './StatutoryLogicBoard';
+import SealedVerdictDossier from './SealedVerdictDossier';
+import { Button } from '@/components/ui/button';
 
 interface Transaction {
   tx: {
@@ -30,11 +37,13 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
   const investigation = getInvestigation(investigationId);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filter, setFilter] = useState('');
-  const [activeTab, setActiveTab] = useState<'transactions' | 'evidence' | 'chronicle' | 'dossier'>('transactions');
+  const [activeTab, setActiveTab] = useState<'transactions' | 'evidence' | 'statutory' | 'chronicle' | 'dossier'>('transactions');
   const [narrative, setNarrative] = useState<string>('');
   const [interrogationGuide, setInterrogationGuide] = useState<string | null>(null);
   const [isSealing, setIsSealing] = useState(false);
   const [isGeneratingGuide, setIsGeneratingGuide] = useState(false);
+  const [sealHash, setSealHash] = useState<string | null>(null);
+  const [showDossierOverlay, setShowDossierOverlay] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -80,6 +89,25 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
     }
   };
 
+  const handleSealCase = async () => {
+    if (!investigation) return;
+    if (!confirm("Are you sure you want to SEAL this case? This will generate the final legal hash and lock the records.")) return;
+    
+    setIsSealing(true);
+    try {
+        const hash = await useInvestigation.getState().sealCase(investigation.id);
+        setSealHash(hash);
+        // Ceremony delay for forensic effect
+        setTimeout(() => {
+            setIsSealing(false);
+            setShowDossierOverlay(true);
+        }, 5000);
+    } catch (e) {
+        alert("Sealing failed. Check backend.");
+        setIsSealing(false);
+    }
+  };
+
   const handleGenerateInterrogationGuide = async () => {
     if (!investigation?.id) return;
     
@@ -105,20 +133,29 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full depth-layer-0 p-8 overflow-y-auto custom-scrollbar">
+    <div className="flex-1 flex flex-col h-full depth-layer-0 p-8 overflow-y-auto custom-scrollbar relative">
         {/* Case Header */}
         <div className="flex justify-between items-end mb-8">
             <div>
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="px-2 py-0.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded text-[9px] font-black uppercase tracking-widest">
+                    <div className="px-2 py-0.5 bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 rounded text-[11px] font-black uppercase tracking-widest">
                         Case File
                     </div>
-                    <span className="text-[10px] font-mono text-slate-600">{investigation.id}</span>
+                    <span className="text-[11px] font-mono text-slate-600">{investigation.id}</span>
                 </div>
                 <h1 className="text-3xl font-black text-white uppercase tracking-tighter">{investigation.title}</h1>
             </div>
 
             <div className="flex items-center gap-6">
+                 <Link 
+                    href={`/forensic/simulation?projectId=${investigation.context?.projectId || ''}`}
+                    className="flex items-center gap-2 px-4 py-2 bg-cyan-600/10 hover:bg-cyan-600/20 border border-cyan-500/30 hover:border-cyan-500/50 rounded-xl transition-all group"
+                 >
+                    <FlaskConical className="w-4 h-4 text-cyan-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-xs font-black text-cyan-400 uppercase tracking-wider">Scenario Sandbox</span>
+                    <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 text-[8px] font-black rounded">BETA</span>
+                 </Link>
+                 
                  <div className="flex flex-col items-end gap-1">
                     <span className="text-[8px] font-black text-emerald-500/60 uppercase tracking-[0.2em] flex items-center gap-1.5 italic">
                         <ShieldCheck className="w-2.5 h-2.5" /> Immutable_Proof_Active
@@ -129,21 +166,21 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                 <div key={i} className="w-1.5 h-3 bg-emerald-500/20 rounded-sm border border-emerald-500/40 animate-pulse" style={{ animationDelay: `${i*0.2}s` }} />
                             ))}
                         </div>
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold">V3_ANCHORED</span>
+                        <span className="text-[11px] font-mono text-emerald-400 font-bold">V3_ANCHORED</span>
                     </div>
                  </div>
 
                  <div className="h-10 w-px bg-white/5" />
                  
                  <div className="text-right">
-                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Risk Profile</p>
+                     <p className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1">Risk Profile</p>
                      <p className={`text-2xl font-black ${investigation.riskScore && investigation.riskScore > 70 ? 'text-rose-500' : 'text-indigo-400'}`}>
                          {investigation.riskScore || 0}%
                      </p>
                  </div>
                  <div className="h-10 w-px bg-white/5" />
                  <div className="text-right">
-                     <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Status</p>
+                     <p className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1">Status</p>
                      <p className={`text-sm font-black uppercase tracking-widest ${investigation.status === 'completed' ? 'text-emerald-500' : 'text-indigo-400'}`}>
                         {investigation.status}
                      </p>
@@ -156,12 +193,13 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
             {[
                 { id: 'transactions', label: 'Financial Audit', icon: Database },
                 { id: 'evidence', label: 'Evidence Bench', icon: Layers },
+                { id: 'statutory', label: 'Statutory Logic', icon: Scale },
                 { id: 'chronicle', label: 'The Chronicle', icon: Clock },
                 { id: 'dossier', label: 'Report Narrative', icon: FileText }
             ].map(tab => (
                 <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as 'transactions' | 'evidence' | 'chronicle' | 'dossier')}
+                    onClick={() => setActiveTab(tab.id as 'transactions' | 'evidence' | 'statutory' | 'chronicle' | 'dossier')}
                     className={`
                         px-4 py-3 text-xs font-bold uppercase tracking-wider flex items-center gap-2 border-b-2 transition-all
                         ${activeTab === tab.id ? 'border-indigo-500 text-indigo-400 bg-indigo-500/5' : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-white/5'}
@@ -169,9 +207,12 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                 >
                     <tab.icon className="w-4 h-4" />
                     {tab.label}
-                    {tab.id === 'evidence' && (investigation.context.evidence_items?.length || 0) > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 bg-indigo-500 text-white rounded-full text-[9px]">
-                            {investigation.context.evidence_items?.length}
+                    {(tab.id === 'evidence' || tab.id === 'statutory') && (investigation.context.evidence_items?.length || 0) > 0 && (
+                        <span className="ml-1 px-1.5 py-0.5 bg-indigo-500 text-white rounded-full text-[11px]">
+                            {tab.id === 'evidence' 
+                                ? investigation.context.evidence_items?.length 
+                                : investigation.context.evidence_items?.filter(e => e.statutory_article).length
+                            }
                         </span>
                     )}
                 </button>
@@ -190,20 +231,20 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                             <input 
                                 type="text" 
                                 placeholder="Search transactions..." 
-                                className="bg-slate-950/50 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[10px] w-64 text-white uppercase font-black tracking-widest focus:border-indigo-500 outline-none"
+                                className="bg-slate-950/50 border border-white/10 rounded-xl pl-9 pr-4 py-2 text-[11px] w-64 text-white uppercase font-black tracking-widest focus:border-indigo-500 outline-none"
                                 value={filter}
                                 onChange={e => setFilter(e.target.value)}
                             />
                         </div>
                         <div className="flex gap-4">
-                            <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                            <button className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
                                 <Shield className="w-3 h-3" /> Auto-Verify Routine
                             </button>
                         </div>
                     </div>
 
                     <table className="w-full text-left">
-                        <thead className="depth-layer-2 text-[9px] uppercase text-depth-secondary font-black tracking-[0.2em] border-b depth-border-subtle">
+                        <thead className="depth-layer-2 text-[11px] uppercase text-depth-secondary font-black tracking-[0.2em] border-b depth-border-subtle">
                             <tr>
                                 <th className="p-6">Subject / Vendor</th>
                                 <th className="p-6 text-right">Amount</th>
@@ -223,7 +264,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                                 aria-label="Hashed Integrity Verified"
                                             />
                                         </div>
-                                        <p className="text-[9px] text-slate-600 font-mono mt-0.5">{item.tx.description}</p>
+                                        <p className="text-[11px] text-slate-600 font-mono mt-0.5">{item.tx.description}</p>
                                     </td>
                                     <td className="p-6 text-right font-mono font-black text-white text-xs">
                                         Rp {item.tx.actual_amount?.toLocaleString()}
@@ -232,12 +273,12 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                         <div className="w-24 h-1 bg-slate-800 rounded-full overflow-hidden mb-1">
                                             <div className={`h-full ${item.risk > 0.7 ? 'bg-rose-500' : 'bg-indigo-500'}`} style={{ width: `${item.risk * 100}%` }} />
                                         </div>
-                                        <span className={`text-[9px] font-bold ${item.risk > 0.7 ? 'text-rose-500' : 'text-slate-500'}`}>
+                                        <span className={`text-[11px] font-bold ${item.risk > 0.7 ? 'text-rose-500' : 'text-slate-500'}`}>
                                             {(item.risk * 100).toFixed(0)}% Risk
                                         </span>
                                     </td>
                                     <td className="p-6">
-                                        <span className={`text-[9px] font-black tracking-widest uppercase px-3 py-1 rounded-full border ${
+                                        <span className={`text-[11px] font-black tracking-widest uppercase px-3 py-1 rounded-full border ${
                                             item.tx.verification_status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
                                             item.tx.verification_status === 'EXCLUDED' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
                                             'bg-slate-800 text-slate-500 border-white/5'
@@ -279,7 +320,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                         <div className="p-12 text-center border border-dashed border-white/10 rounded-3xl bg-white/[0.02]">
                             <Layers className="w-12 h-12 text-slate-700 mx-auto mb-4" />
                             <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">No injected evidence context</p>
-                            <p className="text-slate-600 text-[10px] mt-2">Use the Forensic Hub to inject entities, hotspots, or milestones into this case.</p>
+                            <p className="text-slate-600 text-[11px] mt-2">Use the Forensic Hub to inject entities, hotspots, or milestones into this case.</p>
                         </div>
                     )}
                     
@@ -312,13 +353,13 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 bg-black/20 px-2 py-1 rounded">
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 bg-black/20 px-2 py-1 rounded">
                                         {item.type}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-4 mt-1 mb-3">
-                                    <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Source: {item.sourceTool}</p>
-                                    <p className="text-[10px] font-mono text-slate-700">{item.id}</p>
+                                    <p className="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Source: {item.sourceTool}</p>
+                                    <p className="text-[11px] font-mono text-slate-700">{item.id}</p>
                                 </div>
                                 
                          <div className="flex gap-2">
@@ -328,14 +369,14 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                     const text = await useInvestigation.getState().generateNarrative(investigation.id);
                                     setNarrative(text);
                                 }}
-                                className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-indigo-600 hover:text-white transition-all"
+                                className="px-3 py-1.5 bg-indigo-600/20 text-indigo-400 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-indigo-600 hover:text-white transition-all"
                             >
                                 <RefreshCw className="w-3 h-3" /> Refresh AI Synthesis
                             </button>
                             <button 
 
                                         onClick={() => useInvestigation.getState().updateEvidenceStatus(investigation.id, item.id, 'ADMITTED')}
-                                        className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
+                                        className={`px-3 py-1.5 rounded text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
                                             item.verdict === 'ADMITTED' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-emerald-600/20 hover:text-emerald-400'
                                         }`}
                                     >
@@ -343,7 +384,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                     </button>
                                     <button 
                                         onClick={() => useInvestigation.getState().updateEvidenceStatus(investigation.id, item.id, 'REJECTED')}
-                                        className={`px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
+                                        className={`px-3 py-1.5 rounded text-[11px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
                                             item.verdict === 'REJECTED' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-rose-600/20 hover:text-rose-400'
                                         }`}
                                     >
@@ -356,13 +397,21 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                 </div>
             )}
 
+            {/* STATUTORY TAB */}
+            {activeTab === 'statutory' && (
+                <StatutoryLogicBoard 
+                    investigationId={investigation.id}
+                    evidenceItems={investigation.context.evidence_items || []}
+                />
+            )}
+
             {/* CHRONICLE TAB */}
             {activeTab === 'chronicle' && (
                 <div className="space-y-6">
                     {/* Contradiction Alerts */}
                     {(investigation.context.contradictions?.length || 0) > 0 && (
                         <div className="space-y-3">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2 flex items-center gap-2">
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-rose-500 mb-2 flex items-center gap-2">
                                 <AlertTriangle className="w-3 h-3" /> Integrity Alerts ({investigation.context.contradictions?.length})
                             </h4>
                             {investigation.context.contradictions?.map((c, i) => (
@@ -370,7 +419,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                     <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                                     <div>
                                         <p className="text-xs font-bold text-rose-200">{c.type}</p>
-                                        <p className="text-[10px] text-rose-400/80 mt-1">{c.description}</p>
+                                        <p className="text-[11px] text-rose-400/80 mt-1">{c.description}</p>
                                     </div>
                                 </div>
                             ))}
@@ -390,10 +439,10 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                          <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-[9px] font-mono text-slate-500">{format(new Date(event.timestamp), 'HH:mm:ss')}</span>
+                                        <span className="text-[11px] font-mono text-slate-500">{format(new Date(event.timestamp), 'HH:mm:ss')}</span>
                                         <span className="text-xs font-bold text-slate-200 uppercase tracking-tight">[{event.tool}] {event.action}</span>
                                         {event.result?.context && (
-                                            <p className="text-[10px] text-slate-500 italic mt-1 bg-white/5 p-2 rounded-lg border border-white/5">
+                                            <p className="text-[11px] text-slate-500 italic mt-1 bg-white/5 p-2 rounded-lg border border-white/5">
                                                 {event.result.context}
                                             </p>
                                         )}
@@ -417,7 +466,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                     <button 
                                         disabled={isGeneratingGuide}
                                         onClick={handleGenerateInterrogationGuide}
-                                        className="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-rose-600 hover:text-white transition-all"
+                                        className="px-3 py-1.5 bg-rose-600/20 text-rose-400 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-rose-600 hover:text-white transition-all"
                                     >
                                         <Fingerprint className="w-3 h-3" /> {isGeneratingGuide ? 'Extracting Psycology...' : 'Generate Interrogation Guide'}
                                     </button>
@@ -432,25 +481,14 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                     a.download = `dossier-${investigation.id}.md`;
                                     a.click();
                                 }}
-                                className="px-3 py-1.5 bg-slate-800 text-white rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-slate-900"
+                                className="px-3 py-1.5 bg-slate-800 text-white rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-slate-900"
                             >
                                 <Download className="w-3 h-3" /> Export MD
                             </button>
                             <button 
                                 disabled={isSealing || investigation.status === 'completed'}
-                                onClick={async () => {
-                                    if (!confirm("Are you sure you want to SEAL this case? This will generate the final legal hash and lock the records.")) return;
-                                    setIsSealing(true);
-                                    try {
-                                        const hash = await useInvestigation.getState().sealCase(investigation.id);
-                                        alert(`Case Sealed Successfully!\nFinal Forensic Hash: ${hash}`);
-                                    } catch (e) {
-                                        alert("Sealing failed. Check backend.");
-                                    } finally {
-                                        setIsSealing(false);
-                                    }
-                                }}
-                                className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 ${
+                                onClick={handleSealCase}
+                                className={`px-3 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider flex items-center gap-2 ${
                                     investigation.status === 'completed' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white hover:bg-rose-700'
                                 }`}
                             >
@@ -462,7 +500,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                         {interrogationGuide ? (
                             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-xl">
-                                    <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                                    <p className="text-[11px] font-black text-rose-600 uppercase tracking-widest mb-1 flex items-center gap-2">
                                         <AlertTriangle className="w-3 h-3" /> Active Interrogation Protocol
                                     </p>
                                     <p className="text-xs text-rose-800 italic">This document contains sensitive psychological leverage points based on admitted evidence.</p>
@@ -470,7 +508,7 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                                 <pre className="whitespace-pre-wrap font-sans text-slate-800">{interrogationGuide}</pre>
                                 <button 
                                     onClick={() => setInterrogationGuide(null)}
-                                    className="mt-8 text-[10px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-all"
+                                    className="mt-8 text-[11px] font-black text-slate-400 hover:text-indigo-600 uppercase tracking-widest transition-all"
                                 >
                                     ← Return to Dossier Narrative
                                 </button>
@@ -479,20 +517,100 @@ export default function AdjudicationBench({ investigationId }: AdjudicationBench
                             <pre className="whitespace-pre-wrap font-sans text-slate-800">{narrative || 'Orchestrating narrative from admitted exhibits...'}</pre>
                         )}
                     </div>
-                    {investigation.context.final_report_hash && (
+                    {(investigation.context.final_report_hash || sealHash) && (
                         <div className="p-4 bg-emerald-50 border-t border-emerald-100 flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-emerald-700 text-[10px] font-bold uppercase tracking-widest">
+                            <div className="flex items-center gap-2 text-emerald-700 text-[11px] font-bold uppercase tracking-widest">
                                 <Fingerprint className="w-4 h-4" /> Final Report Hash
                             </div>
-                            <span className="text-[10px] font-mono text-emerald-800 bg-emerald-100 px-2 py-1 rounded truncate max-w-lg">
-                                {investigation.context.final_report_hash}
+                            <span className="text-[11px] font-mono text-emerald-800 bg-emerald-100 px-2 py-1 rounded truncate max-w-lg">
+                                {investigation.context.final_report_hash || sealHash}
                             </span>
                         </div>
                     )}
                 </div>
             )}
-
         </div>
+
+        {/* SEALING CEREMONY OVERLAY */}
+        <AnimatePresence>
+            {isSealing && (
+                <motion.div 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/90 backdrop-blur-3xl"
+                >
+                    <div className="relative flex flex-col items-center">
+                        <motion.div
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: [0.5, 1.2, 1], opacity: 1 }}
+                            transition={{ duration: 1, times: [0, 0.7, 1] }}
+                            className="w-64 h-64 rounded-full bg-rose-500/10 border-4 border-rose-500/30 flex items-center justify-center mb-12 relative"
+                        >
+                            <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 rounded-full border-t-4 border-rose-400 border-dashed"
+                            />
+                            <Lock className="w-32 h-32 text-rose-500" />
+                        </motion.div>
+                        
+                        <motion.div
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className="text-center"
+                        >
+                            <h2 className="text-6xl font-black text-white italic tracking-tighter uppercase mb-4 leading-none tracking-[0.4em]">Case Sealing</h2>
+                            <p className="text-rose-400 font-mono text-sm uppercase tracking-[0.4em]">Generating Legal-Grade Cryptographic Proof...</p>
+                        </motion.div>
+
+                        <div className="mt-20 flex gap-10">
+                            {['Hashing', 'Signing', 'Anchoring'].map((step, i) => (
+                                <motion.div
+                                    key={step}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 1 + i * 1.2 }}
+                                    className="flex flex-col items-center gap-4"
+                                >
+                                    <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            animate={{ x: [-96, 96] }}
+                                            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                                            className="w-24 h-full bg-rose-500"
+                                        />
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{step} Protocol</span>
+                                </motion.div>
+                            ))}
+                        </div>
+                        
+                        {sealHash && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 4.5 }}
+                                className="mt-12 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl max-w-xl"
+                            >
+                                <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest text-center mb-2">Immutable Hash Secured</p>
+                                <p className="text-xs font-mono text-emerald-400 break-all">{sealHash}</p>
+                            </motion.div>
+                        )}
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+
+        {/* SEALED DOSSIER OVERLAY */}
+        <AnimatePresence>
+            {showDossierOverlay && (
+                <SealedVerdictDossier 
+                    investigation={investigation} 
+                    onClose={() => setShowDossierOverlay(false)}
+                />
+            )}
+        </AnimatePresence>
     </div>
   );
 }

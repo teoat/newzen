@@ -196,7 +196,7 @@ export default function AssetRecoveryPage() {
                     <div className="text-3xl font-black text-white mb-1">
                         Rp {(data?.recovery_pot ? data.recovery_pot / 1000000000 : 0).toFixed(1)} B
                     </div>
-                    <div className="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                    <div className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
                         <Activity className="w-3 h-3" /> POTENTIAL RECOVERY VALUE
                     </div>
                 </motion.div>
@@ -214,7 +214,7 @@ export default function AssetRecoveryPage() {
                     <div className="text-3xl font-black text-white mb-1">
                         Rp {(data?.frozen_value ? data.frozen_value / 1000000000 : 0).toFixed(1)} B
                     </div>
-                     <div className="text-[10px] text-blue-400 font-mono flex items-center gap-1">
+                     <div className="text-[11px] text-blue-400 font-mono flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3" /> CONFIRMED ASSET NEXUS
                     </div>
                 </motion.div>
@@ -255,7 +255,7 @@ export default function AssetRecoveryPage() {
                                 <Network className="w-4 h-4 text-indigo-400" />
                                 BENEFICIAL OWNERSHIP MAP
                              </h4>
-                             <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded border border-indigo-500/20">LIVE TRACE</span>
+                             <span className="text-[11px] bg-indigo-500/10 text-indigo-400 px-2 py-1 rounded border border-indigo-500/20">LIVE TRACE</span>
                         </div>
 
                         {/* Visualization of UBO Chain */}
@@ -274,13 +274,13 @@ export default function AssetRecoveryPage() {
                                     
                                     <div className="glass-card p-4 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-colors group">
                                         <div className="flex justify-between items-start mb-2">
-                                            <span className="text-[10px] font-mono text-slate-500 uppercase">{node.role}</span>
+                                            <span className="text-[11px] font-mono text-slate-500 uppercase">{node.role}</span>
                                             {node.level === 1 && <AlertCircle className="w-3 h-3 text-rose-500" />}
                                         </div>
                                         <div className="font-bold text-white text-sm group-hover:text-indigo-300 transition-colors">{node.name}</div>
                                         <div className="mt-2 flex gap-2">
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">{node.type}</span>
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">Risk Score: {(0.9 - (i * 0.1)).toFixed(2)}</span>
+                                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">{node.type}</span>
+                                            <span className="text-[11px] px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">Risk Score: {(0.9 - (i * 0.1)).toFixed(2)}</span>
                                         </div>
                                     </div>
                                     
@@ -304,10 +304,10 @@ export default function AssetRecoveryPage() {
                             IDENTIFIED ASSETS
                         </h4>
                          <div className="flex gap-2">
-                            <button className="text-[10px] px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5 transition-colors">
+                            <button className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 border border-white/5 transition-colors">
                                 Filter by Value
                             </button>
-                            <button className="text-[10px] px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors">
+                            <button className="text-[11px] px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors">
                                 Export List
                             </button>
                          </div>
@@ -334,7 +334,7 @@ export default function AssetRecoveryPage() {
                                         <div className="flex items-center gap-2 mb-1">
                                             <h5 className="font-bold text-white">{asset.name}</h5>
                                             {asset.status === 'VERIFIED' && (
-                                                <span className="flex items-center gap-1 text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-500/20">
+                                                <span className="flex items-center gap-1 text-[11px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold border border-emerald-500/20">
                                                     <CheckCircle2 className="w-2.5 h-2.5" /> VERIFIED LINK
                                                 </span>
                                             )}
@@ -345,7 +345,7 @@ export default function AssetRecoveryPage() {
                                             <span>{asset.location}</span>
                                         </div>
                                         
-                                        <div className="flex items-center gap-2 text-[10px] font-mono text-indigo-400 bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 w-fit">
+                                        <div className="flex items-center gap-2 text-[11px] font-mono text-indigo-400 bg-indigo-500/5 px-2 py-1 rounded border border-indigo-500/10 w-fit">
                                             <Network className="w-3 h-3" />
                                             {asset.discovery_path}
                                         </div>
@@ -354,7 +354,7 @@ export default function AssetRecoveryPage() {
 
                                 <div className="text-right">
                                      <div className="mb-3">
-                                        <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Estimated Value</div>
+                                        <div className="text-[11px] text-slate-500 uppercase tracking-widest font-bold">Estimated Value</div>
                                         <div className="text-lg font-bold text-white">
                                             Rp {(asset.value / 1000000).toLocaleString()} M
                                         </div>
@@ -362,7 +362,7 @@ export default function AssetRecoveryPage() {
                                      <div className="flex gap-2 justify-end">
                                          <button 
                                             onClick={() => verifyAsset(asset.id, asset.status)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-all ${
                                                 asset.status === 'VERIFIED' 
                                                 ? 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700' 
                                                 : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
@@ -391,7 +391,7 @@ export default function AssetRecoveryPage() {
             <div className="glass-panel p-8 rounded-[2.5rem] border border-emerald-500/20 bg-emerald-500/5 mt-10">
                  <div className="flex items-center gap-3 mb-4">
                     <AlertCircle className="w-5 h-5 text-emerald-500" />
-                    <h5 className="text-[10px] font-black text-white uppercase tracking-widest">Tracing Completeness</h5>
+                    <h5 className="text-[11px] font-black text-white uppercase tracking-widest">Tracing Completeness</h5>
                  </div>
                  <div className="h-2 w-full bg-emerald-950/50 rounded-full overflow-hidden mb-4 border border-emerald-500/10">
                     <motion.div 
@@ -400,7 +400,7 @@ export default function AssetRecoveryPage() {
                         className="h-full bg-emerald-500 shadow-[0_0_15px_#10b981]" 
                     />
                  </div>
-                 <p className="text-[10px] text-slate-500 leading-relaxed font-bold italic">
+                 <p className="text-[11px] text-slate-500 leading-relaxed font-bold italic">
                     Current intelligence operations cover <span className="text-white">36.0%</span> of total project leakage discovered through V1-V3.
                  </p>
             </div>

@@ -74,7 +74,7 @@ export default function BridgeStructuralDiagram({ onSelectPart }: Props) {
       <div className="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
          <div>
             <h4 className="text-xl font-black text-white uppercase tracking-tighter italic">Structural Reconciliation Map</h4>
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Girder Bridge: Abutment & Pier Synthesis</p>
+            <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mt-1">Girder Bridge: Abutment & Pier Synthesis</p>
          </div>
          <div className="flex gap-2">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[8px] font-black uppercase tracking-widest">
@@ -166,12 +166,12 @@ export default function BridgeStructuralDiagram({ onSelectPart }: Props) {
                         <AlertCircle className="w-4 h-4 rotate-45" />
                      </button>
                   </div>
-                  <p className="text-[10px] text-slate-400 mb-6 leading-relaxed italic">{selectedPart.description}</p>
+                  <p className="text-[11px] text-slate-400 mb-6 leading-relaxed italic">{selectedPart.description}</p>
                   
                   <div className="space-y-4">
                      <div className="p-4 rounded-2xl bg-black/40 border border-white/5">
                         <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Design Mix</div>
-                        <div className="text-[10px] font-bold text-indigo-400 uppercase">{selectedPart.materialComposition}</div>
+                        <div className="text-[11px] font-bold text-indigo-400 uppercase">{selectedPart.materialComposition}</div>
                      </div>
                      <button className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-[8px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
                         <Maximize2 className="w-3 h-3" /> View Specs

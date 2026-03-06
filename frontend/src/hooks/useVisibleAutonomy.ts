@@ -10,7 +10,7 @@ export interface QuarantineRow {
   error_message: string;
   error_type: string;
   status: 'new' | 'repaired' | 'fixed_manually' | 'ignored' | 'needs_specialist';
-  suggested_fix?: Record<string, any>;
+  suggested_fix?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -25,7 +25,10 @@ export interface AgentStatus {
   auditor: {
       status: string;
       type: string;
-      stream_metrics?: Record<string, any>;
+      stream_metrics?: {
+          lag?: number;
+          [key: string]: unknown;
+      };
   };
   nurse: {
       status: string;
@@ -55,8 +58,9 @@ export function useQuarantine() {
         if (!res.ok) throw new Error('Failed to fetch stats');
         const data = await res.json();
         setStats(data);
-    } catch (err: any) {
-        setError(err.message);
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        setError(message);
     } finally {
         setLoading(false);
     }

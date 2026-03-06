@@ -2,6 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Zap, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Match } from '../../../types/domain';
+import { PresenceUser } from '../../../hooks/usePresence';
+import { User as UserIcon } from 'lucide-react';
 
 interface RecordCardProps { 
     id: string;
@@ -16,12 +18,13 @@ interface RecordCardProps {
     riskDescription?: string;
     onConfirm?: (matchId: string) => void;
     onExplain?: (id: string) => void;
+    presenceUsers?: PresenceUser[];
 }
 
 export function RecordCard({ 
     id, date, desc, amount, isMatched, isTruth, 
     matches, onHoverMatch, hoveredMatchId, riskDescription,
-    onConfirm, onExplain
+    onConfirm, onExplain, presenceUsers = []
 }: RecordCardProps) {
     const match = matches.find(m => isTruth ? m.bank_tx_id === id : m.internal_tx_id === id);
     const isHovered = hoveredMatchId === (match?.id || null);
@@ -46,12 +49,23 @@ export function RecordCard({
 
             <div className="flex items-start justify-between gap-4 mb-3 relative z-10">
                 <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic">
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic">
                         <Clock className="w-3 h-3" /> {new Date(date).toLocaleDateString()}
                     </span>
                     <h3 className="text-xs font-bold text-slate-200 line-clamp-1 uppercase tracking-tight">{desc}</h3>
                 </div>
-                <div className="text-right">
+                <div className="flex flex-col items-end gap-2">
+                    <div className="flex -space-x-1">
+                        {presenceUsers.map(u => (
+                            <div 
+                                key={u.id}
+                                className="w-4 h-4 rounded-full bg-indigo-600 border border-slate-900 flex items-center justify-center"
+                                title={`${u.name} is looking at this`}
+                            >
+                                <UserIcon size={8} className="text-white" />
+                            </div>
+                        ))}
+                    </div>
                     <p className={`text-sm font-black italic tracking-tighter ${isTruth ? 'text-indigo-400' : 'text-amber-400'}`}>
                         {amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' }).replace(',00', '')}
                     </p>

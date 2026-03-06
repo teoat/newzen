@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Database, CheckCircle, ArrowRight, Loader2 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function OnboardingModal() {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-md">
+    <div className="fixed inset-0 z-popover flex items-center justify-center bg-black/90 backdrop-blur-md">
       <motion.div 
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -157,7 +157,7 @@ export default function OnboardingModal() {
                         </button>
                         <button 
                             onClick={() => completeOnboarding()}
-                            className="mt-4 text-[10px] text-slate-500 hover:text-white uppercase tracking-widest transition-colors"
+                            className="mt-4 text-[11px] text-slate-500 hover:text-white uppercase tracking-widest transition-colors"
                         >
                             Skip Setup
                         </button>

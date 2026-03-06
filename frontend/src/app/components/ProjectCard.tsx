@@ -12,7 +12,7 @@ interface ProjectCardProps {
   start_date: string;
   end_date?: string;
   location?: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'SUSPENDED' | 'CANCELLED';
+  status: string;
   riskScore?: number;
 }
 
@@ -27,12 +27,18 @@ export function ProjectCard({
   status,
   riskScore,
 }: ProjectCardProps) {
-  const statusColors = {
+  const normalizedStatus = status.toUpperCase();
+  
+  const statusColors: Record<string, string> = {
     ACTIVE: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
     COMPLETED: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
     SUSPENDED: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
     CANCELLED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    AUDIT_MODE: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+    STALLED: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
   };
+
+  const statusColor = statusColors[normalizedStatus] || 'bg-slate-500/10 text-slate-400 border-slate-500/20';
 
   return (
     <Link
@@ -49,7 +55,7 @@ export function ProjectCard({
             <p className="text-xs text-slate-500">{contractor_name}</p>
           </div>
         </div>
-        <span className={`text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-full border ${statusColors[status]}`}>
+        <span className={`text-[11px] font-black tracking-widest uppercase px-2 py-1 rounded-full border ${statusColor}`}>
           {status}
         </span>
       </div>
@@ -79,7 +85,7 @@ export function ProjectCard({
       {riskScore !== undefined && (
         <div className="mt-3 pt-3 border-t border-white/5">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Risk Score</span>
+            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Risk Score</span>
             <span className={`text-sm font-black ${riskScore > 70 ? 'text-rose-500' : riskScore > 40 ? 'text-amber-500' : 'text-emerald-500'}`}>
               {riskScore}%
             </span>

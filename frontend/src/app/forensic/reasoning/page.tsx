@@ -38,6 +38,11 @@ export default function ReasoningEnginePage() {
   const [loading, setLoading] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchHypotheses = async () => {
@@ -104,7 +109,7 @@ export default function ReasoningEnginePage() {
            <div className="lg:col-span-2 space-y-6">
               <div className="flex items-center gap-4 text-indigo-400">
                  <Activity className="w-5 h-5 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">Autonomous Inference Mode</span>
+                 <span className="text-[11px] font-black uppercase tracking-[0.4em]">Autonomous Inference Mode</span>
               </div>
               <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none">
                  The Neural <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-500">War Room</span>
@@ -118,12 +123,12 @@ export default function ReasoningEnginePage() {
            <NeuralCard pulse className="bg-indigo-600/10 border-indigo-500/20">
               <div className="flex items-center gap-4 mb-4">
                  <Terminal className="w-4 h-4 text-indigo-400" />
-                 <span className="text-[10px] font-black uppercase text-indigo-300">System Entropy</span>
+                 <span className="text-[11px] font-black uppercase text-indigo-300">System Entropy</span>
               </div>
               <div className="text-4xl font-black text-white font-mono italic tracking-tighter">
                  0.42<span className="text-lg opacity-30">ψ</span>
               </div>
-              <p className="text-[9px] text-slate-500 mt-2 font-black uppercase tracking-widest">Logic Convergence: HIGH</p>
+              <p className="text-[11px] text-slate-500 mt-2 font-black uppercase tracking-widest">Logic Convergence: HIGH</p>
            </NeuralCard>
         </div>
 
@@ -132,7 +137,7 @@ export default function ReasoningEnginePage() {
           <div className="space-y-6">
              <div className="flex items-center gap-4 px-2">
                 <Trello className="w-4 h-4 text-slate-500" />
-                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Agent Persona Logs</h4>
+                <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Agent Persona Logs</h4>
              </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {swarmLogs.map((log, i) => (
@@ -144,10 +149,10 @@ export default function ReasoningEnginePage() {
                     className="p-6 rounded-3xl bg-slate-900/40 border border-white/5 space-y-4"
                   >
                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{log.agent}</span>
+                        <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">{log.agent}</span>
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                      </div>
-                     <p className="text-[10px] font-bold text-slate-400 leading-relaxed font-mono uppercase italic overflow-hidden h-12">
+                     <p className="text-[11px] font-bold text-slate-400 leading-relaxed font-mono uppercase italic overflow-hidden h-12">
                         {log.thought}
                      </p>
                   </motion.div>
@@ -161,7 +166,7 @@ export default function ReasoningEnginePage() {
            <div className="flex items-center justify-between px-2">
               <div className="flex items-center gap-4">
                  <Network className="w-4 h-4 text-indigo-400" />
-                 <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Synthesized Logic Hypotheses</h4>
+                 <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Synthesized Logic Hypotheses</h4>
               </div>
               <div className="flex gap-2">
                 <div className="h-1 w-24 bg-white/5 rounded-full overflow-hidden">
@@ -185,7 +190,7 @@ export default function ReasoningEnginePage() {
                   >
                     <div className="flex justify-between items-start mb-8">
                        <div className="space-y-1">
-                          <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">Neural Discovery</span>
+                          <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">Neural Discovery</span>
                           <h4 className="text-2xl font-black text-white uppercase tracking-tighter leading-none italic">{h.title}</h4>
                        </div>
                        <div className="text-right">
@@ -206,13 +211,13 @@ export default function ReasoningEnginePage() {
                     <div className="mt-auto flex items-center justify-between">
                        {verifications[h.id] ? (
                           <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-6 w-full">
-                             <div className={`px-6 py-2.5 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest ${
+                             <div className={`px-6 py-2.5 rounded-2xl flex items-center gap-3 text-[11px] font-black uppercase tracking-widest ${
                                verifications[h.id].status === 'VERIFIED' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'bg-rose-500/10 text-rose-500 border border-rose-500/20'
                              }`}>
                                 {verifications[h.id].status === 'VERIFIED' ? <ShieldCheck className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
                                 {verifications[h.id].status}
                              </div>
-                             <div className="flex-1 text-[9px] font-black text-slate-500 italic uppercase tracking-[0.1em]">
+                             <div className="flex-1 text-[11px] font-black text-slate-500 italic uppercase tracking-[0.1em]">
                                 {verifications[h.id].summary}
                              </div>
                           </motion.div>
@@ -233,7 +238,7 @@ export default function ReasoningEnginePage() {
                                whileTap={{ scale: 0.95 }}
                                onClick={() => handleVerify(h.id)}
                                disabled={verifyingId === h.id}
-                               className="px-8 py-4 bg-white text-black hover:bg-indigo-400 hover:text-white disabled:opacity-50 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 flex items-center gap-3"
+                               className="px-8 py-4 bg-white text-black hover:bg-indigo-400 hover:text-white disabled:opacity-50 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 flex items-center gap-3"
                              >
                                 {verifyingId === h.id ? 'Pulse Verifying...' : <><Network className="w-4 h-4" /> Initiate Proof</>}
                              </motion.button>
@@ -250,20 +255,20 @@ export default function ReasoningEnginePage() {
         {/* v3 Global Metadata Footer */}
         <div className="tactical-frame p-10 rounded-[3.5rem] bg-slate-950/80 border-white/5 grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="space-y-4">
-               <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Logic Stability</h4>
+               <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Logic Stability</h4>
                <div className="flex items-end gap-2">
                   {Array.from({length: 12}).map((_, i) => (
                     <motion.div 
                       key={i}
                       initial={{ height: 10 }}
-                      animate={{ height: Math.random() * 30 + 10 }}
+                      animate={{ height: isMounted ? Math.random() * 30 + 10 : 10 }}
                       transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse', delay: i * 0.1 }}
                       className="w-1 bg-indigo-500/30 rounded-full"
                     />
                   ))}
                </div>
             </div>
-            <div className="lg:col-span-3 flex items-center justify-end gap-12 border-l border-white/5 pl-12 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
+            <div className="lg:col-span-3 flex items-center justify-end gap-12 border-l border-white/5 pl-12 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">
                <div className="flex flex-col">
                   <span className="text-slate-600">Active Swarm</span>
                   <span className="text-white">v3.0.Neural-Horizon</span>

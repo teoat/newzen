@@ -27,7 +27,7 @@ const ForensicLogicPath: React.FC<ForensicLogicPathProps> = ({
 
       <div className="mb-8">
         <h3 className="text-xl font-black text-white italic tracking-tighter uppercase">{title}</h3>
-        <p className="text-slate-500 text-[10px] font-mono tracking-[0.3em] uppercase mt-1">Mathematical Provenance & Audit Trail Verification</p>
+        <p className="text-slate-500 text-[11px] font-mono tracking-[0.3em] uppercase mt-1">Mathematical Provenance & Audit Trail Verification</p>
       </div>
 
       <div className="flex items-center gap-4 overflow-x-auto pb-4 custom-scrollbar">
@@ -46,7 +46,7 @@ const ForensicLogicPath: React.FC<ForensicLogicPathProps> = ({
               } relative group hover:border-indigo-500/40 transition-all`}>
                 
                 <div className="flex justify-between items-start mb-4">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{stage.label}</span>
+                  <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{stage.label}</span>
                   {stage.status === 'anomaly' && <AlertCircle className="w-4 h-4 text-rose-500" />}
                   {stage.status === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
                 </div>
@@ -59,14 +59,14 @@ const ForensicLogicPath: React.FC<ForensicLogicPathProps> = ({
                   {stage.value}
                 </div>
 
-                <div className="text-[10px] text-slate-400 leading-relaxed font-medium">
+                <div className="text-[11px] text-slate-400 leading-relaxed font-medium">
                   {stage.description}
                 </div>
 
                 {stage.formula && (
                   <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
                     <Sigma className="w-3 h-3 text-indigo-400" />
-                    <span className="text-[9px] font-mono text-indigo-400/70">{stage.formula}</span>
+                    <span className="text-[11px] font-mono text-indigo-400/70">{stage.formula}</span>
                   </div>
                 )}
 
@@ -93,7 +93,7 @@ const ForensicLogicPath: React.FC<ForensicLogicPathProps> = ({
             </div>
           ))}
         </div>
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">3 Logic Gates Passed Certification</span>
+        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">3 Logic Gates Passed Certification</span>
       </div>
     </div>
   );

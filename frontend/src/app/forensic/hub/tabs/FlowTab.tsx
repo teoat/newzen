@@ -9,7 +9,6 @@ export default function FlowTab() {
 
   useEffect(() => {
     if (selectedMilestone) {
-      console.log('Flow: Focusing on milestone', selectedMilestone);
       // The FlowWorkspace will handle highlighting this milestone
     }
   }, [selectedMilestone]);

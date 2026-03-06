@@ -73,7 +73,7 @@ export default function HolographicProjection({
             {title}
             <span className="w-12 h-px bg-indigo-500/50" />
         </h3>
-        <p className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.5em] font-mono">
+        <p className="text-[11px] font-black text-indigo-400/60 uppercase tracking-[0.5em] font-mono">
             {subtitle}
         </p>
       </motion.div>
@@ -99,7 +99,7 @@ function SystemTag({ label, value }: { label: string, value: string }) {
   return (
     <div className="flex flex-col items-center">
       <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest mb-1">{label}</span>
-      <span className="text-[10px] font-black text-indigo-500/40 uppercase font-mono">{value}</span>
+      <span className="text-[11px] font-black text-indigo-500/40 uppercase font-mono">{value}</span>
     </div>
   );
 }

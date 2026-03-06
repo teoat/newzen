@@ -81,7 +81,7 @@ export function ReconciliationStats({
           <h1 className="text-xl font-black text-white italic tracking-tighter uppercase leading-none" id="reconciliation-title">
             FORENSIC_CONSENSUS_HUB
           </h1>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 italic" aria-live="polite">
+          <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] mt-1 italic" aria-live="polite">
             Handshake Integrity: <span className="text-emerald-500" aria-label="System status optimal">OPTIMAL</span>
           </p>
         </div>

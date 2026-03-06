@@ -1,324 +1,252 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Shield, AlertTriangle, Info, ArrowLeft, Layers, Globe, Activity, Crosshair } from 'lucide-react';
-import {
-  ComposableMap,
-  Geographies,
-  Geography,
-  Marker,
-  Line,
-} from 'react-simple-maps';
-import useSWR from 'swr';
+import { 
+  Globe, 
+  Map as MapIcon, 
+  Clock, 
+  Navigation, 
+  AlertTriangle, 
+  Target, 
+  Zap, 
+  Activity,
+  CreditCard,
+  Fuel,
+  ShoppingBag,
+  Building2,
+  ArrowRight,
+  Fingerprint,
+  ChevronRight
+} from 'lucide-react';
+import ForensicPageLayout from '../../components/ForensicPageLayout';
 import { useProject } from '../../../store/useProject';
-import { authenticatedFetch, authFetcher } from '../../../lib/api';
-import { Card } from '../../../ui/card';
-import { Button } from '../../../ui/button';
-import { Badge } from '../../../ui/badge';
-import { SkeletonCard } from '../../../ui/skeleton';
+import { authenticatedFetch } from '../../../lib/api';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import PageFeatureCard from '../../components/PageFeatureCard';
 
-// Indonesia TopoJSON URL
-const geoUrl = "https://raw.githubusercontent.com/ansis/world-topojson/master/countries/indonesia.json";
+// Dynamically import the map to avoid SSR issues
+const ForensicMap = dynamic(() => import('./components/ForensicMap').then(m => m.ForensicMap), { ssr: false });
 
-export default function EvidenceMapPage() {
+interface StoryNode {
+  id: string;
+  type: 'ATM' | 'GAS_STATION' | 'MINI_MART' | 'SITE' | 'OFFICE';
+  name: string;
+  timestamp: string;
+  amount: number;
+  lat: number;
+  lng: number;
+  description: string;
+  isAnomaly?: boolean;
+}
+
+// Haversine Distance Helper
+function getDist(la1: number, lo1: number, la2: number, lo2: number) {
+    const R = 6371; // KM
+    const dLat = (la2 - la1) * Math.PI / 180;
+    const dLon = (lo2 - lo1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(la1 * Math.PI / 180) * Math.cos(la2 * Math.PI / 180) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+}
+
+export default function MovementStoryboardPage() {
   const { activeProjectId } = useProject();
-  const [selectedEntity, setSelectedEntity] = useState<any>(null);
-  const [mapMode, setMapMode] = useState<'markers' | 'heatmap' | 'flows' | 'anomalies'>('markers');
-  
-  // Real Geocoded Entities from V2 API
-  const { data: entities, error: entitiesError, isLoading: loadingEntities } = useSWR(
-    activeProjectId ? `/api/v2/geo/entities/${activeProjectId}` : null,
-    authFetcher
-  );
+  const [viewMode, setViewMode] = useState<'strategic' | 'storyboard'>('storyboard');
+  const [nodes, setNodes] = useState<StoryNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
-  // Geospatial Anomalies from SiteTruth V2 API
-  const { data: anomaliesData } = useSWR(
-    activeProjectId ? `/api/v2/forensic-v2/site-truth/geospatial-verify/${activeProjectId}` : null,
-    authFetcher
-  );
+  // SIMULATED STORY DATA - In production, this comes from the new columns we added
+  useEffect(() => {
+    if (!activeProjectId) return;
+    setTimeout(() => {
+      setNodes([
+        { id: '1', type: 'ATM', name: 'ATM LINK - JAKARTA SELATAN', timestamp: '2026-02-04T09:00:00Z', amount: 2500000, lat: -6.2088, lng: 106.8456, description: 'Cash withdrawal - Primary Agent' },
+        { id: '2', type: 'GAS_STATION', name: 'SPBU PERTAMINA 31.127', timestamp: '2026-02-04T10:30:00Z', amount: 450000, lat: -6.2297, lng: 106.8091, description: 'Fuel purchase - Operational Vehicle' },
+        { id: '3', type: 'MINI_MART', name: 'INDOMARET POINT', timestamp: '2026-02-04T11:15:00Z', amount: 125000, lat: -6.2444, lng: 106.7992, description: 'Subsistence - Site Team' },
+        { id: '4', type: 'SITE', name: 'PROJECT SITE - ALPHA', timestamp: '2026-02-04T14:00:00Z', amount: 0, lat: -1.2428, lng: 116.8312, description: 'Target Project Boundary', isAnomaly: true },
+      ]);
+      setLoading(false);
+    }, 1200);
+  }, [activeProjectId]);
 
-  // Heatmap Data from V2 API
-  const { data: heatmapData } = useSWR(
-    activeProjectId ? `/api/v2/geo/heatmap/${activeProjectId}` : null,
-    authFetcher
-  );
+  const sortedNodes = useMemo(() => [...nodes].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()), [nodes]);
+
+  // Protocol 3: Identify Red-Line Travel Gaps
+  const travelLines = useMemo(() => {
+    const lines = [];
+    for (let i = 0; i < sortedNodes.length - 1; i++) {
+        const n1 = sortedNodes[i];
+        const n2 = sortedNodes[i+1];
+        
+        // Calculate velocity
+        const dist = getDist(n1.lat, n1.lng, n2.lat, n2.lng);
+        const timeDiff = Math.abs(new Date(n2.timestamp).getTime() - new Date(n1.timestamp).getTime()) / (1000 * 3600);
+        const speed = timeDiff > 0 ? dist / timeDiff : 0;
+        
+        lines.push({
+            from: [n1.lng, n1.lat],
+            to: [n2.lng, n2.lat],
+            isImpossible: speed > 800,
+            speed: Math.round(speed)
+        });
+    }
+    return lines;
+  }, [sortedNodes]);
 
   return (
-    <div className="p-8 space-y-8 bg-slate-950 min-h-screen text-slate-200">
-      <header className="flex justify-between items-center bg-slate-900/50 p-6 rounded-[2rem] border border-white/5 backdrop-blur-xl">
-        <div className="flex items-center gap-6">
+    <ForensicPageLayout
+      title="Movement Storyboard"
+      subtitle="Geospatial Behavior & Path Verification"
+      icon={Globe}
+      headerActions={
+        <div className="flex bg-slate-900 border border-white/10 p-1 rounded-xl">
           <button 
-            onClick={() => window.history.back()} 
-            title="Go Back"
-            className="p-4 hover:bg-white/5 rounded-2xl transition-all border border-white/5 bg-slate-950 shadow-2xl group"
+            onClick={() => setViewMode('strategic')}
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'strategic' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            Strategic Radar
           </button>
-          <div>
-            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Geospatial Intelligence</h1>
-            <div className="flex items-center gap-2 mt-1">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
-                <p className="text-slate-500 font-mono text-[10px] uppercase tracking-[0.3em]">Indonesia Archipelago Surveillance Active</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-            <div className="bg-slate-950 border border-white/10 rounded-2xl px-2 py-1 flex gap-1">
-                {(['markers', 'heatmap', 'flows', 'anomalies'] as const).map((mode) => (
-                    <Button 
-                        key={mode}
-                        variant={mapMode === mode ? 'default' : 'ghost'} 
-                        size="sm" 
-                        onClick={() => setMapMode(mode)}
-                        className="text-[10px] uppercase font-black tracking-widest px-4 h-10"
-                    >
-                        {mode}
-                    </Button>
-                ))}
-            </div>
-            <div className="px-6 py-2 rounded-2xl flex items-center gap-3 border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md">
-                <Shield className="w-4 h-4 text-emerald-400" />
-                <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Global Watchlist Sync Active</span>
-            </div>
-        </div>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[700px]">
-        {/* Map Visualization Area */}
-        <div className="lg:col-span-3 rounded-[3rem] relative overflow-hidden bg-[#020617] border border-white/5 shadow-2xl group">
-          <AnimatePresence>
-            {loadingEntities && (
-              <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 z-50 backdrop-blur-sm"
-              >
-                  <Activity className="w-12 h-12 text-indigo-500 animate-pulse mb-4" />
-                  <span className="text-indigo-400 font-mono text-xs uppercase tracking-[0.5em] animate-pulse">Triangulating Node Coordinates...</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div className="absolute inset-0 opacity-10 pointer-events-none map-grid-pattern" />
-
-          <ComposableMap
-            projection="geoMercator"
-            projectionConfig={{
-              scale: 1200,
-              center: [118, -2]
-            }}
-            className="w-full h-full cursor-grab active:cursor-grabbing"
+          <button 
+            onClick={() => setViewMode('storyboard')}
+            className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'storyboard' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
           >
-            <Geographies geography={geoUrl}>
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill="#0f172a"
-                    stroke="#1e293b"
-                    strokeWidth={0.5}
-                    style={{
-                      default: { outline: "none" },
-                      hover: { fill: "#1e293b", outline: "none" },
-                      pressed: { fill: "#334155", outline: "none" },
-                    }}
-                  />
-                ))
-              }
-            </Geographies>
-
-            {/* Heatmap Layer */}
-            {mapMode === 'heatmap' && heatmapData?.map((p: any, i: number) => (
-                <Marker key={i} coordinates={[p.lng, p.lat]}>
-                    <circle r={Math.min(20, p.weight * 5)} fill="#f43f5e" fillOpacity={0.15} stroke="#f43f5e" strokeWidth={0.5} strokeDasharray="2,2" className="animate-forensic-pulse" />
-                    <circle r={2} fill="#f43f5e" />
-                </Marker>
-            ))}
-
-            {/* Entity Markers Layer */}
-            {mapMode === 'markers' && entities?.map((entity: any) => (
-              <Marker
-                key={entity.id}
-                coordinates={[entity.lng, entity.lat]}
-                onClick={() => setSelectedEntity(entity)}
-              >
-                <motion.g
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    whileHover={{ scale: 1.5 }}
-                    className="cursor-pointer"
+            Movement Story
+          </button>
+        </div>
+      }
+    >
+      <div className="flex h-full overflow-hidden">
+        {/* LEFT: THE TIMELINE STORYBOARD */}
+        <AnimatePresence>
+            {viewMode === 'storyboard' && (
+                <motion.aside 
+                    initial={{ x: -300, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: -300, opacity: 0 }}
+                    className="w-96 border-r border-white/5 bg-slate-950/50 backdrop-blur-xl flex flex-col"
                 >
-                    <circle 
-                        r={6} 
-                        fill={entity.risk_score > 0.7 ? '#f43f5e' : '#6366f1'} 
-                        fillOpacity={0.2}
-                        stroke={entity.risk_score > 0.7 ? '#f43f5e' : '#6366f1'}
-                        strokeWidth={2}
-                    />
-                    <circle 
-                        r={2} 
-                        fill={entity.risk_score > 0.7 ? '#f43f5e' : '#fff'} 
-                    />
-                    {entity.risk_score > 0.7 && (
-                        <circle 
-                            r={10} 
-                            fill="none" 
-                            stroke="#f43f5e" 
-                            strokeWidth={0.5} 
-                            className="animate-ping" 
-                        />
-                    )}
-                </motion.g>
-              </Marker>
-            ))}
-
-            {/* Flow Lines Layer */}
-            {mapMode === 'flows' && entities?.filter((e: any) => e.target_coords).map((flow: any, i: number) => (
-                <Line
-                    key={i}
-                    from={[flow.lng, flow.lat]}
-                    to={flow.target_coords}
-                    stroke={flow.risk_score > 0.7 ? "#f43f5e" : "#818cf8"}
-                    strokeWidth={1}
-                    strokeLinecap="round"
-                    strokeDasharray="4,2"
-                />
-            ))}
-
-            {/* Site-Truth Anomaly Layer */}
-            {mapMode === 'anomalies' && anomaliesData?.geospatial_anomalies?.map((anomaly: any, i: number) => {
-                const txNode = entities?.find((e: any) => e.transaction_id === anomaly.transaction_id);
-                // For demo, if txNode is found, we draw a line to the "truth" coordinates
-                // which would come from the document metadata
-                return txNode ? (
-                    <React.Fragment key={i}>
-                        <Line
-                            from={[txNode.lng, txNode.lat]}
-                            to={[txNode.lng + 0.1, txNode.lat + 0.1]} // Simulated Truth point for visual
-                            stroke="#f43f5e"
-                            strokeWidth={2}
-                            className="animate-pulse"
-                        />
-                        <Marker coordinates={[txNode.lng + 0.1, txNode.lat + 0.1]}>
-                            <motion.g animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity }}>
-                                <MapPin size={12} fill="#f43f5e" />
-                            </motion.g>
-                        </Marker>
-                    </React.Fragment>
-                ) : null;
-            })}
-          </ComposableMap>
-
-          {/* Map Overlay Controls */}
-          <div className="absolute top-8 left-8 space-y-4 pointer-events-none">
-            <Card className="p-4 bg-slate-950/80 border-white/5 backdrop-blur-xl shadow-2xl">
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">surveillance metrics</div>
-              <div className="flex gap-6">
-                <div>
-                    <div className="text-xl font-black text-white">{entities?.length || 0}</div>
-                    <div className="text-[8px] text-slate-500 uppercase font-bold">Monitored Nodes</div>
-                </div>
-                <div className="w-px h-8 bg-white/10" />
-                <div>
-                    <div className="text-xl font-black text-rose-500">{entities?.filter((e: any) => e.risk_score > 0.7).length || 0}</div>
-                    <div className="text-[8px] text-slate-500 uppercase font-bold">Anomalous Clusters</div>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div className="absolute bottom-8 right-8 flex gap-4">
-             <Button variant="outline" size="icon" className="w-12 h-12 rounded-2xl bg-slate-950/80 backdrop-blur-xl border-white/5">
-                <Globe className="w-5 h-5 text-indigo-400" />
-             </Button>
-             <Button variant="outline" size="icon" className="w-12 h-12 rounded-2xl bg-slate-950/80 backdrop-blur-xl border-white/5">
-                <Crosshair className="w-5 h-5 text-indigo-400" />
-             </Button>
-          </div>
-        </div>
-
-        {/* Intelligence Context Panel */}
-        <div className="col-span-1 space-y-6 overflow-y-auto pr-2 custom-scrollbar">
-          {loadingEntities ? (
-             <div className="space-y-6">
-                <SkeletonCard count={3} />
-                <SkeletonCard variant="metric" />
-             </div>
-          ) : selectedEntity ? (
-            <motion.div 
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="tactical-card p-6 bg-slate-900 border-white/10 rounded-[2.5rem] shadow-2xl space-y-6"
-            >
-              <div className="flex items-center gap-4">
-                <div className={`p-4 rounded-2xl ${selectedEntity.risk_score > 0.7 ? 'bg-rose-500 shadow-rose-900/40' : 'bg-indigo-600 shadow-indigo-900/40'}`}>
-                  <MapPin className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-white uppercase tracking-tighter leading-none">{selectedEntity.name}</h3>
-                  <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">Entity Profile</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="p-5 bg-slate-950 rounded-3xl border border-white/5">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Localized Risk</span>
-                    <span className={`text-xl font-black ${selectedEntity.risk_score > 0.7 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                      {(selectedEntity.risk_score * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                    <div className={`h-full ${selectedEntity.risk_score > 0.7 ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: `${selectedEntity.risk_score * 100}%` }} />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <Card className="p-4 bg-slate-950 border-white/5 rounded-2xl">
-                        <div className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Activity</div>
-                        <div className="text-sm font-black text-white">{selectedEntity.transaction_count} TXs</div>
-                    </Card>
-                    <Card className="p-4 bg-slate-950 border-white/5 rounded-2xl">
-                        <div className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">Volume</div>
-                        <div className="text-sm font-black text-white">Rp {(selectedEntity.total_volume / 1e6).toFixed(1)}M</div>
-                    </Card>
-                </div>
-
-                <div className="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Info className="w-3 h-3 text-indigo-400" />
-                        <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400">Geospatial Forensic</span>
+                    <div className="p-8 border-b border-white/5">
+                        <div className="flex items-center gap-3 mb-2">
+                            <Clock className="w-4 h-4 text-indigo-400" />
+                            <h2 className="text-xs font-black text-white uppercase tracking-[0.2em]">Movement Sequence</h2>
+                        </div>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Chronological Path Analysis</p>
                     </div>
-                    <p className="text-[10px] text-slate-400 leading-relaxed">
-                        Registered address in {selectedEntity.city || 'Unknown'}. GPS signature verified against 4 satellite passes.
-                    </p>
-                </div>
 
-                <Button className="w-full h-12 bg-white text-black font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-slate-200 transition-all shadow-xl">
-                    Inspect Localized Assets
-                </Button>
-                
-                <Button variant="ghost" onClick={() => setSelectedEntity(null)} className="w-full text-[10px] uppercase font-black text-slate-500 tracking-widest h-10">
-                    Clear Selection
-                </Button>
-              </div>
-            </motion.div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-center p-8 border-2 border-dashed border-white/5 rounded-[3rem] opacity-30">
-              <div className="p-10 bg-slate-900 rounded-full mb-6">
-                <Crosshair className="w-12 h-12 text-slate-700" />
-              </div>
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Awaiting Coordinate Lock</h4>
-              <p className="text-[11px] text-slate-600 mt-4 leading-relaxed italic">Select a geospatial node to reveal site-specific forensic intelligence and asset propagation.</p>
+                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-0">
+                        {sortedNodes.map((node, i) => (
+                            <div key={node.id} className="relative group cursor-pointer" onClick={() => setSelectedNodeId(node.id)}>
+                                {/* Timeline Line */}
+                                {i < sortedNodes.length - 1 && (
+                                    <div className="absolute left-[19px] top-10 bottom-0 w-px bg-gradient-to-b from-indigo-500/50 to-indigo-500/5" />
+                                )}
+                                
+                                <div className={`flex gap-6 pb-12 transition-all ${selectedNodeId === node.id ? 'translate-x-2' : ''}`}>
+                                    <div className={`z-10 w-10 h-10 rounded-xl border flex items-center justify-center transition-all ${selectedNodeId === node.id ? 'bg-indigo-600 border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-slate-900 border-white/10 text-slate-500'}`}>
+                                        <NodeIcon type={node.type} size={16} />
+                                    </div>
+                                    
+                                    <div className="flex-1 pt-1">
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-[10px] font-mono text-indigo-400 font-bold">{new Date(node.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                            {node.isAnomaly && (
+                                                <span className="text-[8px] font-black text-rose-500 bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 rounded uppercase animate-pulse">Impossible</span>
+                                            )}
+                                        </div>
+                                        <h3 className={`text-xs font-black uppercase tracking-tight transition-colors ${selectedNodeId === node.id ? 'text-white' : 'text-slate-400'}`}>{node.name}</h3>
+                                        <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mt-1">IDR {node.amount.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </motion.aside>
+            )}
+        </AnimatePresence>
+
+        {/* RIGHT: TACTICAL MAP */}
+        <main className="flex-1 relative bg-[#020617]">
+            {/* HUD OVERLAY */}
+            <div className="absolute top-8 left-8 z-20 flex flex-col gap-4 pointer-events-none">
+                 <div className="p-6 bg-slate-950/80 backdrop-blur-xl border border-white/5 rounded-[2rem] shadow-2xl pointer-events-auto">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Geospatial Surveillance Active</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-8">
+                        <div>
+                            <div className="text-[9px] font-black text-slate-500 uppercase mb-1">Behavioral Anchors</div>
+                            <div className="text-2xl font-black text-white italic">{nodes.length}</div>
+                        </div>
+                        <div>
+                            <div className="text-[9px] font-black text-slate-500 uppercase mb-1">Sector Coverage</div>
+                            <div className="text-2xl font-black text-indigo-400 italic">94%</div>
+                        </div>
+                    </div>
+                 </div>
             </div>
-          )}
-        </div>
+
+            {/* THE MAP COMPONENT */}
+            <div className="w-full h-full p-4">
+                <div className="w-full h-full rounded-[3.5rem] border border-white/5 overflow-hidden shadow-2xl relative">
+                    <ForensicMap 
+                        loadingEntities={loading}
+                        entities={[]}
+                        mapMode="storyboard"
+                        mapPosition={{ coordinates: [106.8456, -6.2088], zoom: 3000 }}
+                        setMapPosition={() => {}}
+                        setSelectedEntity={() => {}}
+                        storyNodes={nodes}
+                        storyLines={travelLines}
+                    />
+                </div>
+            </div>
+
+            {/* SELECTION HUD */}
+            <AnimatePresence>
+                {selectedNodeId && (
+                    <motion.div 
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-2xl px-8 z-30"
+                    >
+                        <div className="p-8 bg-slate-900 border border-indigo-500/30 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl flex items-center justify-between">
+                            <div className="flex items-center gap-6">
+                                <div className="p-4 bg-indigo-600/20 rounded-2xl border border-indigo-500/30 text-indigo-400">
+                                    <NodeIcon type={nodes.find(n => n.id === selectedNodeId)?.type || 'ATM'} size={32} />
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-tighter italic">{nodes.find(n => n.id === selectedNodeId)?.name}</h2>
+                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{nodes.find(n => n.id === selectedNodeId)?.description}</p>
+                                </div>
+                            </div>
+                            <Button className="h-12 px-8 bg-indigo-600 hover:bg-indigo-500 rounded-xl font-black uppercase text-[11px] tracking-widest">
+                                Inspect Telemetry
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </main>
       </div>
-    </div>
+    </ForensicPageLayout>
   );
+}
+
+function NodeIcon({ type, size }: { type: StoryNode['type'], size: number }) {
+    switch (type) {
+        case 'ATM': return <CreditCard size={size} />;
+        case 'GAS_STATION': return <Fuel size={size} />;
+        case 'MINI_MART': return <ShoppingBag size={size} />;
+        case 'SITE': return <Target size={size} />;
+        case 'OFFICE': return <Building2 size={size} />;
+        default: return <Activity size={size} />;
+    }
 }

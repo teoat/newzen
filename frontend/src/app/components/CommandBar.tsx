@@ -60,6 +60,7 @@ const COMMANDS = [
     { id: 'discrepancy', label: 'Discrepancy Adjudication', group: 'Phase III', icon: Gavel, href: '/forensic/discrepancy' },
     { id: 'seizure', label: 'Asset Seizure Cabinet', group: 'Phase IV', icon: Truck, href: '/forensic/assets' },
     { id: 'screening', label: 'Sanction Monitor', group: 'Phase IV', icon: Shield, href: '/legal/screening' },
+    { id: 'report', label: 'Final Mission Verdict', group: 'Phase V', icon: Gavel, href: '/forensic/report' },
 ];
 
 export default function CommandBar() {
@@ -137,11 +138,37 @@ export default function CommandBar() {
 
         const performSearch = async () => {
             setIsSearching(true);
+            
+            // Task 4: Natural Language Intent Extraction (Polished)
+            const lowerQuery = debouncedQuery.toLowerCase();
+            let finalQuery = debouncedQuery;
+            let intentType: 'SEARCH' | 'RISK' | 'UBO' | 'ACTION' = 'SEARCH';
+            
+            // Detect Intent
+            if (lowerQuery.includes('risk') || lowerQuery.includes('anomaly') || lowerQuery.includes('danger')) intentType = 'RISK';
+            if (lowerQuery.includes('owner') || lowerQuery.includes('ubo') || lowerQuery.includes('control')) intentType = 'UBO';
+            if (lowerQuery.startsWith('go to') || lowerQuery.startsWith('open')) intentType = 'ACTION';
+
+            // Semantic handling: strip conversational filler
+            finalQuery = debouncedQuery.replace(/show me|find all|all the|search for|tell me about|who is|investigate/gi, '').trim();
+
             try {
+                // If it's an action intent and matches a command, we could prioritize it, 
+                // but for now we stick to the unified API search.
                 const response = await fetch(
-                    `${API_URL}/api/v1/forensic/${activeProjectId}/search?q=${encodeURIComponent(debouncedQuery)}`
+                    `${API_URL}/api/v1/forensic/${activeProjectId}/search?q=${encodeURIComponent(finalQuery)}`
                 );
                 const data = await response.json();
+                
+                // Post-process results based on intent
+                if (data.results.transactions) {
+                    data.results.transactions = data.results.transactions.map((t: any) => ({ 
+                        ...t, 
+                        high_risk: intentType === 'RISK' || t.actual_amount > 1000000000, // Semantic boost
+                        ubo_match: intentType === 'UBO' && t.description.toLowerCase().includes('director')
+                    }));
+                }
+
                 setSearchResults(data.results);
             } catch (error) {
                 console.error('Intelligence search failed:', error);
@@ -215,11 +242,11 @@ export default function CommandBar() {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+                <div className="fixed inset-0 z-modal flex items-start justify-center pt-[15vh] px-4">
                     <motion.div 
                         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         onClick={() => setIsOpen(false)}
-                        className="absolute inset-0 bg-slate-950/60 backdrop-blur-md"
+                        className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
                     />
 
                     <motion.div 
@@ -242,7 +269,7 @@ export default function CommandBar() {
                                   isSearching ? 'opacity-50 cursor-wait' : ''
                                 }`}
                             />
-                            <div className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 border border-white/5 text-[10px] text-slate-500 font-mono">
+                            <div className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 border border-white/5 text-[11px] text-slate-500 font-mono">
                                 <Command className="w-2.5 h-2.5" /> K
                             </div>
                             <button onClick={() => setIsOpen(false)} title="Close" className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white">
@@ -259,7 +286,7 @@ export default function CommandBar() {
                                             {/* Category: Commands */}
                                             {filteredCommands.length > 0 && (
                                                 <div>
-                                                    <div className="px-4 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <div className="px-4 mb-2 text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                                                         <Zap className="w-3 h-3" /> System Protocols
                                                     </div>
                                                     {filteredCommands.map((cmd, idx) => (
@@ -278,7 +305,7 @@ export default function CommandBar() {
                                             {/* Category: Intelligence */}
                                             {dataResults.length > 0 && (
                                                 <div>
-                                                    <div className="px-4 mb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                                    <div className="px-4 mb-2 text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
                                                         <Database className="w-3 h-3" /> Intelligence Bank
                                                     </div>
                                                     {dataResults.map((opt, idx) => (
@@ -322,7 +349,7 @@ export default function CommandBar() {
                             )}
                         </div>
 
-                        <div className="px-6 py-4 bg-black/40 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500 font-bold uppercase tracking-widest">
+                        <div className="px-6 py-4 bg-black/40 border-t border-white/5 flex items-center justify-between text-[11px] text-slate-500 font-bold uppercase tracking-widest">
                             <div className="flex gap-6 italic">
                                 <span>↑↓ to navigate</span>
                                 <span>⏎ to select</span>
@@ -380,8 +407,13 @@ function CommandItem({ opt, idx, selectedIndex, onSelect, onHover }: {
                     <div className={`text-sm font-black uppercase tracking-tight truncate ${selectedIndex === idx ? 'text-white' : 'text-slate-200'}`}>
                         {opt.label}
                     </div>
-                    <div className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${selectedIndex === idx ? 'text-indigo-200' : 'text-slate-600'}`}>
+                    <div className={`text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${selectedIndex === idx ? 'text-indigo-200' : 'text-slate-600'}`}>
                         <span>{opt.group || opt._type || 'SEARCH RESULT'}</span>
+                        {(opt as any).high_risk && (
+                            <span className="px-1.5 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[7px] uppercase font-black animate-pulse">
+                                Semantic Risk Detected
+                            </span>
+                        )}
                         {opt._type === 'transaction' && opt.sender && opt.receiver && (
                             <span className="opacity-60 italic">({opt.sender} → {opt.receiver})</span>
                         )}

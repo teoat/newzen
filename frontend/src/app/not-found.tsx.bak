@@ -1,0 +1,16 @@
+import Link from 'next/link';
+
+export default function NotFound() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-8">
+      <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter italic">404 // Node Not Found</h2>
+      <p className="text-slate-500 font-mono text-sm mb-8 tracking-widest uppercase">The requested forensic data path does not exist.</p>
+      <Link
+        href="/"
+        className="px-8 py-4 bg-indigo-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/40"
+      >
+        Return to War Room
+      </Link>
+    </div>
+  );
+}

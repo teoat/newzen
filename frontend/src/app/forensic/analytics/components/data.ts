@@ -34,7 +34,7 @@ export interface SCurveData {
   }>;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export const getProjectDashboard = cache(async (projectId: string): Promise<ProjectData> => {
   const controller = new AbortController();

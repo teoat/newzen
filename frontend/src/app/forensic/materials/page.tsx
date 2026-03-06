@@ -73,13 +73,13 @@ export default function MaterialLabPage() {
         <div className="flex bg-slate-900 rounded-2xl p-1 border border-white/5 shadow-xl">
            <button 
               onClick={() => setViewMode('audit')}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${viewMode === 'audit' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+              className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase transition-all flex items-center gap-2 ${viewMode === 'audit' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
            >
               <Terminal className="w-3 h-3" /> Technical Audit
            </button>
            <button 
               onClick={() => setViewMode('educational')}
-              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${viewMode === 'educational' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
+              className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase transition-all flex items-center gap-2 ${viewMode === 'educational' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-white'}`}
            >
               <HelpCircle className="w-3 h-3" /> Visual Guide
            </button>
@@ -93,7 +93,7 @@ export default function MaterialLabPage() {
            <div className="space-y-6 flex-1">
               <div className="flex items-center gap-4 text-emerald-400">
                  <Activity className="w-5 h-5 animate-pulse" />
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">Integrated GMF Integrity Mode</span>
+                 <span className="text-[11px] font-black uppercase tracking-[0.4em]">Integrated GMF Integrity Mode</span>
               </div>
               <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter leading-none">
                  Global <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-indigo-500">Material Fund</span>
@@ -184,7 +184,7 @@ export default function MaterialLabPage() {
                      <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-4">
                            <Terminal className="w-4 h-4 text-indigo-400" />
-                           <span className="text-[10px] font-black text-white uppercase tracking-widest italic">Intensity Calibration</span>
+                           <span className="text-[11px] font-black text-white uppercase tracking-widest italic">Intensity Calibration</span>
                         </div>
                         <button 
                            onClick={fetchData}
@@ -215,16 +215,16 @@ export default function MaterialLabPage() {
                  <NeuralCard className="bg-rose-500/5 border-rose-500/10">
                     <div className="flex items-center gap-4 mb-6">
                        <ShieldAlert className="w-4 h-4 text-rose-400" />
-                       <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest italic">Anomally Triggers</span>
+                       <span className="text-[11px] font-black text-rose-400 uppercase tracking-widest italic">Anomally Triggers</span>
                     </div>
                     <div className="space-y-4">
                        <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-                          <p className="text-[9px] font-black text-white uppercase mb-1">Low Steel Output (D25/D32)</p>
-                          <p className="text-[10px] text-slate-500 leading-relaxed uppercase font-bold italic">Often indicates reduced rebar density in abutments.</p>
+                          <p className="text-[11px] font-black text-white uppercase mb-1">Low Steel Output (D25/D32)</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed uppercase font-bold italic">Often indicates reduced rebar density in abutments.</p>
                        </div>
                        <div className="p-4 rounded-xl bg-black/40 border border-white/5">
-                          <p className="text-[9px] font-black text-white uppercase mb-1">Sand/Stone Padding</p>
-                          <p className="text-[10px] text-slate-500 leading-relaxed uppercase font-bold italic">Excess transactions for stone usually mask labor theft.</p>
+                          <p className="text-[11px] font-black text-white uppercase mb-1">Sand/Stone Padding</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed uppercase font-bold italic">Excess transactions for stone usually mask labor theft.</p>
                        </div>
                     </div>
                  </NeuralCard>
@@ -256,21 +256,21 @@ export default function MaterialLabPage() {
                           <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-black text-xl italic">01</div>
                           <div>
                              <h4 className="text-white font-black uppercase text-xs italic tracking-widest">Measure Volume</h4>
-                             <p className="text-[10px] text-slate-500 uppercase font-bold mt-1">We count how big the pillars and roads are.</p>
+                             <p className="text-[11px] text-slate-500 uppercase font-bold mt-1">We count how big the pillars and roads are.</p>
                           </div>
                        </div>
                        <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 flex gap-6 items-center">
                           <div className="w-16 h-16 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 font-black text-xl italic">02</div>
                           <div>
                              <h4 className="text-white font-black uppercase text-xs italic tracking-widest">Apply Formula</h4>
-                             <p className="text-[10px] text-slate-500 uppercase font-bold mt-1">We calculate how much sand, stone, and steel that size needs.</p>
+                             <p className="text-[11px] text-slate-500 uppercase font-bold mt-1">We calculate how much sand, stone, and steel that size needs.</p>
                           </div>
                        </div>
                        <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 flex gap-6 items-center">
                           <div className="w-16 h-16 rounded-3xl bg-amber-500/10 flex items-center justify-center text-amber-500 font-black text-xl italic">03</div>
                           <div>
                              <h4 className="text-white font-black uppercase text-xs italic tracking-widest">Match Receipts</h4>
-                             <p className="text-[10px] text-slate-500 uppercase font-bold mt-1">We check the actual money spent to see if it matches.</p>
+                             <p className="text-[11px] text-slate-500 uppercase font-bold mt-1">We check the actual money spent to see if it matches.</p>
                           </div>
                        </div>
                     </div>

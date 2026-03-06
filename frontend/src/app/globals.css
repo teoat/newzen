@@ -1,11 +1,6 @@
 @import "tailwindcss";
 
 :root {
-  /* Zenith Premium Brand Colors - HSL for easy opacity manipulation */
-  --brand-hue: 220; /* Deep Ocean Blue */
-  --brand-sat: 90%;
-  --brand-light: 50%;
-
   /* Backgrounds */
   --background: 222 47% 11%; /* #0f172a - Very dark slate */
   --foreground: 210 40% 98%; /* #f8fafc */
@@ -82,8 +77,8 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui;
   -webkit-font-smoothing: antialiased;
   background-image: 
-    radial-gradient(at 0% 0%, hsl(var(--brand-hue) var(--brand-sat) 20% / 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, hsl(280 80% 20% / 0.15) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, hsla(220, 90%, 20%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(280, 80%, 20%, 0.15) 0px, transparent 50%);
   background-attachment: fixed;
 }
 
@@ -94,10 +89,10 @@ body {
 .depth-layer-3 { background-color: var(--depth-3-bg); }
 .depth-layer-4 { background-color: var(--depth-4-bg); }
 
-.depth-border-subtle { border: 1px solid rgba(255, 255, 255, 0.05); }
-.depth-border-medium { border: 1px solid rgba(255, 255, 255, 0.1); }
-.depth-border-strong { border: 1px solid rgba(255, 255, 255, 0.15); }
-.depth-border-accent { border: 1px solid rgba(59, 130, 246, 0.3); }
+.depth-border-subtle { border: 1px solid rgba(255, 255, 255, 0.12); }
+.depth-border-medium { border: 1px solid rgba(255, 255, 255, 0.18); }
+.depth-border-strong { border: 1px solid rgba(255, 255, 255, 0.25); }
+.depth-border-accent { border: 1px solid rgba(59, 130, 246, 0.4); }
 
 .depth-shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); }
 .depth-shadow-md { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4); }
@@ -116,15 +111,15 @@ body {
 
 .tactical-frame {
   background-color: var(--depth-1-bg);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
 .tactical-card {
   background-color: var(--depth-2-bg);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   position: relative;
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -176,7 +171,7 @@ body {
 
 .text-depth-primary { color: rgba(255, 255, 255, 0.9); }
 .text-depth-secondary { color: rgba(255, 255, 255, 0.6); }
-.text-depth-tertiary { color: rgba(255, 255, 255, 0.4); }
+.text-depth-tertiary { color: rgba(255, 255, 255, 0.5); } /* Improved from 0.4 to 0.5 for WCAG AA compliance */
 
 /* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
@@ -304,4 +299,21 @@ body {
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.3s;
+}
+
+/* HIGH CONTRAST ACCESSIBILITY OVERRIDE */
+@media (prefers-contrast: more) {
+  :root {
+    --depth-1-bg: #000000;
+    --depth-2-bg: #000000;
+    --depth-3-bg: #000000;
+    --depth-border-subtle: rgba(255, 255, 255, 0.5);
+  }
+  
+  .glass-tactical, .glass-holographic {
+    background: #000000 !important;
+    backdrop-filter: none !important;
+    border-width: 2px !important;
+    border-color: white !important;
+  }
 }

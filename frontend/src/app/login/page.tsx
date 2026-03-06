@@ -2,284 +2,262 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
+import { SignIn } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Shield, Lock, Eye, EyeOff, Radio, Zap, TrendingUp, AlertTriangle, Loader2, Quote, Building2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Lock, Radio, Zap, TrendingUp, AlertTriangle, Loader2, Quote, Building2, ArrowRight, Mail, Key } from 'lucide-react';
 import Link from 'next/link';
+import { dark } from '@clerk/themes';
+import AuthService from '@/services/AuthService';
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('');
-  const [mfaCode, setMfaCode] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [authMode, setAuthMode] = useState<'clerk' | 'manual'>('clerk');
+  const [loginId, setLoginId] = useState('');
+  const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
+  
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  if (!mounted) return <div className="min-h-screen depth-layer-0" />;
+
+  const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-
+    setError(null);
     try {
-      // Suffix Strategy: password|mfaCode
-      const finalPassword = mfaCode ? `${password}|${mfaCode.replace(/\s/g, '')}` : password;
-
-      const result = await signIn('credentials', {
-        username,
-        password: finalPassword,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("AUTHENTICATION FAILED: Invalid credentials or MFA security code.");
-      } else {
-        router.push('/');
-      }
-    } catch {
-      setError("SYSTEM ERROR: High-voltage uplink failure. Please try again.");
+      await AuthService.login({ login: loginId, password, remember_me: rememberMe });
+      router.push('/'); // Redirect to root dashboard
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!mounted) return <div className="min-h-screen depth-layer-0" />;
-
-  const FeatureItem = ({ icon: Icon, title, desc }: { icon: React.ComponentType<{ size?: number }>, title: string, desc: string }) => (
-    <div className="flex items-start gap-4 p-4 rounded-2xl tactical-card depth-layer-1 depth-border-subtle group hover:bg-white/5 transition-colors">
-        <div className="p-2 bg-indigo-500/20 rounded-lg text-indigo-400">
-            <Icon size={20} />
+  const WorkflowStep = ({ number, title, desc, active = false }: { number: string, title: string, desc: string, active?: boolean }) => (
+    <div className="relative pl-10 pb-10 last:pb-0">
+        {/* Line */}
+        <div className="absolute left-[11px] top-6 bottom-0 w-px bg-gradient-to-b from-indigo-500/50 to-transparent last:hidden" />
+        
+        {/* Dot */}
+        <div className={`absolute left-0 top-1 w-6 h-6 rounded-full border-2 flex items-center justify-center text-[11px] font-black z-10 ${
+            active 
+                ? 'bg-indigo-600 border-indigo-400 text-white shadow-[0_0_15px_rgba(99,102,241,0.5)]' 
+                : 'bg-slate-900 border-slate-700 text-slate-500'
+        }`}>
+            {number}
         </div>
-        <div>
-            <h3 className="text-white font-bold text-sm tracking-wide">{title}</h3>
-            <p className="text-slate-400 text-xs mt-1 leading-relaxed">{desc}</p>
-        </div>
-    </div>
-  );
 
-  const Testimonial = ({ quote, author, org }: { quote: string, author: string, org: string }) => (
-    <div className="mt-8 p-6 rounded-2xl tactical-card depth-layer-2 depth-border-subtle backdrop-blur-md relative overflow-hidden group">
-        <Quote className="absolute top-4 left-4 w-6 h-6 text-indigo-500/20" />
-        <p className="text-indigo-100 text-sm italic relative z-10 pl-2 opacity-90 leading-relaxed">&quot;{quote}&quot;</p>
-        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-indigo-500/20">
-            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-white/10">
-                <Building2 className="w-4 h-4 text-slate-400" />
-            </div>
-            <div>
-                <div className="text-white text-xs font-bold">{author}</div>
-                <div className="text-indigo-400 text-[10px] uppercase tracking-wider">{org}</div>
-            </div>
+        <div className={`transition-all duration-500 ${active ? 'opacity-100' : 'opacity-60'}`}>
+            <h4 className="text-white font-bold text-sm tracking-tight mb-1">{title}</h4>
+            <p className="text-slate-400 text-xs leading-relaxed max-w-sm">{desc}</p>
         </div>
     </div>
   );
 
-  const Stat = ({ value, label }: { value: string, label: string }) => (
-    <div className="flex flex-col">
-        <span className="text-2xl font-black text-white tracking-tight">{value}</span>
-        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">{label}</span>
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen depth-layer-0 grid grid-cols-1 lg:grid-cols-2 overflow-hidden">
+   return (
+     <div className="min-h-screen depth-layer-0 flex items-center justify-end p-6 relative overflow-hidden bg-[#020617]">
+      {/* Background Workflow Visualization (Watermark Style) */}
+      <div className="absolute inset-x-0 inset-y-0 z-0 opacity-20 pointer-events-none flex items-center justify-center overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-20 transform -rotate-12 scale-125">
+              <div className="space-y-20">
+                  <WorkflowStep number="01" title="INGESTION" desc="OCR/RAG Multimodal Input" active />
+                  <WorkflowStep number="02" title="RECONCILIATION" desc="Neural Discrepancy Matching" active />
+              </div>
+              <div className="space-y-20 mt-40">
+                  <WorkflowStep number="03" title="RELATIONSHIP" desc="Sovereign Nexus discovery" active />
+                  <WorkflowStep number="04" title="ADJUDICATION" desc="Cryptographic Court Sealing" active />
+              </div>
+          </div>
+      </div>
       
-      {/* Left Column: Premium Branding & Features */}
-      <div className="relative hidden lg:flex flex-col justify-between p-16 depth-layer-0 overflow-hidden">
-         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-900/40 via-slate-950 to-slate-950 z-0" />
-         <div className="absolute -left-20 top-20 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl animate-pulse z-0" />
-         
-         <div className="relative z-10">
-             <div className="flex items-center gap-3 mb-12">
-                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                    <Radio className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                    <h1 className="text-2xl font-black text-white uppercase tracking-tighter leading-none">Zenith Forensic</h1>
-                    <p className="text-[10px] text-indigo-400 font-mono uppercase tracking-[0.3em]">Platform v5.0 // Supernova</p>
-                </div>
-             </div>
+      {/* Ambient Glows - Mirrored & Enhanced */}
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-indigo-600/15 blur-[120px] rounded-full z-0 animate-pulse" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-600/15 blur-[120px] rounded-full z-0 animate-pulse" />
+      <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-indigo-500/10 blur-[100px] rounded-full z-0" />
+      <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-cyan-500/10 blur-[100px] rounded-full z-0" />
 
-             <h2 className="text-4xl font-extrabold text-white leading-tight mb-6">
-                 Enterprise-Grade <br />
-                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Financial Intelligence</span>
-             </h2>
-             <p className="text-slate-400 text-lg mb-12 max-w-md leading-relaxed">
-                 Uncover fraud, trace assets, and generate legal dossiers with military-grade precision.
-             </p>
-
-             <div className="space-y-4 max-w-md">
-                 <FeatureItem icon={Shield} title="Bank-Level Security" desc="AES-256 encryption for all evidence files and immutable audit logs." />
-                 <FeatureItem icon={TrendingUp} title="Real-Time Analytics" desc="Instant detection of financial variance and anomaly patterns across nodes." />
-                 <FeatureItem icon={Zap} title="AI-Powered Insights" desc="Automated heuristic scanning for rapid fraud identification and link analysis." />
-             </div>
-
-             <div className="mt-12 grid grid-cols-2 gap-8 border-t border-white/5 pt-8">
-                 <Stat value="Rp 5.2T+" label="Asset Value Seized" />
-                 <Stat value="1,240+" label="Active Cases" />
-             </div>
-
-             <Testimonial 
-                quote="Zenith's automated flow tracing reduced our investigation time by 85%. It's an absolute game-changer for AML compliance." 
-                author="Director of Forensics" 
-                org="BRI Special Crimes Unit" 
-             />
-         </div>
-
-         <div className="relative z-10 text-[10px] text-slate-600 font-mono uppercase tracking-widest mt-12 flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 backdrop-blur-sm">
-             <div className="flex items-center gap-2">
-                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                 <span>System Status: <span className="text-emerald-500">OPERATIONAL</span></span>
-             </div>
-             <span>Node: JAKARTA_PRIME</span>
-         </div>
-      </div>
-
-      {/* Right Column: Login Form */}
-      <div className="flex flex-col items-center justify-center p-8 lg:p-16 depth-layer-0 relative">
-          <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="w-full max-w-md"
-          >
-            <div className="mb-10 lg:hidden text-center">
-                 <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mx-auto mb-4">
-                    <Radio className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-2xl font-black text-white uppercase tracking-tighter">Zenith Forensic</h1>
-            </div>
-
-            <div className="flex items-center gap-2 mb-8">
-                <Lock className="w-5 h-5 text-indigo-500" />
-                <h2 className="text-xl font-bold text-white tracking-wide">Investigator Access</h2>
-            </div>
+      {/* Main Login Card with 3D Depth */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9, rotateX: 10 }}
+        animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        style={{ perspective: 1000 }}
+        className="w-full max-w-lg z-10 relative"
+      >
+          {/* 3D Depth Layers */}
+          <div className="absolute inset-0 bg-indigo-500/10 rounded-[3rem] translate-y-4 translate-x-2 blur-2xl -z-10" />
+          <div className="absolute inset-0 bg-slate-950/50 rounded-[3rem] translate-y-2 translate-x-1 -z-10 border border-white/5" />
           
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Investigator ID</label>
-                <div className="relative group">
-                  <input 
-                    id="username"
-                    name="username"
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full depth-layer-1 depth-border-medium rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:text-slate-600"
-                    placeholder="agent.id@zenith.ai"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                 <div className="flex justify-between items-center">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Passkey</label>
-                    <a href="#" className="text-[10px] font-bold text-indigo-500 hover:text-indigo-400 uppercase tracking-widest transition-colors">Forgot Key?</a>
-                 </div>
-                <div className="relative group">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full depth-layer-1 depth-border-medium rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:text-slate-600"
-                    placeholder="••••••••"
-                    required
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-400 p-2"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
+          <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 md:p-12 shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_80px_rgba(79,70,229,0.1)] relative overflow-hidden group flex flex-col items-center">
+              {/* Inner Gloss */}
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+              
+              <div className="text-center mb-10">
+                  <motion.div 
+                    whileHover={{ rotateY: 180 }}
+                    transition={{ duration: 0.6 }}
+                    className="w-16 h-16 bg-indigo-600 rounded-[1.5rem] flex items-center justify-center shadow-lg shadow-indigo-500/30 mx-auto mb-6 cursor-pointer"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* MFA Code Input */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">MFA Security Code (Optional)</label>
-                <div className="relative group">
-                  <input 
-                    type="text" 
-                    value={mfaCode}
-                    onChange={(e) => setMfaCode(e.target.value)}
-                    className="w-full depth-layer-1 depth-border-medium rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-mono placeholder:text-slate-600 tracking-[0.5em]"
-                    placeholder="000000"
-                    maxLength={6}
-                  />
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                     <Shield className="w-4 h-4 text-slate-600" />
+                      <Radio className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-2">Zenith Forensic</h1>
+                  <p className="text-[11px] text-indigo-400 font-mono uppercase tracking-[0.4em]">Auth Gateway Node // v2.5</p>
+                  
+                  {/* Mode Toggle */}
+                  <div className="flex bg-slate-950/50 p-1 rounded-full mt-8 border border-white/5">
+                      <button 
+                        onClick={() => setAuthMode('clerk')}
+                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all ${authMode === 'clerk' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                      >
+                        Clerk Auth
+                      </button>
+                      <button 
+                        onClick={() => setAuthMode('manual')}
+                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-full transition-all ${authMode === 'manual' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                      >
+                        Manual Login
+                      </button>
                   </div>
-                </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                  <input 
-                    type="checkbox" 
-                    id="remember"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)} 
-                    className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-slate-950" 
-                  />
-                  <label htmlFor="remember" className="text-xs text-slate-400 cursor-pointer select-none">Keep session active for 24 hours</label>
+              <div className="w-full">
+                <AnimatePresence mode="wait">
+                  {authMode === 'clerk' ? (
+                    <motion.div
+                      key="clerk"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                    >
+                      <SignIn 
+                          routing="hash"
+                          appearance={{
+                              baseTheme: dark,
+                              elements: {
+                                  card: "bg-transparent shadow-none w-full",
+                                  headerTitle: "hidden",
+                                  headerSubtitle: "hidden",
+                                  formButtonPrimary: "bg-indigo-600 hover:bg-indigo-500 text-white",
+                                  formFieldInput: "bg-slate-950/80 border-white/10 text-white",
+                                  footer: "hidden"
+                              }
+                          }}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="manual"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-6"
+                    >
+                      <form onSubmit={handleManualLogin} className="space-y-4">
+                        {error && (
+                          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[11px] p-3 rounded-xl flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            {error}
+                          </div>
+                        )}
+                        
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold ml-1">Agent Identifier</label>
+                          <div className="relative">
+                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                              type="text" 
+                              value={loginId}
+                              onChange={(e) => setLoginId(e.target.value)}
+                              required
+                              className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all"
+                              placeholder="Email or Codename"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-slate-500 uppercase tracking-widest font-bold ml-1">Access Key</label>
+                          <div className="relative">
+                            <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input 
+                              type="password" 
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              required
+                              className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white text-sm focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all"
+                              placeholder="••••••••"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between px-1">
+                          <label className="flex items-center gap-2 cursor-pointer group">
+                            <input 
+                              type="checkbox" 
+                              checked={rememberMe}
+                              onChange={(e) => setRememberMe(e.target.checked)}
+                              className="hidden" 
+                            />
+                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${rememberMe ? 'bg-indigo-600 border-indigo-500' : 'border-white/10 group-hover:border-white/20'}`}>
+                              {rememberMe && <div className="w-2 h-2 bg-white rounded-full" />}
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Persist 24h</span>
+                          </label>
+                          <Link href="/login/forgot-password" className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold uppercase tracking-wider">
+                            Key Recovery?
+                          </Link>
+                        </div>
+
+                        <button 
+                          type="submit"
+                          disabled={loading}
+                          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 group"
+                        >
+                          {loading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <>
+                              INITIATE UPLINK
+                              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                            </>
+                          )}
+                        </button>
+                      </form>
+                      
+                      <div className="text-center pt-2">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">No credentials? </span>
+                        <Link href="/signup" className="text-[10px] text-indigo-400 hover:text-indigo-300 font-black uppercase tracking-widest">Enrollment</Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
-              {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }} 
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start gap-3"
-                >
-                  <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
-                  <p className="text-rose-400 text-xs font-medium leading-relaxed">{error}</p>
-                </motion.div>
-              )}
+          </div>
 
-              <button 
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl transition-all shadow-lg shadow-indigo-900/40 uppercase tracking-widest text-xs flex items-center justify-center gap-2 group"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Authenticating...
-                  </>
-                ) : (
-                  <>
-                    <Lock size={14} className="mr-2" />
-                    Access Dashboard
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-                <p className="text-xs text-slate-400">
-                    Don&apos;t have an account?{' '}
-                    <Link href="/signup" className="text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
-                        Request Government Access →
-                    </Link>
-                </p>
-            </div>
-
-            <div className="mt-10 pt-6 border-t border-slate-900 text-center">
-               <p className="text-[10px] text-slate-500 font-mono uppercase tracking-widest">
-                   Restricted Government System
-               </p>
-               <p className="text-[9px] text-slate-600 mt-2 leading-relaxed max-w-xs mx-auto">
-                   Unauthorized access is a federal offense under the Computer Fraud and Abuse Act (CFAA). All activity is logged and monitored.
-               </p>
-            </div>
-          </motion.div>
-      </div>
+          <div className="mt-10 text-center">
+             <p className="text-[11px] text-slate-600 font-mono uppercase tracking-[0.3em] mb-4">
+                 Protocol: OAUTH2.1 // Node: SEA_PRIME
+             </p>
+             <div className="flex items-center justify-center gap-4">
+                 <div className="flex items-center gap-2 text-[8px] text-emerald-500 font-black tracking-widest">
+                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                     SYSTEMS OPERATIONAL
+                 </div>
+                 <div className="w-px h-3 bg-white/5" />
+                 <div className="text-[8px] text-slate-500 font-black tracking-widest uppercase">
+                     GPL v3.0 // EXEMPT
+                 </div>
+             </div>
+          </div>
+      </motion.div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { 
   Activity, 
   Share2, 
@@ -12,15 +12,24 @@ import {
   HardHat,
   Briefcase,
   Gavel,
-  ArrowLeft
+  ArrowLeft,
+  Zap,
+  Loader2
 } from 'lucide-react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
+import { authenticatedFetch } from '../../../lib/api';
+import { useToast } from '@/components/ui/toast';
+import { logger } from '../../../lib/logger';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function CaseDetailPage() {
   const { id } = useParams();
-const caseId = id as string;
+  const caseId = id as string;
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isInvestigateMode = searchParams.get('mode') === 'investigate';
+
   const [caseData, setCaseData] = useState<{ 
     id: string; 
     title: string; 
@@ -33,18 +42,22 @@ const caseId = id as string;
     events?: Array<{ id: number; type: string; time: string; title?: string; description?: string; text?: string }>;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEscalating, setIsEscalating] = useState(false);
 
   useEffect(() => {
-    // Fetch real case data from backend
-    fetch(`${API_URL}/api/v1/cases/${id}`)
-      .then(res => res.json())
+    // Fetch real case data from backend with auth
+    authenticatedFetch(`${API_URL}/api/v1/cases/${id}`)
+      .then(res => {
+          if (!res.ok) throw new Error("Failed to load case");
+          return res.json();
+      })
       .then(data => {
         setCaseData(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error("Failed to fetch case:", err);
-        // Fallback to mock for construction theme
+        logger.errorWithInfo("Failed to fetch case", err);
+        // Fallback to high-fidelity mock for construction theme if offline/error
         setCaseData({
           id: caseId,
           title: "Structural Markup Deviation",
@@ -75,11 +88,11 @@ const caseId = id as string;
   if (!caseData) return null;
 
   return (
-    <div className="p-8 h-screen flex flex-col space-y-8 bg-slate-950 text-slate-200 font-sans overflow-hidden">
+    <div className="p-10 h-screen flex flex-col space-y-8 bg-slate-950 text-slate-200 font-sans overflow-hidden">
       {/* Header / Breadcrumb */}
       <header className="flex justify-between items-start">
         <div className="space-y-2">
-          <div className="flex items-center text-[10px] text-slate-500 gap-3 font-black uppercase tracking-widest">
+          <div className="flex items-center text-[11px] text-slate-500 gap-3 font-black uppercase tracking-widest">
             <button onClick={() => router.back()} className="hover:text-white transition-colors flex items-center gap-1">
                 <ArrowLeft className="w-3 h-3" /> BACK
             </button>
@@ -89,13 +102,31 @@ const caseId = id as string;
             <span>ID: {String(id).toUpperCase()}</span>
           </div>
           <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">{caseData.title}</h1>
+          {isInvestigateMode && (
+             <div className="flex items-center gap-2 mt-2 animate-pulse">
+                <Zap className="w-3 h-3 text-amber-500" />
+                <span className="text-[11px] font-black text-amber-500 uppercase tracking-widest">Tactical Command Active</span>
+             </div>
+          )}
         </div>
         <div className="flex gap-4">
           <button className="glass-panel px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-white/5 border border-white/5 flex items-center gap-2">
             <Share2 className="w-4 h-4 text-slate-400" /> Share Evidence
           </button>
-          <button className="bg-rose-600 hover:bg-rose-500 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-900/40 transition-all">
-            Escalate to Legal
+          <button 
+            disabled={isEscalating}
+            onClick={() => {
+                setIsEscalating(true);
+                // OBSERVE: Log this critical escalation
+                logger.info(`[AUDIT_LOG] Case ${caseId} escalated to Legal Verdict.`);
+                setTimeout(() => {
+                    router.push(`/forensic/report?case_id=${caseId}`);
+                }, 800);
+            }}
+            className="bg-rose-600 hover:bg-rose-500 disabled:opacity-70 disabled:grayscale text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-rose-900/40 transition-all flex items-center gap-2"
+          >
+            {isEscalating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gavel className="w-4 h-4" />}
+            {isEscalating ? 'Escalating...' : 'Escalate to Legal'}
           </button>
         </div>
       </header>
@@ -107,7 +138,7 @@ const caseId = id as string;
         <section className="w-96 glass-panel rounded-[2rem] p-8 flex flex-col space-y-8 border border-white/5 shadow-2xl overflow-y-auto custom-scrollbar">
           <div className="space-y-6">
              <div className="p-6 rounded-3xl bg-rose-500/10 border border-rose-500/20 shadow-inner">
-               <div className="text-[10px] text-rose-400 uppercase font-black tracking-[0.2em] mb-2">Audit Risk Score</div>
+               <div className="text-[11px] text-rose-400 uppercase font-black tracking-[0.2em] mb-2">Audit Risk Score</div>
                <div className="flex items-end gap-3">
                   <div className="text-5xl font-black font-mono text-rose-500 leading-none">{((caseData.risk_score || 0) * 100).toFixed(0)}</div>
                   <div className="text-xl font-black text-rose-900 mb-1">%</div>
@@ -116,15 +147,15 @@ const caseId = id as string;
              
              <div className="space-y-4">
                <div className="flex justify-between items-center py-3 border-b border-white/5">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Case Status</span>
-                 <span className="text-[10px] font-black text-indigo-400 px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 uppercase tracking-widest">{caseData.status}</span>
+                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Case Status</span>
+                 <span className="text-[11px] font-black text-indigo-400 px-3 py-1 bg-indigo-500/10 rounded-full border border-indigo-500/20 uppercase tracking-widest">{caseData.status}</span>
                </div>
                <div className="flex justify-between items-center py-3 border-b border-white/5">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Severity</span>
-                 <span className="text-[10px] font-black text-rose-400 px-3 py-1 bg-rose-500/10 rounded-full border border-rose-500/20 uppercase tracking-widest">{caseData.priority}</span>
+                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Severity</span>
+                 <span className="text-[11px] font-black text-rose-400 px-3 py-1 bg-rose-500/10 rounded-full border border-rose-500/20 uppercase tracking-widest">{caseData.priority}</span>
                </div>
                <div className="flex justify-between items-center py-3 border-b border-white/5">
-                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Lead Auditor</span>
+                 <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Lead Auditor</span>
                  <div className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 shadow-lg" />
                     <span className="text-xs font-bold text-slate-200">{caseData.assigned_to}</span>
@@ -134,14 +165,14 @@ const caseId = id as string;
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Forensic Summary</h3>
+            <h3 className="text-[11px] font-black uppercase text-slate-500 tracking-[0.2em]">Forensic Summary</h3>
             <p className="text-sm text-slate-400 leading-relaxed font-medium">
               {caseData.description}
             </p>
           </div>
 
           <div className="pt-6 border-t border-white/5 space-y-4">
-               <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">Related Assets</h3>
+               <h3 className="text-[11px] font-black uppercase text-slate-500 tracking-[0.2em]">Related Assets</h3>
                <div className="flex gap-2">
                     <div className="p-3 bg-white/5 rounded-xl border border-white/5 text-slate-400 hover:text-white transition-colors">
                         <HardHat className="w-5 h-5" />
@@ -159,7 +190,7 @@ const caseId = id as string;
              <h2 className="font-black italic uppercase tracking-widest flex items-center gap-4 text-white">
                 <Activity className="w-5 h-5 text-indigo-400" /> Investigation Pulse
              </h2>
-             <span className="text-[10px] font-black text-slate-500 uppercase bg-slate-900 px-3 py-1 rounded-full border border-white/5">Auto-Refreshed</span>
+             <span className="text-[11px] font-black text-slate-500 uppercase bg-slate-900 px-3 py-1 rounded-full border border-white/5">Auto-Refreshed</span>
            </div>
            
            <div className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar">
@@ -169,7 +200,7 @@ const caseId = id as string;
                       event.type === 'alert' ? 'bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.6)]' : 'bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.6)]'
                   }`} />
                   <div className="flex justify-between items-start mb-2">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">{event.time}</span>
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic">{event.time}</span>
                     {event.type === 'alert' && <span className="text-[8px] font-black text-rose-500 uppercase tracking-widest border border-rose-500/30 px-2 py-0.5 rounded-full">Automated Alert</span>}
                   </div>
                   <p className="text-sm font-bold text-slate-200 leading-relaxed uppercase tracking-tight">{event.text}</p>
@@ -187,7 +218,11 @@ const caseId = id as string;
                   placeholder="Insert case directive..." 
                   className="w-full bg-slate-900 border border-white/5 rounded-[1.5rem] py-5 px-6 text-sm focus:outline-none focus:border-indigo-500/50 transition-all font-bold placeholder:text-slate-700 text-white"
                 />
-                <button className="absolute right-3 top-3 p-3 bg-indigo-600 rounded-2xl hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95 text-white">
+                <button 
+                  title="Add Directive"
+                  aria-label="Add Directive"
+                  className="absolute right-3 top-3 p-3 bg-indigo-600 rounded-2xl hover:bg-indigo-500 shadow-lg shadow-indigo-900/40 transition-all active:scale-95 text-white"
+                >
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
@@ -197,7 +232,7 @@ const caseId = id as string;
         {/* Right Column: Forensic Tools */}
         <section className="w-80 space-y-6 flex flex-col">
           <div className="glass-panel rounded-[2rem] p-8 flex-1 flex flex-col border border-white/5 shadow-2xl">
-            <h2 className="text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-8">Forensic Lenses</h2>
+            <h2 className="text-[11px] font-black uppercase text-slate-500 tracking-[0.2em] mb-8">Forensic Lenses</h2>
             
             <div className="space-y-4 flex-1">
                <div onClick={() => router.push('/forensic/nexus')} className="p-6 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-indigo-500/40 hover:bg-white/[0.05] cursor-pointer transition-all group relative overflow-hidden">
@@ -207,7 +242,7 @@ const caseId = id as string;
                    </div>
                    <span className="text-xs font-black uppercase text-white tracking-widest">Network Nexus</span>
                  </div>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Trace Vendor Shells</p>
+                 <p className="text-[11px] text-slate-500 font-bold uppercase tracking-tight">Trace Vendor Shells</p>
                </div>
                
                <div onClick={() => router.push('/forensic/flow')} className="p-6 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-indigo-500/40 hover:bg-white/[0.05] cursor-pointer transition-all group">
@@ -217,26 +252,26 @@ const caseId = id as string;
                    </div>
                    <span className="text-xs font-black uppercase text-white tracking-widest">Termin Flow</span>
                  </div>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Fund Dispersion Map</p>
+                 <p className="text-[11px] text-slate-500 font-bold uppercase tracking-tight">Fund Dispersion Map</p>
                </div>
                
-               <div onClick={() => router.push('/investigate')} className="p-6 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-indigo-500/40 hover:bg-white/[0.05] cursor-pointer transition-all group">
+               <div onClick={() => router.push(`/investigate?focus=${caseId}`)} className="p-6 rounded-[1.5rem] bg-white/[0.03] border border-white/5 hover:border-indigo-500/40 hover:bg-white/[0.05] cursor-pointer transition-all group">
                  <div className="flex items-center gap-4 mb-2">
                    <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-400 group-hover:bg-orange-500 group-hover:text-white transition-all">
                      <Gavel className="w-5 h-5" />
                    </div>
                    <span className="text-xs font-black uppercase text-white tracking-widest">Audit Bench</span>
                  </div>
-                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Manual Verifier</p>
+                 <p className="text-[11px] text-slate-500 font-bold uppercase tracking-tight">Manual Verifier</p>
                </div>
             </div>
             
             <div className="mt-8 p-6 rounded-3xl bg-rose-600/5 border border-rose-500/20 shadow-xl">
                <div className="flex items-center gap-3 text-rose-500 mb-2">
                  <AlertTriangle className="w-4 h-4" />
-                 <span className="text-[10px] font-black uppercase tracking-widest">Audit Redline</span>
+                 <span className="text-[11px] font-black uppercase tracking-widest">Audit Redline</span>
                </div>
-               <p className="text-[10px] text-slate-500 font-bold uppercase leading-relaxed italic">
+               <p className="text-[11px] text-slate-500 font-bold uppercase leading-relaxed italic">
                  Matched with historic kickback pattern (Pattern #ZK-404) found in 2023 infrastructure projects.
                </p>
             </div>

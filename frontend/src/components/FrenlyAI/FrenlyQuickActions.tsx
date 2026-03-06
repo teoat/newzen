@@ -16,7 +16,7 @@ export default function FrenlyQuickActions({ actions }: FrenlyQuickActionsProps)
     <div className="space-y-3">
       <div className="flex items-center gap-2 px-1">
         <div className="w-1 h-1 bg-indigo-500 rounded-full" />
-        <span className="text-[10px] uppercase font-black text-slate-500 tracking-wider">
+        <span className="text-[11px] uppercase font-black text-slate-500 tracking-wider">
           Quick Actions
         </span>
       </div>

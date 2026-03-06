@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useAgentStatus } from '../hooks/useVisibleAutonomy';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, Radio } from 'lucide-react';
 
 export function SystemHealthWidget() {

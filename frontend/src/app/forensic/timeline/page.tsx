@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,6 +11,8 @@ import { API_URL } from '../../../lib/constants';
 import VirtualizedTimeline from '../../../components/ForensicChronology/VirtualizedTimeline';
 import EventDetailModal from '../../../components/ForensicChronology/EventDetailModal';
 import { TimelineEvent } from '../../../components/ForensicChronology/ForensicChronology';
+import { authenticatedFetch } from '../../../lib/api';
+import PageFeatureCard from '../../../app/components/PageFeatureCard';
 
 export default function ForensicTimelinePage() {
     const { activeProjectId } = useProject();
@@ -32,7 +33,7 @@ export default function ForensicTimelinePage() {
         setIsLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${API_URL}/api/v1/forensic-tools/${activeProjectId}/chronology`);
+            const res = await authenticatedFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/forensic-tools/${activeProjectId}/chronology`);
             if (res.ok) {
                 const data = await res.json();
                 // Convert string timestamps to Date objects for the Chronology component
@@ -78,24 +79,49 @@ export default function ForensicTimelinePage() {
     return (
         <ForensicPageLayout 
             title="Investigation Chronology"
+            subtitle="Temporal Event Reconstruction & Audit Lineage"
+            icon={Clock}
         >
-            <div className="space-y-6">
+            <div className="p-8 space-y-8 overflow-y-auto max-h-full custom-scrollbar">
+                {/* Operational Analysis Card */}
+                <div className="max-w-6xl w-full">
+                    <PageFeatureCard 
+                        phase={7}
+                        title="Investigation Chronology"
+                        description="The temporal backbone of the Zenith platform. Reconstructs the exact sequence of events, transaction pulses, and risk adjudications to establish forensic causality."
+                        features={[
+                            "High-fidelity 'Sequence Verification' algorithms",
+                            "Virtualized event streaming for multi-year investigations",
+                            "Multi-dimensional event filtering (Milestones vs. Risk Flags)",
+                            "Deep-link synchronization with Nexus and Lab environments"
+                        ]}
+                        howItWorks="Chronology reconstructs the exact temporal sequence of event pulses. It uses virtualized event streaming to maintain high-fidelity reconstruction over long-term projects, allowing analysts to identify causality clusters where multiple risk flags coincide with budget milestones."
+                    />
+                </div>
+                
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-slate-100 italic tracking-tighter">ZENITH_CHRONOLOGY_v3.0</h1>
                         <p className="text-slate-500 text-xs font-mono uppercase tracking-[0.3em]">High-Fidelity Event Reconstruction & Sequence Verification</p>
                     </div>
                     <div className="flex gap-4">
-                        <button
-                            onClick={() => fetchTimeline()}
-                            className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-white/5 transition-all"
+                        <button 
+                            onClick={() => fetchTimeline()} 
+                            disabled={isLoading}
+                            className="bg-slate-900 border border-white/10 rounded-2xl px-6 py-3 flex items-center gap-3 hover:bg-white/5 transition-colors disabled:opacity-50"
                         >
-                            <RefreshCw className={`w-4 h-4 text-indigo-400 ${isLoading ? 'animate-spin' : ''}`} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-400">Sync</span>
+                            {isLoading ? (
+                                <RefreshCw className="w-3 h-3 text-indigo-500 animate-spin" />
+                            ) : (
+                                <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_#6366f1]" />
+                            )}
+                            <span className="text-[11px] font-black uppercase text-indigo-400 tracking-widest">
+                                {isLoading ? 'Syncing...' : 'Live Sync'}
+                            </span>
                         </button>
-                        <button className="bg-indigo-600 hover:bg-indigo-500 rounded-xl px-4 py-2 flex items-center gap-2 transition-all">
-                            <Download className="w-4 h-4 text-white" />
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-white">Export</span>
+                        <button className="bg-indigo-600 hover:bg-indigo-500 rounded-2xl px-6 py-3 flex items-center gap-3 transition-all active:scale-95 group">
+                            <Download className="w-4 h-4 text-white group-hover:translate-y-0.5 transition-transform" />
+                            <span className="text-[11px] font-black uppercase tracking-widest text-white">Full Export</span>
                         </button>
                     </div>
                 </div>
@@ -117,7 +143,7 @@ export default function ForensicTimelinePage() {
                             <button 
                                 key={type}
                                 onClick={() => setFilterType(type)}
-                                className={`rounded-lg text-[10px] font-bold uppercase tracking-widest py-3 px-4 transition-all border ${
+                                className={`rounded-lg text-[11px] font-bold uppercase tracking-widest py-3 px-4 transition-all border ${
                                     filterType === type 
                                     ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/20' 
                                     : 'bg-slate-900 border-white/5 text-slate-400 hover:border-white/20'

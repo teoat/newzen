@@ -1,5 +1,4 @@
 'use client';
-export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +19,7 @@ import { SankeyService, SankeyFlowResponse, VelocityAlert, LayeringAnalysis } fr
 import { useProject } from '../../../../store/useProject';
 import { useInvestigation } from '../../../../store/useInvestigation';
 import ForensicPageLayout from '../../../../app/components/ForensicPageLayout';
+import PageFeatureCard from '../../../../app/components/PageFeatureCard';
 
 export default function SankeyFlowPage() {
   const { activeProjectId } = useProject();
@@ -63,7 +63,22 @@ export default function SankeyFlowPage() {
       subtitle="Sankey Flow // Layering Depth // Velocity Alerts"
       icon={GitMerge}
     >
-      <div className="p-8 max-w-[1600px] mx-auto space-y-8 h-full flex flex-col">
+      <div className="p-8 max-w-[1600px] mx-auto space-y-8 h-full flex flex-col overflow-y-auto custom-scrollbar">
+        {/* Operational Analysis Card */}
+        <div className="max-w-6xl w-full">
+            <PageFeatureCard 
+                phase={3}
+                title="Sankey Flow Tracer"
+                description="The kinetic visualizer for capital propagation. Traces the magnitude and velocity of fund movements through complex layering networks to uncover displacement patterns."
+                features={[
+                    "Multi-hop fund propagation mapping",
+                    "Displacement Velocity alert triggering",
+                    "UBO cluster identification via flow pressure",
+                    "Automated Layering Depth analysis"
+                ]}
+                howItWorks="The Sankey Tracer visualizes the kinetic movement of capital through successive ownership layers. By mapping displacement velocity against project burn-rates, it identifies where funds are being artificially decelerated or rapidly siphoned into ultimate beneficiary clusters, effectively visualizing the 'Material Displacement' of project assets."
+            />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 flex-1 min-h-0">
           
           {/* Main Sankey Area */}
@@ -88,7 +103,7 @@ export default function SankeyFlowPage() {
                    {loading ? (
                      <div className="flex flex-col items-center gap-4">
                         <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest animate-pulse">Reconstructing Flow Layers...</span>
+                        <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest animate-pulse">Reconstructing Flow Layers...</span>
                      </div>
                    ) : flow ? (
                       <div className="w-full h-full flex justify-between items-stretch gap-12 py-10">
@@ -97,7 +112,7 @@ export default function SankeyFlowPage() {
                             <div className="w-48 p-6 rounded-3xl bg-indigo-600 border border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.3)] relative group">
                                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
                                <Landmark className="w-8 h-8 text-white mb-4" />
-                               <span className="text-[9px] font-black text-indigo-100 uppercase tracking-widest">Project Ledger</span>
+                               <span className="text-[11px] font-black text-indigo-100 uppercase tracking-widest">Project Ledger</span>
                                <span className="text-sm font-black text-white block truncate uppercase">Main Contract Root</span>
                             </div>
                          </div>
@@ -158,7 +173,7 @@ export default function SankeyFlowPage() {
                                      <ShieldAlert className="w-4 h-4 text-slate-800" />
                                   </div>
                                   <div>
-                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Ultimate Beneficiary</span>
+                                     <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Ultimate Beneficiary</span>
                                      <span className="text-xs font-black text-white block uppercase tracking-tighter truncate">{node.label}</span>
                                   </div>
                                </div>
@@ -176,11 +191,11 @@ export default function SankeyFlowPage() {
                          <TrendingUp className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                         <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Displacement Velocity Warning</p>
+                         <p className="text-[11px] font-black text-rose-500 uppercase tracking-widest">Displacement Velocity Warning</p>
                          <p className="text-xs font-bold text-slate-300">Detected capital movement exceeding project burn-rate by 420% in specific vendors.</p>
                       </div>
                    </div>
-                   <button className="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95">
+                   <button className="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95">
                       Trace Velocity Source
                    </button>
                 </div>
@@ -192,7 +207,7 @@ export default function SankeyFlowPage() {
              
              {/* Velocity Alerts */}
              <div className="tactical-frame p-8 rounded-[2.5rem] bg-amber-500/5 border-amber-500/10 flex flex-col min-h-0">
-                <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                <h4 className="text-[11px] font-black text-amber-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                    <Activity className="w-3 h-3" /> Velocity Alerts
                 </h4>
                 <div className="flex-1 space-y-4 overflow-auto custom-scrollbar pr-2">
@@ -200,9 +215,9 @@ export default function SankeyFlowPage() {
                      <div key={i} className="p-4 rounded-xl bg-slate-950 border border-white/5 group hover:border-amber-500/30 transition-all">
                         <div className="flex justify-between items-start mb-2">
                            <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Rapid Fund Turnaround</span>
-                           <span className="text-[10px] font-mono text-slate-600 font-bold">{v.timestamp}</span>
+                           <span className="text-[11px] font-mono text-slate-600 font-bold">{v.timestamp}</span>
                         </div>
-                        <p className="text-[10px] font-bold text-white mb-2 leading-tight uppercase truncate">{v.source} <ArrowRight className="w-2 h-2 inline text-slate-600" /> {v.target}</p>
+                        <p className="text-[11px] font-bold text-white mb-2 leading-tight uppercase truncate">{v.source} <ArrowRight className="w-2 h-2 inline text-slate-600" /> {v.target}</p>
                         <div className="flex justify-between items-center text-[11px] font-black">
                            <span className="text-slate-500 font-mono tracking-tighter">Volume:</span>
                            <span className="text-amber-400 font-mono">Rp {v.amount.toLocaleString()}</span>
@@ -210,21 +225,21 @@ export default function SankeyFlowPage() {
                      </div>
                    ))}
                    {velocity.length === 0 && (
-                     <div className="text-center py-10 text-[10px] text-slate-700 font-black italic uppercase tracking-widest">No rapid movements detected</div>
+                     <div className="text-center py-10 text-[11px] text-slate-700 font-black italic uppercase tracking-widest">No rapid movements detected</div>
                    )}
                 </div>
              </div>
 
              {/* Layering Analysis */}
              <div className="tactical-frame p-8 rounded-[2.5rem] bg-indigo-500/5 border-indigo-500/10 flex flex-col min-h-0">
-                <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-center gap-2">
+                <h4 className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                    <Layers className="w-3 h-3" /> Money Layering Depth
                 </h4>
                 <div className="flex-1 space-y-4 overflow-auto custom-scrollbar pr-2">
                    {layering.map((l, i) => (
                      <div key={i} className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 transition-all">
                         <div className="flex justify-between items-center mb-4">
-                           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-[10px] font-black text-white">
+                           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-[11px] font-black text-white">
                               {l.hops}
                            </div>
                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Layering Multiplier</span>
@@ -243,7 +258,7 @@ export default function SankeyFlowPage() {
                      </div>
                    ))}
                    {layering.length === 0 && (
-                     <div className="text-center py-10 text-[10px] text-slate-700 font-black italic uppercase tracking-widest">No complex paths mapped</div>
+                     <div className="text-center py-10 text-[11px] text-slate-700 font-black italic uppercase tracking-widest">No complex paths mapped</div>
                    )}
                 </div>
              </div>

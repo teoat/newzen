@@ -55,6 +55,26 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      zIndex: {
+        'hide': '-1',
+        'base': '0',
+        'dock': '10',
+        'dropdown': '20',
+        'sticky': '30',
+        'banner': '40',
+        'overlay': '50',
+        'modal': '100',
+        'popover': '200',
+        'toast': '300',
+        'tooltip': '400',
+        'cursor': '9999', // For custom cursor
+      },
+      transitionDuration: {
+        'fast': '200ms',
+        'normal': '300ms',
+        'slow': '500ms',
+        'lethargic': '700ms',
+      },
       backdropBlur: {
         md: "12px",
       },

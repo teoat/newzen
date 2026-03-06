@@ -61,7 +61,7 @@ export default function AnalyticsWorkspace() {
                              className="flex-1 bg-indigo-600/20 rounded-t-xl group relative cursor-help"
                            >
                                <div className="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                               <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] font-bold text-white">
+                               <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-bold text-white">
                                    {h}%
                                </div>
                            </motion.div>
@@ -95,12 +95,12 @@ function MetricCard({ label, value, icon: Icon, color, trend, warning = false }:
     return (
         <div className={`p-6 rounded-3xl border ${warning ? 'border-rose-500/20 bg-rose-500/5' : 'border-white/5 bg-slate-900/30'} flex flex-col justify-between h-40 group hover:border-indigo-500/30 transition-all`}>
             <div className="flex justify-between items-start">
-               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+               <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
                <Icon className={`w-5 h-5 ${color} group-hover:scale-110 transition-transform`} />
             </div>
             <div>
                 <div className={`text-2xl font-black font-mono mb-1 ${color}`}>{value}</div>
-                <div className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{trend}</div>
+                <div className="text-[11px] font-bold text-slate-600 uppercase tracking-widest">{trend}</div>
             </div>
         </div>
     );

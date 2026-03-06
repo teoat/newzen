@@ -112,7 +112,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-modal flex items-center justify-center p-4">
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }} 
@@ -137,8 +137,8 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                 <div>
                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Verdict Adjudication Bench</h2>
                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">AUTONOMOUS_JUDGE_v3.0</span>
-                      <span className="text-[10px] font-black text-slate-600">/ LEGAL_DOCK_MODE</span>
+                      <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">AUTONOMOUS_JUDGE_v3.0</span>
+                      <span className="text-[11px] font-black text-slate-600">/ LEGAL_DOCK_MODE</span>
                    </div>
                 </div>
              </div>
@@ -158,7 +158,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                         className="absolute inset-x-0 inset-y-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin" 
                     />
                  </div>
-                 <div className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.5em] animate-pulse">
+                 <div className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.5em] animate-pulse">
                     Neural Data Synthesis In Progress...
                  </div>
               </div>
@@ -168,7 +168,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                 {!data && (
                     <div className="lg:col-span-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-center gap-3">
                         <Zap className="w-4 h-4 text-amber-400 animate-pulse" />
-                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest">Holographic Demo Projection // No Live Data Seeded</span>
+                        <span className="text-[11px] font-black text-amber-400 uppercase tracking-widest">Holographic Demo Projection // No Live Data Seeded</span>
                     </div>
                 )}
                 {(() => {
@@ -179,10 +179,10 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                 <div className="space-y-8">
                    <div className="p-8 rounded-[2rem] bg-black/40 border border-white/5 relative overflow-hidden group">
                       <div className="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Prosecutorial Confidence</div>
+                      <div className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Prosecutorial Confidence</div>
                       <div className="flex items-end gap-3 mb-4">
                          <span className="text-5xl font-black text-white italic tracking-tighter">{(activeData.prosecutorial_confidence * 100).toFixed(0)}%</span>
-                         <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-2 italic">PROBABLE</span>
+                         <span className="text-[11px] font-black text-indigo-400 uppercase tracking-widest mb-2 italic">PROBABLE</span>
                       </div>
                       <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
                          <motion.div 
@@ -195,14 +195,14 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
 
                    <div className="p-8 rounded-[2rem] bg-white/[0.02] border border-white/5 space-y-6">
                       <div>
-                         <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Evidence Hash</div>
+                         <div className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1">Evidence Hash</div>
                          <div className="flex items-center gap-2">
                             <Fingerprint className="w-3 h-3 text-indigo-500" />
-                            <span className="text-[9px] font-mono text-slate-400 truncate">{activeData.integrity_hash}</span>
+                            <span className="text-[11px] font-mono text-slate-400 truncate">{activeData.integrity_hash}</span>
                          </div>
                       </div>
                       <div>
-                         <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Registry ID</div>
+                         <div className="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1">Registry ID</div>
                          <div className="text-xs font-black text-white font-mono">{activeData.registry_id}</div>
                       </div>
                    </div>
@@ -210,7 +210,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                    <button 
                     onClick={handleDownload}
                     disabled={downloading || !data}
-                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-900/40 transition-all flex items-center justify-center gap-3"
+                    className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-900/40 transition-all flex items-center justify-center gap-3"
                    >
                       {downloading ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -224,7 +224,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                 {/* Right Column: Narrative & Exhibits */}
                 <div className="lg:col-span-2 space-y-12">
                    <section>
-                      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-3">
+                      <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center gap-3">
                          <FileText className="w-4 h-4 text-indigo-500" /> Executive Summary
                       </h3>
                       <div className="p-8 rounded-[3rem] bg-indigo-500/5 border border-indigo-500/10 relative">
@@ -239,7 +239,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
 
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <section>
-                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Secured Exhibits ({activeData.evidence_inventory.length})</h3>
+                         <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6">Secured Exhibits ({activeData.evidence_inventory.length})</h3>
                          <div className="space-y-4">
                             {activeData.evidence_inventory.map((ex, i) => (
                                <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 group hover:bg-white/10 transition-all">
@@ -248,7 +248,7 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                                         <CheckCircle className="w-4 h-4 text-indigo-400" />
                                      </div>
                                      <div>
-                                        <div className="text-[10px] font-black text-white uppercase">{ex.label}</div>
+                                        <div className="text-[11px] font-black text-white uppercase">{ex.label}</div>
                                         <div className="text-[8px] font-mono text-slate-500">{ex.type}</div>
                                      </div>
                                   </div>
@@ -259,13 +259,13 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
                       </section>
 
                       <section>
-                         <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Chain of Custody Log</h3>
+                         <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-6">Chain of Custody Log</h3>
                          <div className="space-y-4 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-white/5">
                             {activeData.chain_of_custody.map((log, i) => (
                                <div key={i} className="relative pl-8">
                                   <div className="absolute left-2 top-2 w-2 h-2 rounded-full bg-indigo-500 border-2 border-slate-900" />
-                                  <div className="text-[9px] font-mono text-slate-500 mb-1">{new Date(log.timestamp).toLocaleString()}</div>
-                                  <div className="text-[10px] font-black text-slate-300 uppercase tracking-tight">{log.action}</div>
+                                  <div className="text-[11px] font-mono text-slate-500 mb-1">{new Date(log.timestamp).toLocaleString()}</div>
+                                  <div className="text-[11px] font-black text-slate-300 uppercase tracking-tight">{log.action}</div>
                                   <div className="text-[8px] font-medium text-slate-600 italic">By: {log.changed_by}</div>
                                </div>
                             ))}
@@ -283,20 +283,20 @@ export default function VerdictModal({ isOpen, onClose, data, loading }: Props) 
           <div className="p-8 border-t border-white/5 bg-black/40 flex justify-between items-center">
              <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Signed & Sealed by Zenith AI Forensic</span>
+                <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">Signed & Sealed by Zenith AI Forensic</span>
              </div>
              <div className="flex gap-4">
                 {data?.case_metadata.status !== 'completed' && (
                     <button 
                         onClick={handleSeal}
                         disabled={sealing || loading}
-                        className="px-8 py-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
+                        className="px-8 py-3 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-2"
                     >
                         {sealing ? <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ShieldAlert className="w-4 h-4" />}
                         {sealing ? "Sealing..." : "Seal Investigation"}
                     </button>
                 )}
-                <button onClick={onClose} className="px-10 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                <button onClick={onClose} className="px-10 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl text-[11px] font-black uppercase tracking-widest transition-all">
                     Return to Lab
                 </button>
              </div>

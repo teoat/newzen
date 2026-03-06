@@ -16,10 +16,10 @@ export const useDebounced = <T>(value: T, delay: number): T => {
   return debouncedValue;
 };
 
-export const useDebouncedCallback = <T extends (...args: any[]) => any>(
+export const useDebouncedCallback = <T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
-): T => {
+): ((...args: Parameters<T>) => void) => {
   const [debouncedCallback, setDebouncedCallback] = useState<T>(callback);
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -38,5 +38,5 @@ export const useDebouncedCallback = <T extends (...args: any[]) => any>(
       }, delay);
     },
     [callback, delay]
-  ) as T;
+  );
 };

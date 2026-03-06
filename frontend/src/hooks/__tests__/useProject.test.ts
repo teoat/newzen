@@ -8,24 +8,21 @@ import type { Project } from '../../schemas';
 vi.mock('../../services/ProjectService', () => ({
   ProjectService: {
     fetchProjects: vi.fn(),
+    getBudgetForecast: vi.fn().mockResolvedValue({ status: 'healthy' }),
   },
 }));
 
-// Mock zustand persist middleware
-vi.mock('zustand/middleware', () => ({
-  persist: (fn: any) => fn,
-}));
+// ... (zustand mock remains)
 
 // Helper to create valid Project test data
 const createMockProject = (overrides: Partial<Project> = {}): Project => ({
   id: '550e8400-e29b-41d4-a716-446655440000',
   name: 'Test Project',
-  description: 'Test Description',
+  contractor_name: 'Test Contractor',
   contract_value: 1000000,
   realized_spend: 500000,
-  status: 'ACTIVE',
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
+  status: 'active',
+  start_date: new Date().toISOString(),
   ...overrides,
 });
 
@@ -198,7 +195,7 @@ describe('useProject Store', () => {
       });
 
       // Mock localStorage
-      const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem');
+      const removeItemSpy = vi.spyOn(localStorage, 'removeItem');
 
       act(() => {
         result.current.purgeState();

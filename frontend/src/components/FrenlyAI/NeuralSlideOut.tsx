@@ -43,7 +43,7 @@ export default function NeuralSlideOut() {
                     </div>
                     <div>
                         <h3 className="text-sm font-black text-white uppercase tracking-tighter">Neural Contextualist</h3>
-                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Active Mission Assistant</p>
+                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">Active Mission Assistant</p>
                     </div>
                 </div>
                 <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-rose-500 animate-ping' : 'bg-indigo-500'}`} />
@@ -52,7 +52,7 @@ export default function NeuralSlideOut() {
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                 {/* AI Contextual Observation */}
                 <div className="space-y-3">
-                    <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Contextual Insight</h4>
+                    <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Contextual Insight</h4>
                     <div className="p-5 bg-indigo-600/10 rounded-3xl border border-indigo-500/20 relative overflow-hidden">
                         <MessageSquare className="absolute -right-2 -bottom-2 w-12 h-12 text-indigo-500/10" />
                         <p className="text-[11px] text-indigo-100 leading-relaxed font-medium">
@@ -63,7 +63,7 @@ export default function NeuralSlideOut() {
 
                 {/* Voice Interaction */}
                 <div className="space-y-4">
-                    <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Voice Commands</h4>
+                    <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Voice Commands</h4>
                     <button 
                         onClick={() => setIsListening(!isListening)}
                         className={`w-full p-6 rounded-[2rem] border transition-all flex flex-col items-center justify-center gap-3 group
@@ -73,7 +73,7 @@ export default function NeuralSlideOut() {
                         <div className={`p-4 rounded-full ${isListening ? 'bg-rose-500 text-white animate-pulse' : 'bg-indigo-600/20 text-indigo-400'}`}>
                             <Mic size={24} />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white">
                             {isListening ? 'Listening for Verdict...' : 'Hold to Speak Verdict'}
                         </span>
                     </button>
@@ -81,19 +81,19 @@ export default function NeuralSlideOut() {
 
                 {/* Tactical Actions */}
                 <div className="space-y-3">
-                    <h4 className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Mission Actions</h4>
+                    <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Mission Actions</h4>
                     <div className="grid grid-cols-1 gap-2">
                         <button className="w-full p-4 bg-slate-950 hover:bg-indigo-600/20 rounded-2xl border border-white/5 transition-all text-left flex items-center justify-between group">
                             <div className="flex items-center gap-3">
                                 <Pin size={14} className="text-indigo-500" />
-                                <span className="text-[10px] font-bold text-slate-300 group-hover:text-white uppercase">Pin current view to Theory</span>
+                                <span className="text-[11px] font-bold text-slate-300 group-hover:text-white uppercase">Pin current view to Theory</span>
                             </div>
                             <Zap size={12} className="text-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                         <button className="w-full p-4 bg-slate-950 hover:bg-rose-600/20 rounded-2xl border border-white/5 transition-all text-left flex items-center justify-between group">
                             <div className="flex items-center gap-3">
                                 <AlertTriangle size={14} className="text-rose-500" />
-                                <span className="text-[10px] font-bold text-slate-300 group-hover:text-white uppercase">Flag Integrity Conflict</span>
+                                <span className="text-[11px] font-bold text-slate-300 group-hover:text-white uppercase">Flag Integrity Conflict</span>
                             </div>
                         </button>
                     </div>

@@ -27,6 +27,7 @@ export interface EvidenceItem {
   metadata?: Record<string, unknown>;
   timestamp: string;
   verdict?: 'ADMITTED' | 'REJECTED' | 'PENDING';
+  statutory_article?: string; // Article 2, Article 3, etc.
 }
 
 export interface InvestigationAction {
@@ -110,6 +111,7 @@ interface InvestigationState {
   
   injectEvidence: (investigationId: string, evidence: EvidenceItem) => void;
   updateEvidenceStatus: (investigationId: string, evidenceId: string, status: 'ADMITTED' | 'REJECTED' | 'PENDING') => void;
+  updateEvidenceArticle: (investigationId: string, evidenceId: string, articleId: string) => void;
   generateNarrative: (investigationId: string) => Promise<string>;
   fetchContradictions: (investigationId: string) => Promise<void>;
   sealCase: (investigationId: string) => Promise<string>;
@@ -508,6 +510,42 @@ export const useInvestigation = create<InvestigationState>()(
                 action: `EVIDENCE_${status}`,
                 tool: 'AdjudicationBench',
                 result: { evidenceId, context: `Evidence ${evidenceId} marked as ${status}` }
+            };
+            updatedInv.timeline = [...updatedInv.timeline, action];
+
+            return updatedInv;
+          });
+
+          return {
+            investigations: updatedInvestigations,
+            activeInvestigation: state.activeInvestigation?.id === investigationId 
+              ? updatedInvestigations.find(i => i.id === investigationId) || null 
+              : state.activeInvestigation
+          };
+        });
+      },
+
+      updateEvidenceArticle: (investigationId, evidenceId, articleId) => {
+        get().saveToHistory();
+        set(state => {
+          const updatedInvestigations = state.investigations.map(inv => {
+            if (inv.id !== investigationId) return inv;
+            
+            const updatedItems = (inv.context.evidence_items || []).map(item => 
+              item.id === evidenceId ? { ...item, statutory_article: articleId } : item
+            );
+            
+            const updatedInv = {
+              ...inv,
+              context: { ...inv.context, evidence_items: updatedItems },
+              updatedAt: new Date()
+            };
+
+            const action: InvestigationAction = {
+                timestamp: new Date(),
+                action: 'STATUTORY_MAPPING',
+                tool: 'StatutoryLogicBoard',
+                result: { evidenceId, articleId, context: `Evidence mapped to Tipikor Article ${articleId}` }
             };
             updatedInv.timeline = [...updatedInv.timeline, action];
 

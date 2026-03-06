@@ -74,7 +74,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
                 {message.role === 'assistant' && (
                   <div className="flex items-center gap-2 mb-2 pb-2 border-b border-white/10">
                     <Sparkles className="w-3 h-3 text-indigo-400" />
-                    <span className="text-[9px] font-mono uppercase text-indigo-400">
+                    <span className="text-[11px] font-mono uppercase text-indigo-400">
                       Frenly AI
                     </span>
                     {message.confidence && (
@@ -116,7 +116,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
                             onClick={() => copyToClipboard(message.sql!)}
                         />
                     </div>
-                    <code className="text-[10px] text-slate-400 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all">
+                    <code className="text-[11px] text-slate-400 font-mono break-all line-clamp-2 hover:line-clamp-none transition-all">
                         {message.sql}
                     </code>
                   </div>
@@ -125,7 +125,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
                 {/* Data Table (if available) */}
                 {message.data && message.data.length > 0 && (
                   <div className="mt-3 overflow-x-auto rounded-lg border border-white/5 bg-slate-900/40">
-                    <table className="w-full text-[10px] text-left">
+                    <table className="w-full text-[11px] text-left">
                         <thead className="bg-white/5 text-slate-500 uppercase font-black tracking-widest">
                             <tr>
                                 {message.data[0] && Object.keys(message.data[0]).map(key => (
@@ -159,7 +159,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
                 {/* Suggestions (for assistant messages) */}
                 {message.suggestions && message.suggestions.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-500">
+                    <span className="text-[11px] uppercase font-bold text-slate-500">
                       Suggested Actions
                     </span>
                     {message.suggestions.map((suggestion, idx) => (
@@ -201,7 +201,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
 
                 {/* Timestamp */}
                 <div
-                  className={`mt-2 text-[9px] ${
+                  className={`mt-2 text-[11px] ${
                     message.role === 'user' ? 'text-indigo-200' : 'text-slate-600'
                   }`}
                 >
@@ -222,7 +222,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
             <div className="bg-slate-800 border border-white/5 rounded-2xl px-4 py-3">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-3 h-3 text-indigo-400 animate-pulse" />
-                <span className="text-[9px] font-mono uppercase text-indigo-400">
+                <span className="text-[11px] font-mono uppercase text-indigo-400">
                   Frenly is thinking...
                 </span>
                 <div className="flex gap-1 ml-2">
@@ -260,7 +260,7 @@ export default function FrenlyChat({ onSendMessage, messages, isLoading = false 
           </button>
         </form>
 
-        <div className="mt-2 text-[9px] text-slate-600 text-center">
+        <div className="mt-2 text-[11px] text-slate-600 text-center">
           Frenly AI may make mistakes. Verify critical information.
         </div>
       </div>

@@ -60,28 +60,28 @@ export default function InvestigationDashboardPage() {
                     <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6">
                         <div className="flex items-center gap-3 mb-2">
                             <Play className="w-5 h-5 text-emerald-500" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Active</span>
+                            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Active</span>
                         </div>
                         <p className="text-3xl font-black text-white">{activeInvestigations.length}</p>
                     </div>
                     <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6">
                         <div className="flex items-center gap-3 mb-2">
                             <Pause className="w-5 h-5 text-amber-500" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Paused</span>
+                            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Paused</span>
                         </div>
                         <p className="text-3xl font-black text-white">{pausedInvestigations.length}</p>
                     </div>
                     <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6">
                         <div className="flex items-center gap-3 mb-2">
                             <CheckCircle className="w-5 h-5 text-indigo-500" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Completed</span>
+                            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Completed</span>
                         </div>
                         <p className="text-3xl font-black text-white">{completedInvestigations.length}</p>
                     </div>
                     <div className="bg-slate-900/50 border border-white/5 rounded-2xl p-6">
                         <div className="flex items-center gap-3 mb-2">
                             <FileText className="w-5 h-5 text-rose-500" />
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Actions</span>
+                            <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Total Actions</span>
                         </div>
                         <p className="text-3xl font-black text-white">
                             {investigations.reduce((sum, inv) => sum + inv.timeline.length, 0)}
@@ -200,11 +200,11 @@ function InvestigationCard({
             <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                     <h3 className="text-lg font-black text-white mb-2">{investigation.title}</h3>
-                    <p className="text-[10px] font-mono text-slate-600 uppercase tracking-wider">
+                    <p className="text-[11px] font-mono text-slate-600 uppercase tracking-wider">
                         {investigation.id}
                     </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.border} ${config.text} border`}>
+                <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${config.bg} ${config.border} ${config.text} border`}>
                     {investigation.status}
                 </span>
             </div>
@@ -213,15 +213,15 @@ function InvestigationCard({
                 <>
                     <div className="grid grid-cols-3 gap-4 mb-6">
                         <div>
-                            <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Actions</p>
+                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-1">Actions</p>
                             <p className="text-xl font-bold text-white">{investigation.timeline.length}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Suspects</p>
+                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-1">Suspects</p>
                             <p className="text-xl font-bold text-white">{investigation.context.suspects.length}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] text-slate-600 uppercase tracking-wider mb-1">Tools Used</p>
+                            <p className="text-[11px] text-slate-600 uppercase tracking-wider mb-1">Tools Used</p>
                             <p className="text-xl font-bold text-white">{investigation.context.toolsUsed.length}</p>
                         </div>
                     </div>
@@ -229,7 +229,7 @@ function InvestigationCard({
                     {investigation.riskScore && (
                         <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-lg">
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] font-black text-rose-400 uppercase tracking-widest">Risk Score</span>
+                                <span className="text-[11px] font-black text-rose-400 uppercase tracking-widest">Risk Score</span>
                                 <span className="text-lg font-black text-rose-400">{investigation.riskScore}%</span>
                             </div>
                         </div>
@@ -237,7 +237,7 @@ function InvestigationCard({
                 </>
             )}
 
-            <div className="flex items-center justify-between text-[10px] text-slate-600 mb-4">
+            <div className="flex items-center justify-between text-[11px] text-slate-600 mb-4">
                 <span className="flex items-center gap-2">
                     <Clock className="w-3 h-3" />
                     {timeElapsed}m elapsed
@@ -249,7 +249,7 @@ function InvestigationCard({
                 <button
                     onClick={() => {
                         resumeInvestigation(investigation.id);
-                        router.push('/');
+                        router.push('/investigate');
                     }}
                     className="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
@@ -260,6 +260,7 @@ function InvestigationCard({
 
             {investigation.status === 'completed' && (
                 <button
+                    onClick={() => router.push(`/forensic/report?case_id=${investigation.id}`)}
                     className="w-full py-2 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/20 rounded-lg font-bold text-xs uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
                 >
                     <FileText className="w-3 h-3" />

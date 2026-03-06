@@ -8,11 +8,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "../ui/table";
-import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Textarea } from '../ui/textarea';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 export function DataHospitalView({ projectId }: { projectId?: string }) {
     const { listRows, resolveRow, stats, fetchStats } = useQuarantine();

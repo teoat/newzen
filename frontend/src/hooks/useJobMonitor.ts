@@ -55,6 +55,7 @@ export function useJobMonitor(
     } finally {
       setIsLoading(false);
     }
+    return undefined;
   }, [jobId]);
 
   useEffect(() => {

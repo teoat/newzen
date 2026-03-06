@@ -28,6 +28,12 @@ export interface BankRecord {
     source_type: TransactionSource;
     matched?: boolean;
     project_id?: string;
+    latitude?: number;
+    longitude?: number;
+    location_category?: string;
+    normalized_location?: string;
+    geospatial_metadata?: Record<string, any>;
+    batch_reference?: string;
 }
 
 export interface ExpenseRecord {
@@ -89,6 +95,7 @@ export interface Match {
     match_type: string;
     ai_reasoning: string;
     confirmed?: boolean;
+    tier?: string;
 }
 
 export interface ReconciliationSettings {

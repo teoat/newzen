@@ -1,12 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-
-import { authenticatedFetch } from '../lib/api';
-
+import { authenticatedFetch } from '@/lib/api';
 export function useDossier() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession(); // Removed: authenticatedFetch handles token internally now
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);

@@ -6,9 +6,9 @@
 // Environment-based API URL
 const getApiUrl = (): string => {
   if (typeof window !== 'undefined') {
-    return '';
+    return ''; // Use relative paths in browser to utilize Next.js proxy/rewrites
   }
-  return process.env.API_URL || 'http://localhost:8200';
+  return process.env.API_URL || 'http://localhost:8000';
 };
 
 export const API_URL = getApiUrl();
@@ -29,11 +29,12 @@ export const API_ROUTES = {
   // Authentication & Authorization
   AUTH: {
     LOGIN: `${API_URL}/api/v1/auth/login`,
-    REGISTER: `${API_URL}/api/v1/auth/register`,
+    REGISTER: `${API_URL}/api/v1/auth/signup`,
+    FORGOT_PASSWORD: `${API_URL}/api/v1/auth/forgot-password`,
+    RESET_PASSWORD: `${API_URL}/api/v1/auth/reset-password`,
     LOGOUT: `${API_URL}/api/v1/auth/logout`,
     ME: `${API_URL}/api/v1/auth/me`,
     REFRESH: `${API_URL}/api/v1/auth/refresh`,
-    RESET_PASSWORD: `${API_URL}/api/v1/auth/reset-password`,
   },
 
   // Projects
@@ -143,6 +144,27 @@ export const API_ROUTES = {
       DOCUMENT: (caseId: string) => `${API_URL}/api/v2/judge/document/${caseId}`,
       DOSSIER: (caseId: string, userId: string) => 
         `${API_URL}/api/v2/forensic-v2/judge/download-dossier?case_id=${caseId}&user_id=${userId}`,
+    },
+    RAB: {
+      UPLOAD: `${API_URL}/api/v2/forensic-v2/rab/upload`,
+      PROJECT: (projectId: string) => `${API_URL}/api/v2/forensic-v2/rab/project/${projectId}`,
+      VARIANCE: (projectId: string) => `${API_URL}/api/v2/forensic-v2/rab/variance/${projectId}`,
+      RECALCULATE: (projectId: string) => `${API_URL}/api/v2/forensic-v2/rab/recalculate/${projectId}`,
+    }
+  },
+
+  // V3 Endpoints (Architect & Advanced Forensics)
+  V3: {
+    RISK_SUMMARY: (projectId: string) => `${API_URL}/api/v3/risk-summary/${projectId}`,
+    COMPREHENSIVE_ANALYSIS: (projectId: string) => `${API_URL}/api/v3/comprehensive-analysis/${projectId}`,
+    METRICS: `${API_URL}/api/v3/metrics`,
+    NARRATIVE_HISTORY: `${API_URL}/api/v3/narratives/history`,
+    REPORT: (projectId: string) => `${API_URL}/api/v3/report/${projectId}`,
+    PRIVACY: {
+      TEMPLATES: `${API_URL}/api/v3/privacy/mask/export-templates`,
+      EXPORTS: (projectId: string) => `${API_URL}/api/v3/privacy/mask/exports/${projectId}`,
+      EXPORT: `${API_URL}/api/v3/privacy/mask/export`,
+      VERIFY: `${API_URL}/api/v3/privacy/mask/verify-commitment`,
     }
   }
 };
@@ -177,7 +199,7 @@ interface ComponentHealth {
 
 // Authentication
 export interface LoginRequest {
-  email: string;
+  login: string;
   password: string;
 }
 
@@ -289,24 +311,4 @@ export function buildQueryString(params: Record<string, any>): string {
   return query.toString();
 }
 
-/**
- * Fetch wrapper with typed responses
- */
-export async function apiFetch<T>(
-  url: string,
-  options?: RequestInit
-): Promise<T> {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
-  }
-
-  return response.json();
-}
+// End of file

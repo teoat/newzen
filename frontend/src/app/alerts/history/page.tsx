@@ -3,10 +3,11 @@ export const dynamic = 'force-dynamic';
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Calendar, Filter, Search, Download, AlertTriangle, AlertCircle, Info } from 'lucide-react';
+import { ArrowLeft, Calendar, Filter, Search, Download, AlertTriangle, AlertCircle, Info, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { API_URL } from "../../../lib/constants";
 import { useProject } from "../../../store/useProject";
+import ForensicPageLayout from '../../components/ForensicPageLayout';
 
 interface AlertItem {
   id: string;
@@ -50,7 +51,6 @@ export default function AlertsHistory() {
   useEffect(() => {
     let filtered = alerts;
 
-    // Apply search filter
     if (search) {
       filtered = filtered.filter(alert => 
         alert.message.toLowerCase().includes(search.toLowerCase()) ||
@@ -58,12 +58,10 @@ export default function AlertsHistory() {
       );
     }
 
-    // Apply severity filter
     if (severityFilter !== 'all') {
       filtered = filtered.filter(alert => alert.severity === severityFilter);
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
       filtered = filtered.filter(alert => {
         if (statusFilter === 'resolved') return alert.resolved;
@@ -77,19 +75,19 @@ export default function AlertsHistory() {
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return <AlertTriangle className="w-4 h-4 text-rose-500" />;
-      case 'HIGH': return <AlertTriangle className="w-4 h-4 text-amber-500" />;
-      case 'MEDIUM': return <AlertCircle className="w-4 h-4 text-indigo-500" />;
-      default: return <Info className="w-4 h-4 text-slate-500" />;
+      case 'CRITICAL': return <AlertTriangle className="w-5 h-5 text-rose-500" />;
+      case 'HIGH': return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+      case 'MEDIUM': return <AlertCircle className="w-5 h-5 text-indigo-500" />;
+      default: return <Info className="w-5 h-5 text-slate-500" />;
     }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return 'bg-rose-500/10 border-rose-500/30 text-rose-300';
-      case 'HIGH': return 'bg-amber-500/10 border-amber-500/30 text-amber-300';
-      case 'MEDIUM': return 'bg-indigo-500/10 border-indigo-500/30 text-indigo-300';
-      default: return 'bg-slate-500/10 border-slate-500/30 text-slate-300';
+      case 'CRITICAL': return 'bg-rose-500/5 border-rose-500/10 hover:border-rose-500/30';
+      case 'HIGH': return 'bg-amber-500/5 border-amber-500/10 hover:border-amber-500/30';
+      case 'MEDIUM': return 'bg-indigo-500/5 border-indigo-500/10 hover:border-indigo-500/30';
+      default: return 'bg-slate-500/5 border-slate-500/10 hover:border-slate-500/30';
     }
   };
 
@@ -117,151 +115,138 @@ export default function AlertsHistory() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-400">Loading alert history...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <div className="border-b border-white/5 bg-slate-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-4">
-              <Link href="/" className="text-slate-400 hover:text-white transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-              <h1 className="text-xl font-bold text-white">Alert History</h1>
+    <ForensicPageLayout
+        title="Alert Archives"
+        subtitle="Forensic Event Logs & Anomaly Records"
+        icon={AlertCircle}
+        headerActions={
+            <div className="flex gap-3">
+                 <button
+                    onClick={exportAlerts}
+                    className="flex items-center gap-2 px-6 py-2 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 rounded-xl hover:bg-indigo-600 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest"
+                >
+                    <Download className="w-4 h-4" />
+                    Export CSV
+                </button>
             </div>
-            
-            <div className="flex items-center gap-4">
-              <button
-                onClick={exportAlerts}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              >
-                <Download className="w-4 h-4" />
-                Export
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-              <input
-                type="text"
-                placeholder="Search alerts..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-white/10 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50"
-              />
-            </div>
-            
-            <select
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-              className="px-4 py-2 bg-slate-900 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500/50"
-            >
-              <option value="all">All Severities</option>
-              <option value="CRITICAL">Critical</option>
-              <option value="HIGH">High</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="LOW">Low</option>
-            </select>
-            
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 bg-slate-900 border border-white/10 rounded-lg text-white focus:outline-none focus:border-indigo-500/50"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="resolved">Resolved</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {/* Alerts List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {filteredAlerts.length === 0 ? (
-          <div className="text-center py-12">
-            <Info className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 mb-2">No alerts found</p>
-            <p className="text-slate-500 text-sm">
-              {alerts.length === 0 ? 'No alerts in history' : 'Try adjusting your filters'}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredAlerts.map((alert, index) => (
-              <motion.div
-                key={alert.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={`p-6 rounded-xl border ${getSeverityColor(alert.severity)} ${
-                  alert.resolved ? 'opacity-75' : ''
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    {getSeverityIcon(alert.severity)}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-xs font-black uppercase tracking-wider">
-                          {alert.severity}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {alert.type}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          {alert.timestamp}
-                        </span>
-                        {alert.resolved && (
-                          <span className="text-xs text-emerald-400 font-medium">
-                            ✓ Resolved
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-white mb-2">{alert.message}</p>
-                      
-                      {alert.resolved && (
-                        <div className="text-xs text-slate-500">
-                          Resolved by {alert.resolvedBy} at {alert.resolvedAt}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 ml-4">
-                    {alert.action && !alert.resolved && (
-                      <Link
-                        href={alert.action.route || '#'}
-                        className="px-3 py-1 bg-indigo-600 text-white rounded text-xs font-medium hover:bg-indigo-700 transition-colors"
-                      >
-                        {alert.action.label}
-                      </Link>
-                    )}
-                  </div>
+        }
+    >
+        <div className="flex flex-col h-full bg-slate-950 p-10 gap-8">
+            {/* Filter Bar */}
+            <div className="h-20 shrink-0 bg-slate-900/50 border border-white/5 rounded-[1.5rem] flex items-center px-8 gap-6 backdrop-blur-md">
+                <div className="flex-1 relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="SEARCH EVENT LOGS..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-black/20 border border-white/5 rounded-xl text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/30 transition-all uppercase tracking-wide"
+                    />
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                
+                <div className="h-8 w-px bg-white/10" />
+
+                <div className="flex items-center gap-4">
+                    <select
+                        aria-label="Filter by Severity"
+                        title="Filter by Severity"
+                        value={severityFilter}
+                        onChange={(e) => setSeverityFilter(e.target.value)}
+                        className="px-6 py-3 bg-black/20 border border-white/5 rounded-xl text-xs font-black text-slate-300 focus:outline-none focus:border-indigo-500/30 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors appearance-none"
+                    >
+                        <option value="all">Any Severity</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+
+                    <select
+                        aria-label="Filter by Status"
+                        title="Filter by Status"
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-6 py-3 bg-black/20 border border-white/5 rounded-xl text-xs font-black text-slate-300 focus:outline-none focus:border-indigo-500/30 uppercase tracking-widest cursor-pointer hover:bg-white/5 transition-colors appearance-none"
+                    >
+                        <option value="all">Any Status</option>
+                        <option value="active">Active</option>
+                        <option value="resolved">Resolved</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* List */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-900/30 border border-white/5 rounded-[2.5rem] p-8">
+                 {loading ? (
+                    <div className="h-full flex flex-col items-center justify-center">
+                        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mb-6" />
+                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Retrieving Logs...</p>
+                    </div>
+                 ) : filteredAlerts.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center opacity-30">
+                        <Info className="w-16 h-16 text-slate-500 mb-6" />
+                        <p className="text-sm font-black uppercase tracking-widest text-slate-400">No events match criteria</p>
+                    </div>
+                 ) : (
+                    <div className="space-y-4">
+                         {filteredAlerts.map((alert, index) => (
+                            <motion.div
+                                key={alert.id}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className={`p-6 rounded-2xl border transition-all ${getSeverityColor(alert.severity)} ${alert.resolved ? 'opacity-60 saturate-50' : ''}`}
+                            >
+                                <div className="flex items-start gap-6">
+                                    <div className={`p-4 rounded-xl bg-black/20 shadow-inner shrink-0`}>
+                                        {getSeverityIcon(alert.severity)}
+                                    </div>
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-4 mb-2">
+                                             <div className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded bg-black/20 ${
+                                                alert.severity === 'CRITICAL' ? 'text-rose-400' :
+                                                alert.severity === 'HIGH' ? 'text-amber-400' :
+                                                alert.severity === 'MEDIUM' ? 'text-indigo-400' : 'text-slate-400'
+                                             }`}>
+                                                {alert.severity}
+                                             </div>
+                                             <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+                                                <div className="w-1 h-1 bg-slate-600 rounded-full" />
+                                                {alert.type}
+                                             </div>
+                                             <div className="text-[10px] font-mono text-slate-600 flex items-center gap-2 ml-auto">
+                                                <Clock className="w-3 h-3" />
+                                                {alert.timestamp}
+                                             </div>
+                                        </div>
+                                        
+                                        <p className="text-sm font-bold text-white mb-3">{alert.message}</p>
+                                        
+                                        {alert.resolved && (
+                                            <div className="flex items-center gap-2 text-xs text-emerald-500 font-bold bg-emerald-500/10 px-3 py-1.5 rounded-lg w-fit">
+                                                <CheckCircle className="w-3 h-3" />
+                                                RESOLVED BY {alert.resolvedBy?.toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {alert.action && !alert.resolved && (
+                                        <div className="shrink-0 self-center">
+                                            <Link href={alert.action.route || '#'} className="px-6 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">
+                                                {alert.action.label}
+                                            </Link>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                         ))}
+                    </div>
+                 )}
+            </div>
+        </div>
+    </ForensicPageLayout>
   );
 }

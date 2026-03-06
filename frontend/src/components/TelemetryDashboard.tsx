@@ -123,7 +123,7 @@ function MetricCard({ icon: Icon, label, value, subValue, color }: MetricCardPro
         <div className="text-xs text-slate-400 uppercase tracking-wider">{label}</div>
         <div className={`text-sm font-bold ${color}`}>{value}</div>
       </div>
-      <div className="text-[10px] text-slate-500">{subValue}</div>
+      <div className="text-[11px] text-slate-500">{subValue}</div>
     </div>
   );
 }

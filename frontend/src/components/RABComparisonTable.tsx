@@ -25,7 +25,7 @@ const RABComparisonTable: React.FC<RABComparisonTableProps> = ({ items }) => {
           <TrendingUp className="w-5 h-5 text-indigo-400" />
           <h3 className="text-sm font-black text-white uppercase tracking-tighter">Budget vs. Reality Analysis</h3>
         </div>
-        <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 rounded-full text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-2">
+        <div className="px-3 py-1 bg-rose-500/10 border border-rose-500/20 rounded-full text-[11px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-2">
           <AlertTriangle className="w-3 h-3" />
           Markup Detected
         </div>
@@ -35,11 +35,11 @@ const RABComparisonTable: React.FC<RABComparisonTableProps> = ({ items }) => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-white/5">
-              <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Item Description</th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">RAB Unit</th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actual Unit</th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Volume Δ</th>
-              <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Markup %</th>
+              <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">Item Description</th>
+              <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">RAB Unit</th>
+              <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">Actual Unit</th>
+              <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">Volume Δ</th>
+              <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">Markup %</th>
             </tr>
           </thead>
           <tbody>
@@ -53,7 +53,7 @@ const RABComparisonTable: React.FC<RABComparisonTableProps> = ({ items }) => {
               >
                 <td className="px-6 py-4">
                   <p className="text-xs font-bold text-white mb-0.5">{item.item_name}</p>
-                  <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{item.category}</p>
+                  <p className="text-[11px] text-slate-500 uppercase font-black tracking-widest">{item.category}</p>
                 </td>
                 <td className="px-6 py-4 text-right">
                   <span className="text-xs font-mono text-slate-400">

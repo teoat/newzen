@@ -54,17 +54,34 @@ export default class ErrorBoundary extends Component<Props, State> {
               <div className="text-[8px] font-black text-rose-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                 <ShieldAlert className="w-3 h-3" /> Error
               </div>
-              <p className="text-[10px] font-mono text-rose-500/80 break-all leading-tight">
+              <p className="text-[11px] font-mono text-rose-500/80 break-all leading-tight">
                 {this.state.error?.message || "Unknown error"}
               </p>
             </div>
 
-            <button
-              onClick={() => window.location.reload()}
-              className="px-8 py-4 bg-white text-black font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-3 shadow-xl shadow-white/5 active:scale-95"
-            >
-              <RefreshCw className="w-4 h-4" /> Reload
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="px-8 py-4 bg-white text-black font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-3 shadow-xl shadow-white/5 active:scale-[0.98]"
+              >
+                <RefreshCw className="w-4 h-4" /> Reload
+              </button>
+              
+              <button
+                onClick={() => {
+                  const logContent = `ZENITH ERROR LOG\nTime: ${new Date().toISOString()}\nError: ${this.state.error?.message}\nStack: ${this.state.error?.stack}`;
+                  const blob = new Blob([logContent], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `zenith-blackbox-${Date.now()}.log`;
+                  a.click();
+                }}
+                className="px-8 py-4 bg-slate-800 text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl hover:bg-slate-700 transition-all flex items-center gap-3 active:scale-[0.98]"
+              >
+                Download Black Box Log
+              </button>
+            </div>
           </div>
         </div>
       );

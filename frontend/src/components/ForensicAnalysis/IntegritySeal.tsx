@@ -37,7 +37,7 @@ const IntegritySeal: React.FC<IntegritySealProps> = ({ hash, timestamp, verdictI
         </motion.div>
 
         <div className="space-y-1">
-            <h4 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Integrity Seal</h4>
+            <h4 className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Integrity Seal</h4>
             <div className="text-[8px] font-mono text-indigo-400/70 truncate w-32 mx-auto">
                 SHA-256_{hash.substring(0, 12)}...
             </div>

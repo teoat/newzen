@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "title": "Zenith | Platform Intelijen Forensik",
+    "description": "Analisis forensik AI canggih untuk investigasi keuangan"
+  },
+  "navigation": {
+    "warRoom": "Ruang Perang",
+    "investigate": "Investigasi",
+    "reconcile": "Rekonsiliasi",
+    "dataHospital": "Rumah Sakit Data",
+    "forensics": "Forensik",
+    "settings": "Pengaturan"
+  },
+  "common": {
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "retry": "Coba Lagi",
+    "cancel": "Batal",
+    "submit": "Kirim",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "create": "Buat",
+    "search": "Cari",
+    "filter": "Filter",
+    "close": "Tutup"
+  },
+  "project": {
+    "createTitle": "Operasi Audit Baru",
+    "createDescription": "Inisialisasi investigasi forensik baru",
+    "nameLabel": "Nama Proyek",
+    "namePlaceholder": "contoh: Audit Konstruksi Menara Skyrise",
+    "contractorLabel": "Nama Kontraktor",
+    "contractorPlaceholder": "contoh: PT Konstruksi Megah",
+    "valueLabel": "Nilai Kontrak (IDR)",
+    "startDateLabel": "Tanggal Mulai",
+    "endDateLabel": "Tanggal Selesai",
+    "locationLabel": "Lokasi",
+    "descriptionLabel": "Deskripsi",
+    "submitButton": "Buat Proyek",
+    "submitLoading": "Membuat..."
+  }
+}

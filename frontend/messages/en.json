@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "title": "Zenith | Forensic Intelligence Platform",
+    "description": "Advanced AI-powered forensic analysis for financial investigations"
+  },
+  "navigation": {
+    "warRoom": "War Room",
+    "investigate": "Investigate",
+    "reconcile": "Reconcile",
+    "dataHospital": "Data Hospital",
+    "forensics": "Forensics",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close"
+  },
+  "project": {
+    "createTitle": "New Audit Operation",
+    "createDescription": "Initialize a new forensic investigation",
+    "nameLabel": "Project Name",
+    "namePlaceholder": "e.g., Skyrise Tower Construction Audit",
+    "contractorLabel": "Contractor Name",
+    "contractorPlaceholder": "e.g., PT Konstruksi Megah",
+    "valueLabel": "Contract Value (IDR)",
+    "startDateLabel": "Start Date",
+    "endDateLabel": "End Date",
+    "locationLabel": "Location",
+    "descriptionLabel": "Description",
+    "submitButton": "Create Project",
+    "submitLoading": "Creating..."
+  }
+}

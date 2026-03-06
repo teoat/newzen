@@ -57,3 +57,22 @@ export interface FrenlyTab {
   icon: React.ComponentType<{ size?: number }>;
   badge?: number;
 }
+
+export interface GeoEntity {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  risk_score: number;
+  transaction_count: number;
+  total_volume: number;
+  city?: string;
+  item_name?: string;
+  target_coords?: [number, number];
+}
+
+export interface GeospatialAnomaly {
+  transaction_id: string;
+  site_gps: [number, number];
+  deviation_meters: number;
+}

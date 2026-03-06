@@ -4,38 +4,89 @@
  * for non-blocking high-volume data processing
  */
 
+export interface IngestionPayload {
+  text?: string;
+  chunkSize?: number;
+  file: File;
+  projectId: string;
+  options?: {
+    delimiter?: string;
+    encoding?: string;
+    hasHeader?: boolean;
+  };
+}
+
 export interface WorkerMessage {
   type: 'parse' | 'validate' | 'transform';
-  payload: any;
+  payload: IngestionPayload;
+}
+
+export interface ParsedRow {
+  [key: string]: string | number | boolean | null;
 }
 
 export interface WorkerResponse {
   type: 'progress' | 'complete' | 'error';
-  data?: any;
+  data?: {
+    rows: ParsedRow[];
+    headers: string[];
+    rowCount: number;
+  };
   error?: string;
   progress?: number;
 }
 
-// CSV Parser
+// Auto-detect delimiter from first line of CSV
+function detectDelimiter(firstLine: string): string {
+  // Count occurrences of common delimiters (outside quotes)
+  const delimiters = [',', ';', '\t', '|'];
+  const counts: Record<string, number> = {};
+  
+  let inQuotes = false;
+  for (const char of firstLine) {
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (!inQuotes && delimiters.includes(char)) {
+      counts[char] = (counts[char] || 0) + 1;
+    }
+  }
+  
+  // Return delimiter with highest count, default to comma
+  let maxDelimiter = ',';
+  let maxCount = 0;
+  for (const [delim, count] of Object.entries(counts)) {
+    if (count > maxCount) {
+      maxCount = count;
+      maxDelimiter = delim;
+    }
+  }
+  return maxDelimiter;
+}
+
+// Robust CSV Parser with auto-delimiter detection
 function parseCSV(text: string): string[][] {
-  const lines = text.split('\n');
+  const lines = text.split(/\r?\n/);
   const result: string[][] = [];
+  
+  if (lines.length === 0) return result;
+  
+  // Auto-detect delimiter from first non-empty line
+  const firstNonEmpty = lines.find(l => l.trim()) || '';
+  const delimiter = detectDelimiter(firstNonEmpty);
   
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Handle quoted fields with commas
     const fields: string[] = [];
     let currentField = '';
     let inQuotes = false;
     
     for (let j = 0; j < line.length; j++) {
       const char = line[j];
-      
       if (char === '"') {
         inQuotes = !inQuotes;
-      } else if (char === ',' && !inQuotes) {
+      } else if (char === delimiter && !inQuotes) {
         fields.push(currentField.trim());
         currentField = '';
       } else {
@@ -45,215 +96,83 @@ function parseCSV(text: string): string[][] {
     fields.push(currentField.trim());
     result.push(fields);
   }
-  
   return result;
 }
 
-// Data Validator
-function validateRow(row: string[], headers: string[]): {
-  valid: boolean;
-  errors: string[];
-} {
-  const errors: string[] = [];
-  
-  // Check for required fields
-  const requiredFields = ['date', 'description', 'amount'];
-  for (const field of requiredFields) {
-    const index = headers.findIndex(h => 
-      h.toLowerCase().includes(field.toLowerCase())
-    );
-    if (index === -1) {
-      errors.push(`Missing required column: ${field}`);
-      continue;
-    }
-    if (!row[index] || row[index].trim() === '') {
-      errors.push(`Empty ${field} field`);
-    }
-  }
-  
-  // Validate amount is numeric
-  const amountIndex = headers.findIndex(h => 
-    h.toLowerCase().includes('amount')
-  );
-  if (amountIndex !== -1 && row[amountIndex]) {
-    const amount = row[amountIndex].replace(/[,$]/g, '');
-    if (isNaN(parseFloat(amount))) {
-      errors.push(`Invalid amount: ${row[amountIndex]}`);
-    }
-  }
-  
-  return {
-    valid: errors.length === 0,
-    errors
-  };
-}
-
-// Transform row to transaction format
-function transformRow(row: string[], headers: string[]): any {
-  const transaction: any = {};
+// Transform row to a generic object using raw headers
+// ZENITH V3: No column limiting. We capture all fields even if they exceed header count.
+function transformToRaw(row: string[], headers: string[]): ParsedRow {
+  const data: ParsedRow = {};
   
   headers.forEach((header, index) => {
-    const key = header.toLowerCase().replace(/\s+/g, '_');
-    let value = row[index];
-    
-    // Parse amount
-    if (key.includes('amount') || key.includes('value')) {
-      value = value.replace(/[,$]/g, '');
-      transaction[key] = parseFloat(value) || 0;
-    }
-    // Parse date
-    else if (key.includes('date')) {
-      transaction[key] = new Date(value).toISOString();
-    }
-    // Regular field
-    else {
-      transaction[key] = value;
+    const value = row[index]?.trim() || '';
+    // Try to parse as number
+    if (value && !isNaN(Number(value))) {
+      data[header] = Number(value);
+    } else if (value.toLowerCase() === 'true') {
+      data[header] = true;
+    } else if (value.toLowerCase() === 'false') {
+      data[header] = false;
+    } else if (value === '') {
+      data[header] = null;
+    } else {
+      data[header] = value;
     }
   });
   
-  return transaction;
+  return data;
 }
 
-// Worker state management for cleanup
-let processingAbortController: AbortController | null = null;
-
-// Cleanup function
-function cleanup() {
-  if (processingAbortController) {
-    processingAbortController.abort();
-    processingAbortController = null;
-  }
-  // Clear any timers or intervals
-  // Close any open file handles or resources
-}
-
-// Handle cleanup on termination
-self.addEventListener('terminate', cleanup);
-self.addEventListener('close', cleanup);
-
-// Main message handler
 self.onmessage = (event: MessageEvent<WorkerMessage>) => {
   const { type, payload } = event.data;
   
-  // Cancel any ongoing processing
-  cleanup();
-  
-  // Create new abort controller for this operation
-  processingAbortController = new AbortController();
-  
   try {
     switch (type) {
-      case 'parse': {
-        const { text, chunkSize = 1000 } = payload;
+       case 'parse': {
+        const { text = '', chunkSize = 500 } = payload;
         const rows = parseCSV(text);
         
         if (rows.length === 0) {
-          self.postMessage({
-            type: 'error',
-            error: 'No data found in file'
-          } as WorkerResponse);
+          self.postMessage({ type: 'error', error: 'No data found in file' });
           return;
         }
         
         const headers = rows[0];
         const dataRows = rows.slice(1);
-        
-        // Process in chunks to allow progress updates
         const totalRows = dataRows.length;
-        let processed = 0;
-        const results: any[] = [];
-        const errors: any[] = [];
+        const results: ParsedRow[] = [];
         
         for (let i = 0; i < dataRows.length; i += chunkSize) {
           const chunk = dataRows.slice(i, i + chunkSize);
-          
-          chunk.forEach((row, index) => {
-            const rowNumber = i + index + 2; // +2 for header and 1-indexing
-            
-            // Validate
-            const validation = validateRow(row, headers);
-            if (!validation.valid) {
-              errors.push({
-                row: rowNumber,
-                errors: validation.errors
-              });
-            } else {
-              // Transform
-              const transaction = transformRow(row, headers);
-              transaction._rowNumber = rowNumber;
-              results.push(transaction);
-            }
+          chunk.forEach((row, idx) => {
+            const transaction = transformToRaw(row, headers);
+            transaction._rowNumber = i + idx + 2;
+            results.push(transaction);
           });
           
-          processed += chunk.length;
-          
-          // Send progress update
           self.postMessage({
             type: 'progress',
-            progress: Math.round((processed / totalRows) * 100)
-          } as WorkerResponse);
+            progress: Math.min(100, Math.round(((i + chunk.length) / totalRows) * 100))
+          });
         }
         
-        // Send final results
         self.postMessage({
           type: 'complete',
           data: {
             headers,
             transactions: results,
-            errors,
-            stats: {
-              totalRows: dataRows.length,
-              validRows: results.length,
-              invalidRows: errors.length
-            }
+            stats: { totalRows, validRows: results.length, invalidRows: 0 }
           }
-        } as WorkerResponse);
-        
+        });
         break;
       }
-      
-      case 'validate': {
-        const { rows, headers } = payload;
-        const validationResults = rows.map((row: string[], index: number) => ({
-          row: index + 1,
-          ...validateRow(row, headers)
-        }));
-        
-        self.postMessage({
-          type: 'complete',
-          data: validationResults
-        } as WorkerResponse);
-        
-        break;
-      }
-      
-      case 'transform': {
-        const { rows, headers, mapping } = payload;
-        const transformed = rows.map((row: string[]) => 
-          transformRow(row, mapping || headers)
-        );
-        
-        self.postMessage({
-          type: 'complete',
-          data: transformed
-        } as WorkerResponse);
-        
-        break;
-      }
-      
       default:
-        self.postMessage({
-          type: 'error',
-          error: `Unknown operation: ${type}`
-        } as WorkerResponse);
+        self.postMessage({ type: 'error', error: `Unknown op: ${type}` });
     }
   } catch (error) {
     self.postMessage({
       type: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    } as WorkerResponse);
+      error: error instanceof Error ? error.message : 'Worker Parse Crash'
+    });
   }
 };
-
-// Export types for use in main thread
-export {};

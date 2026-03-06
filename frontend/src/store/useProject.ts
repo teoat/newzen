@@ -13,11 +13,17 @@ interface ProjectState {
     activeProject: Project | null;
     projects: Project[];
     isLoading: boolean;
+    preferredCurrency: 'IDR' | 'USD';
+    budgetForecast: any | null;
     
     /** Sets the active project by ID */
     setActiveProject: (projectId: string | null) => void;
+    /** Sets preferred currency */
+    setPreferredCurrency: (currency: 'IDR' | 'USD') => void;
     /** Fetches all projects from the API */
     fetchProjects: () => Promise<void>;
+    /** Fetches budget forecast for active project */
+    fetchBudgetForecast: () => Promise<void>;
     /** Forensic Purge: Clears all cached state for security */
     purgeState: () => void;
 }
@@ -25,17 +31,6 @@ interface ProjectState {
 /**
  * useProject - Zustand store for managing project state
  * Handles project selection, fetching, and persistence
- * 
- * @example
- * ```tsx
- * const { projects, activeProject, fetchProjects, setActiveProject } = useProject()
- * 
- * // Fetch projects on mount
- * useEffect(() => { fetchProjects() }, [])
- * 
- * // Select a project
- * setActiveProject('project-123')
- * ```
  */
 export const useProject = create<ProjectState>()(
     persist(
@@ -44,15 +39,34 @@ export const useProject = create<ProjectState>()(
             activeProject: null,
             projects: [],
             isLoading: false,
+            preferredCurrency: 'IDR',
+            budgetForecast: null,
+            
+            setPreferredCurrency: (currency) => set({ preferredCurrency: currency }),
 
             setActiveProject: (projectId) => {
                 const project = get().projects.find(p => p.id === projectId) || null;
-                set({ activeProjectId: projectId, activeProject: project });
+                set({ activeProjectId: projectId, activeProject: project, budgetForecast: null });
+                if (projectId) {
+                    get().fetchBudgetForecast();
+                }
             },
 
             purgeState: () => {
-                set({ activeProjectId: null, activeProject: null, projects: [] });
+                set({ activeProjectId: null, activeProject: null, projects: [], preferredCurrency: 'IDR', budgetForecast: null });
                 localStorage.removeItem('zenith-project-storage');
+            },
+
+            fetchBudgetForecast: async () => {
+                const projectId = get().activeProjectId;
+                if (!projectId) return;
+                
+                try {
+                    const forecast = await ProjectService.getBudgetForecast(projectId);
+                    set({ budgetForecast: forecast });
+                } catch (err) {
+                    console.error("Failed to fetch budget forecast", err);
+                }
             },
 
             fetchProjects: async () => {
@@ -61,12 +75,7 @@ export const useProject = create<ProjectState>()(
                     const projects = await ProjectService.fetchProjects();
                     set({ projects });
                     
-                    // Auto-select disabled to enforce manual selection (Forensic Protocol)
-                    // if (!get().activeProjectId && projects.length > 0) {
-                    //     set({ activeProjectId: projects[0].id, activeProject: projects[0] });
-                    // } else
                     if (get().activeProjectId) {
-                        // Refresh active project object details
                         const current = projects.find((p) => p.id === get().activeProjectId);
                         if (current) set({ activeProject: current });
                     }

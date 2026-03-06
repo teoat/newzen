@@ -3,7 +3,7 @@
 import { Fragment, ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '../button/Button';
+import { Button } from '../button';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -83,7 +83,7 @@ export interface ConfirmModalProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  variant?: 'danger' | 'primary';
+  variant?: 'danger' | 'default';
 }
 
 export function ConfirmModal({
@@ -94,7 +94,7 @@ export function ConfirmModal({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  variant = 'primary',
+  variant = 'default',
 }: ConfirmModalProps) {
   return (
     <Modal
@@ -107,7 +107,7 @@ export function ConfirmModal({
             {cancelText}
           </Button>
           <Button
-            variant={variant === 'danger' ? 'destructive' : 'primary'}
+            variant={variant === 'danger' ? 'destructive' : 'default'}
             onClick={onConfirm}
           >
             {confirmText}

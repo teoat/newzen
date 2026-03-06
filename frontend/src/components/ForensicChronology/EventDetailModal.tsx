@@ -193,7 +193,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
             <div className="p-8 overflow-y-auto max-h-[calc(90vh-160px)] custom-scrollbar">
               {event.description && (
                 <div className="mb-8 p-6 bg-white/5 rounded-2xl border border-white/5">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Event Narrative</h3>
+                  <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">Event Narrative</h3>
                   <p className="text-slate-200 text-lg leading-relaxed font-medium">
                     {event.description}
                   </p>
@@ -205,7 +205,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
                   <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-3 h-3 text-indigo-400" />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Target Entity</span>
+                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Target Entity</span>
                     </div>
                     <p className="text-white font-bold text-lg">{event.entity}</p>
                   </div>
@@ -215,7 +215,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
                   <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                     <div className="flex items-center gap-2 mb-2">
                       <Tag className="w-3 h-3 text-emerald-400" />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Financial Impact</span>
+                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Financial Impact</span>
                     </div>
                     <p className="text-white font-bold text-lg">
                       {event.currency || 'IDR'} {event.amount.toLocaleString()}
@@ -226,7 +226,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
                 <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                   <div className="flex items-center gap-2 mb-2">
                     <Activity className="w-3 h-3 text-cyan-400" />
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sequence Type</span>
+                    <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Sequence Type</span>
                   </div>
                   <p className="text-white font-bold text-lg capitalize">{event.type.replace('_', ' ')}</p>
                 </div>
@@ -235,7 +235,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
                   <div className="bg-white/5 rounded-2xl p-5 border border-white/5">
                     <div className="flex items-center gap-2 mb-2">
                       <FileText className="w-3 h-3 text-amber-400" />
-                      <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Data Source</span>
+                      <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Data Source</span>
                     </div>
                     <p className="text-white font-bold text-lg">{event.source}</p>
                   </div>
@@ -244,7 +244,7 @@ const EventDetailModal: React.FC<EventDetailModalProps> = ({ event, onClose, isO
 
               {event.metadata && Object.keys(event.metadata).length > 0 && (
                 <div className="mt-8">
-                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Diagnostic Metadata</h3>
+                  <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4">Diagnostic Metadata</h3>
                   <div className="bg-black/40 rounded-2xl p-6 border border-white/5 font-mono text-xs">
                     <pre className="text-indigo-300 whitespace-pre-wrap">
                       {JSON.stringify(event.metadata, null, 2)}

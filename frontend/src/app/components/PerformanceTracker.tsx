@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import PerformanceMonitor from '../../lib/performance';
+import { logger } from '../../lib/logger';
 
 export default function PerformanceTracker() {
   useEffect(() => {
@@ -22,9 +23,10 @@ export default function PerformanceTracker() {
       return () => {
         monitor.stop();
         const report = monitor.generateReport();
-        console.log('Performance Report:', report);
+        logger.info('Performance Report:', { report });
       };
     }
+    return undefined;
   }, []);
 
   return null;

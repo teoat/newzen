@@ -7,7 +7,7 @@ import HolographicProjection from '../../../app/components/HolographicProjection
 import { HOLOGRAPHIC_SOURCE } from '../../../lib/holographicData';
 import { useProject } from '../../../store/useProject';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 interface FlowLink {
   source: string;
@@ -46,7 +46,7 @@ export default function FlowWorkspace() {
       <div className="px-8 pt-8 flex justify-end">
           <button 
               onClick={() => window.location.href = `${API_URL}/api/v1/forensic/export/excel?project_id=${activeProjectId}`}
-              className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 px-6 py-3 rounded-2xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 shadow-lg"
+              className="bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-500 border border-emerald-500/20 px-6 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 shadow-lg"
           >
               <Download className="w-4 h-4" /> Export Audit (.xlsx)
           </button>
@@ -76,25 +76,25 @@ export default function FlowWorkspace() {
                     <Landmark className="w-5 h-5 text-indigo-400" />
                     </div>
                     <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">High Velocity</span>
+                    <span className="text-[11px] font-black text-rose-500 uppercase tracking-widest">High Velocity</span>
                     <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-4 mb-6">
                     <div className="flex-1">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Source</p>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Source</p>
                     <p className="text-xs font-bold text-white truncate">{link.source}</p>
                     </div>
                     <ArrowRight className="w-4 h-4 text-slate-700 group-hover:text-indigo-500 transition-colors" />
                     <div className="flex-1 text-right">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Destination</p>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-1">Destination</p>
                     <p className="text-xs font-bold text-white truncate">{link.target}</p>
                     </div>
                 </div>
                 
                 <div className="pt-6 border-t border-white/5 flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantum Transferred</span>
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Quantum Transferred</span>
                     <span className="text-lg font-black text-indigo-400">Rp {(link.value / 1000000).toFixed(1)}M</span>
                 </div>
             </motion.div>

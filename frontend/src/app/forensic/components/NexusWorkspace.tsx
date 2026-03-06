@@ -2,13 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, User, Building, Landmark, AlertTriangle, Shield, Zap, RefreshCw } from 'lucide-react';
+import { Search, User, Building, Landmark, AlertTriangle, Shield, RefreshCw, FileText, Link as LinkIcon } from 'lucide-react';
 import { HOLOGRAPHIC_SOURCE } from '../../../lib/holographicData';
 import { useProject } from '../../../store/useProject';
 import { useHubStore } from '../../../store/useHubStore';
+import { API_URL } from '../../../lib/constants';
 import HolographicBadge from '../../../app/components/HolographicBadge';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8200';
 
 type Node = {
   id: string;
@@ -113,12 +112,12 @@ export default function NexusWorkspace() {
               <>
                 <div className="absolute inset-0 bg-indigo-600/10" style={{ width: `${sweepProgress}%` }} />
                 <div className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin z-10" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 z-10">Checking ({sweepProgress}%)</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-indigo-400 z-10">Checking ({sweepProgress}%)</span>
               </>
             ) : (
               <>
                 <Shield className="w-3 h-3 text-emerald-500" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Sanction Sweep</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Sanction Sweep</span>
               </>
             )}
           </button>
@@ -127,7 +126,7 @@ export default function NexusWorkspace() {
             className="bg-slate-900 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-2 hover:bg-white/5 transition-all shadow-lg"
           >
             <RefreshCw className="w-3 h-3 text-indigo-400" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Update Logic</span>
+            <span className="text-[11px] font-black uppercase tracking-widest text-indigo-400">Update Logic</span>
           </button>
         </div>
       </div>
@@ -156,19 +155,19 @@ export default function NexusWorkspace() {
                   </marker>
                </defs>
                 {(nodes.length > 0 ? links : HOLOGRAPHIC_SOURCE.nexus.links).map((link, i) => {
-                  const source = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.source);
-                  const target = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.target);
-                  if (!source || !target) return null;
+                  const sourceNodeObj = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.source);
+                  const targetNodeObj = (nodes.length > 0 ? nodes : HOLOGRAPHIC_SOURCE.nexus.nodes).find(n => n.id === link.target);
+                  if (!sourceNodeObj || !targetNodeObj) return null;
                   
-                  const midX = (source.x + target.x) / 2;
-                  const midY = (source.y + target.y) / 2;
+                  const midX = (sourceNodeObj.x + targetNodeObj.x) / 2;
+                  const midY = (sourceNodeObj.y + targetNodeObj.y) / 2;
 
                   return (
                     <g key={i} className="group/link">
                       <motion.line 
                          initial={{ pathLength: 0, opacity: 0 }}
                          animate={{ pathLength: 1, opacity: 0.4 }}
-                         x1={source.x + '%'} y1={source.y + '%'} x2={target.x + '%'} y2={target.y + '%'} 
+                         x1={sourceNodeObj.x + '%'} y1={sourceNodeObj.y + '%'} x2={targetNodeObj.x + '%'} y2={targetNodeObj.y + '%'} 
                          stroke={link.type === 'Funneling' ? '#f43f5e' : '#6366f1'} 
                          strokeWidth={link.type === 'Funneling' ? 4 : 2} 
                          strokeDasharray={link.type === 'Funneling' ? "8,4" : "0"}
@@ -208,7 +207,7 @@ export default function NexusWorkspace() {
                    }}
                  >
                     <Icon className={`w-6 h-6 ${node.risk > 0.8 ? 'text-rose-400' : 'text-white'}`} />
-                    <div className={`absolute top-16 whitespace-nowrap bg-slate-900/90 border border-white/5 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${isSelected ? 'text-indigo-400 border-indigo-500/50' : 'text-slate-400 group-hover:text-white transition-colors'}`}>
+                    <div className={`absolute top-16 whitespace-nowrap bg-slate-900/90 border border-white/5 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${isSelected ? 'text-indigo-400 border-indigo-500/50' : 'text-slate-400 group-hover:text-white transition-colors'}`}>
                       {node.label}
                     </div>
                     {node.risk > 0.8 && (
@@ -222,10 +221,10 @@ export default function NexusWorkspace() {
          </div>
 
          <div className="absolute bottom-8 left-8 flex flex-col gap-2 bg-black/40 backdrop-blur-xl p-4 rounded-2xl border border-white/5">
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 <div className="w-3 h-3 bg-indigo-600 rounded-lg" /> Project Root
             </div>
-            <div className="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-widest">
                 <div className="w-3 h-3 bg-rose-500/50 border border-rose-500 rounded-lg" /> High Risk Entity
             </div>
          </div>
@@ -244,7 +243,7 @@ export default function NexusWorkspace() {
                    </div>
                    <div>
                       <h3 className="font-black text-white text-lg uppercase tracking-tighter leading-none">{selectedNode.label}</h3>
-                      <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-1 font-bold">{selectedNode.type} Intel</p>
+                      <p className="text-[11px] text-slate-500 uppercase tracking-widest mt-1 font-bold">{selectedNode.type} Intel</p>
                    </div>
                 </div>
                 <button 
@@ -261,18 +260,35 @@ export default function NexusWorkspace() {
              <div className="space-y-6">
                 <div className="p-5 bg-white/[0.03] rounded-2xl border border-white/5">
                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest">Risk Score</span>
+                      <span className="text-[11px] font-black uppercase text-slate-500 tracking-widest">Risk Score</span>
                       <span className={`text-xl font-black font-mono ${selectedNode.risk > 0.8 ? 'text-rose-500' : 'text-emerald-500'}`}>
                          {(selectedNode.risk * 100).toFixed(0)}%
                        </span>
                    </div>
-                   <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: `${selectedNode.risk * 100}%` }} className={`h-full ${selectedNode.risk > 0.8 ? 'bg-rose-500' : 'bg-emerald-500'}`} />
-                   </div>
-                </div>
-                
-                <div className="flex gap-4">
-                    <button className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+                    <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                       <motion.div initial={{ width: 0 }} animate={{ width: `${selectedNode.risk * 100}%` }} className={`h-full ${selectedNode.risk > 0.8 ? 'bg-rose-500' : 'bg-emerald-500'}`} />
+                    </div>
+                 </div>
+
+                 <div className="space-y-3">
+                    <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                        <LinkIcon size={12} className="text-indigo-400" /> AI-Linked Evidence
+                    </h4>
+                    <div className="p-4 bg-white/[0.03] rounded-2xl border border-white/5 space-y-3">
+                        <div className="flex items-center gap-3 group cursor-pointer hover:bg-white/5 p-2 rounded-xl transition-all">
+                            <div className="p-2 bg-indigo-500/20 rounded-lg">
+                                <FileText size={14} className="text-indigo-400" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[11px] font-bold text-white truncate">Contract_Exhibit_A.pdf</p>
+                                <p className="text-[8px] text-slate-500 uppercase font-black">Matched via NER</p>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+                 
+                 <div className="flex gap-4">
+                    <button className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all">
                       Deep Trace
                     </button>
                     <button className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/5" aria-label="Search Entity">

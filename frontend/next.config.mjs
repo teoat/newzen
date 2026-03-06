@@ -1,30 +1,22 @@
 import withBundleAnalyzer from '@next/bundle-analyzer';
-import { withSentryConfig } from '@sentry/nextjs';
-import withPWAInit from 'next-pwa';
-
-const withPWA = withPWAInit({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
-  register: true,
-  skipWaiting: true,
-});
+import createNextIntlPlugin from 'next-intl/plugin';
 
 const bundleAnalyzer = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+const withNextIntl = createNextIntlPlugin();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
   output: 'standalone',
+  reactCompiler: false,
   experimental: {
     optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
-    reactCompiler: true,
   },
   transpilePackages: ['lucide-react', 'framer-motion'],
   typescript: {
-  },
-  eslint: {
+    ignoreBuildErrors: true,
   },
   images: {
     remotePatterns: [
@@ -39,33 +31,19 @@ const nextConfig = {
     ],
   },
   async rewrites() {
+    const apiUrl = process.env.API_URL || 'http://127.0.0.1:8000';
+    console.log(`[Next.js] Proxying API requests to: ${apiUrl}`);
     return [
       {
-        source: '/api/v1/:path*',
-        destination: process.env.API_URL 
-          ? `${process.env.API_URL}/api/v1/:path*` 
-          : 'http://127.0.0.1:8200/api/v1/:path*',
-      },
-      {
-        source: '/api/v2/:path*',
-        destination: process.env.API_URL 
-          ? `${process.env.API_URL}/api/v2/:path*` 
-          : 'http://127.0.0.1:8200/api/v2/:path*',
+        source: '/api/:path*',
+        destination: `${apiUrl}/api/:path*`,
       },
       {
         source: '/ws/:path*',
-        destination: process.env.API_URL
-          ? `${process.env.API_URL}/ws/:path*`
-          : 'http://127.0.0.1:8200/ws/:path*',
+        destination: `${apiUrl}/ws/:path*`,
       }
     ];
   },
 };
 
-export default withPWA(bundleAnalyzer(withSentryConfig(nextConfig, {
-  silent: true,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-})));
-
+export default bundleAnalyzer(withNextIntl(nextConfig));

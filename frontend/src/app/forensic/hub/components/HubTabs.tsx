@@ -4,7 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, GitBranch, Microscope, Network, Satellite,
-  Maximize2, Minimize2, Info, Columns
+  Maximize2, Minimize2, Info, Columns, Building2
 } from 'lucide-react';
 import { useHubStore, HubTab } from '../../../../store/useHubStore';
 import { startForensicTransition } from '../../../../lib/transitions';
@@ -16,6 +16,7 @@ const TABS = [
   { id: 'lab' as const, label: 'Lab', icon: Microscope, color: 'purple' },
   { id: 'nexus' as const, label: 'Nexus', icon: Network, color: 'emerald' },
   { id: 'satellite' as const, label: 'Satellite', icon: Satellite, color: 'amber' },
+  { id: 'architect' as const, label: 'Architect', icon: Building2, color: 'rose' },
 ];
 
 const colorMap = {
@@ -24,6 +25,7 @@ const colorMap = {
   purple: 'border-purple-500 bg-purple-500/10 text-purple-400',
   emerald: 'border-emerald-500 bg-emerald-500/10 text-emerald-400',
   amber: 'border-amber-500 bg-amber-500/10 text-amber-400',
+  rose: 'border-rose-500 bg-rose-500/10 text-rose-400',
 };
 
 export function HubTabs() {
@@ -121,7 +123,7 @@ export function HubTabs() {
           {comparisonMode && (
             <div className="relative group">
               <button className="px-3 py-2 rounded-lg border border-white/10 text-slate-400 font-bold text-xs uppercase tracking-wider flex items-center gap-2 hover:bg-white/5">
-                 <span className="text-[9px] text-slate-500">Right:</span>
+                 <span className="text-[11px] text-slate-500">Right:</span>
                  {TABS.find(t => t.id === secondaryTab)?.label || 'Select'}
               </button>
               
@@ -153,7 +155,7 @@ export function HubTabs() {
             </button>
             <div className="absolute top-full right-0 mt-2 w-48 bg-slate-900 border border-white/10 rounded-xl shadow-xl overflow-hidden hidden group-hover:block p-1 z-50">
               <div className="px-3 py-2 border-b border-white/5 bg-white/5">
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Recently Viewed</span>
+                <span className="text-[11px] font-black uppercase tracking-widest text-slate-500">Recently Viewed</span>
               </div>
               {tabHistory.map((tabId) => {
                 const tabData = TABS.find(t => t.id === tabId);
